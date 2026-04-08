@@ -1,4 +1,4 @@
-package com.shiro.cosnima.dto;
+package com.shiro.cosnima.dto.response;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;

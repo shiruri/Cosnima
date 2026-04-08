@@ -1,10 +1,9 @@
 package com.shiro.cosnima.controller;
 
-import com.shiro.cosnima.dto.UserLoginDto;
-import com.shiro.cosnima.model.AuthResult;
+import com.shiro.cosnima.dto.request.UserLoginDto;
+import com.shiro.cosnima.dto.response.AuthResult;
 import com.shiro.cosnima.model.User;
 import com.shiro.cosnima.service.AuthService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

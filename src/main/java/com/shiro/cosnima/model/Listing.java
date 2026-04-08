@@ -1,0 +1,164 @@
+package com.shiro.cosnima.model;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Entity
+@Table(name = "listings")
+public class Listing {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // ===== RELATIONSHIPS =====
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seller_id", nullable = false)
+    private User seller;
+
+    @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Image> images;
+
+    // ===== FIELDS =====
+    @NotBlank
+    @Size(max = 200)
+    @Column(nullable = false)
+    private String title;
+
+    @Lob
+    private String description;
+
+    @NotNull
+    @DecimalMin(value = "0.01")
+    @Column(nullable = false)
+    private BigDecimal price;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Type type;
+
+    @Enumerated(EnumType.STRING)
+    private Condition condition;
+
+    @Size(max = 50)
+    private String size;
+
+    @Size(max = 100)
+    private String characterName;
+
+    @Size(max = 100)
+    private String seriesName;
+
+    @Size(max = 200)
+    private String location;
+
+    @NotNull
+    @Column(nullable = false)
+    private Boolean conventionPickup = false;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Status status = Status.AVAILABLE;
+
+    @NotNull
+    @Column(nullable = false)
+    private Boolean isActive = true;
+
+    @NotNull
+    @Column(nullable = false)
+    private Integer viewCount = 0;
+
+    private LocalDateTime expiresAt;
+
+    @NotNull
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @NotNull
+    @Column(nullable = false)
+    private LocalDateTime updatedAt = LocalDateTime.now();
+
+    // ===== ENUMS =====
+    public enum Type {
+        SELL,
+        RENT
+    }
+
+    public enum Condition {
+        NEW,
+        LIKE_NEW,
+        USED,
+        WORN
+    }
+
+    public enum Status {
+        AVAILABLE,
+        SOLD,
+        RENTED,
+        ARCHIVED
+    }
+
+    // ===== GETTERS & SETTERS =====
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public User getSeller() { return seller; }
+    public void setSeller(User seller) { this.seller = seller; }
+
+    public List<Image> getImages() { return images; }
+    public void setImages(List<Image> images) { this.images = images; }
+
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
+
+    public Type getType() { return type; }
+    public void setType(Type type) { this.type = type; }
+
+    public Condition getCondition() { return condition; }
+    public void setCondition(Condition condition) { this.condition = condition; }
+
+    public String getSize() { return size; }
+    public void setSize(String size) { this.size = size; }
+
+    public String getCharacterName() { return characterName; }
+    public void setCharacterName(String characterName) { this.characterName = characterName; }
+
+    public String getSeriesName() { return seriesName; }
+    public void setSeriesName(String seriesName) { this.seriesName = seriesName; }
+
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+
+    public Boolean getConventionPickup() { return conventionPickup; }
+    public void setConventionPickup(Boolean conventionPickup) { this.conventionPickup = conventionPickup; }
+
+    public Status getStatus() { return status; }
+    public void setStatus(Status status) { this.status = status; }
+
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean active) { isActive = active; }
+
+    public Integer getViewCount() { return viewCount; }
+    public void setViewCount(Integer viewCount) { this.viewCount = viewCount; }
+
+    public LocalDateTime getExpiresAt() { return expiresAt; }
+    public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+}

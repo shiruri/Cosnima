@@ -1,116 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cosnima — Profile</title>
-   <link rel="stylesheet" href="../css/variables.css">
-<link rel="stylesheet" href="../css/global.css">
-<link rel="stylesheet" href="../css/home.css">
-    <style>
-   .profile-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: var(--space-lg);
-  padding-top: var(--space-3xl);
-}
-
-.profile-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-md);
-}
-
-.profile-avatar img {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  border: 3px solid var(--border);
-  object-fit: cover;
-}
-
-.profile-info h1 {
-  font-family: var(--font-display);
-  font-size: 2rem;
-  margin: 0;
-  color: var(--ink);
-}
-
-.profile-info p {
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  color: var(--ink-muted);
-  max-width: 500px;
-}
-
-.profile-stats {
-  display: flex;
-  gap: var(--space-xl);
-  margin-top: var(--space-md);
-}
-
-.profile-stat {
-  text-align: center;
-}
-
-.profile-stat-num {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  color: var(--ink);
-}
-
-.profile-stat-label {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-
-.section-title {
-  font-family: var(--font-display);
-  font-size: 1.8rem;
-  margin-bottom: var(--space-lg);
-  color: var(--ink);
-}
-
-    </style>
-    <script>
-        (function(){
-            var t = localStorage.getItem('cosnimaTheme') || 'light';
-            document.documentElement.setAttribute('data-theme', t);
-        })();
-    </script>
-</head>
-<body>
-
-<!-- Navbar (reuse from homepage) -->
-<nav class="navbar">
-    <div class="nav-inner">
-        <a href="./index.html" class="nav-logo"><span class="nav-logo-star">✦</span><span class="nav-logo-name">COSNIMA</span><span class="nav-logo-star">✦</span></a>
-        <div class="nav-links">
-            <a href="#listings">Browse</a>
-            <a href="#">Sell / Rent</a>
-            <a href="#">Conventions</a>
-            <a href="#">Community</a>
-        </div>
-        <div class="nav-actions">
-            <button class="theme-toggle" id="theme-toggle"></button>
-        </div>
-    </div>
-</nav>
-<!DOCTYPE html>
-<html lang="en">
-<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cosnima — Profile</title>
-  <link rel="stylesheet" href="css/variables.css">
-  <link rel="stylesheet" href="css/global.css">
-  <link rel="stylesheet" href="css/profile.css">
+  <title>Profile — Cosnima</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/home.css">
+  <link rel="stylesheet" href="../css/profile.css">
   <script>
-    // Load theme
     (function(){
       var t = localStorage.getItem('cosnimaTheme') || 'light';
       document.documentElement.setAttribute('data-theme', t);
@@ -122,20 +20,60 @@
 <!-- Navbar -->
 <nav class="navbar">
   <div class="nav-inner">
-    <a href="./index.html" class="nav-logo">
-      <span class="nav-logo-star">✦</span>
+    <a href="../index.html" class="nav-logo">
+      <span class="nav-logo-star"></span>
       <span class="nav-logo-name">COSNIMA</span>
-      <span class="nav-logo-star">✦</span>
+      <span class="nav-logo-star"></span>
     </a>
+
+    <div class="nav-links">
+      <a href="../index.html#listings">Browse</a>
+      <a href="#">Sell / Rent</a>
+      <a href="#">Conventions</a>
+      <a href="#">Community</a>
+    </div>
+
+    <div class="nav-right">
+      <button class="theme-btn" id="theme-btn" aria-label="Toggle dark mode">
+        <svg class="icon-moon icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+        </svg>
+        <svg class="icon-sun icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <circle cx="12" cy="12" r="5"/>
+          <path stroke-linecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42 M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+      </button>
+
+      <div id="nav-auth"></div>
+      
+      <button class="nav-hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
   </div>
 </nav>
+
+<!-- Mobile nav -->
+<div class="mobile-nav" id="mobile-nav">
+  <nav class="mobile-nav-links">
+    <a href="../index.html#listings">Browse</a>
+    <a href="#">Sell / Rent</a>
+    <a href="#">Conventions</a>
+    <a href="#">Community</a>
+  </nav>
+  <div class="mobile-nav-actions" id="mobile-auth"></div>
+</div>
 
 <!-- Profile Hero -->
 <section class="profile-hero section">
   <div class="container profile-inner">
 
     <div class="profile-header">
-      <div class="profile-avatar" id="profile-avatar"></div>
+      <div class="profile-avatar" id="profile-avatar">
+        <div class="profile-avatar-placeholder">?</div>
+      </div>
       <div class="profile-info">
         <h1 id="profile-username">Loading...</h1>
         <p id="profile-bio">Loading bio...</p>
@@ -152,40 +90,104 @@
         <span class="profile-stat-label">Followers</span>
       </div>
       <div class="profile-stat">
-        <span class="profile-stat-num" id="stat-rating">0 ✦</span>
+        <span class="profile-stat-num" id="stat-rating">5.0</span>
         <span class="profile-stat-label">Rating</span>
+      </div>
+    </div>
+
+    <div class="profile-actions">
+      <button class="btn btn-primary" id="settings-btn">Edit Profile</button>
+      <button class="btn btn-outline">Share Profile</button>
+    </div>
+  </div>
+</section>
+
+<!-- Profile Tabs -->
+<section class="section">
+  <div class="container">
+    <div class="profile-tabs">
+      <button class="profile-tab active" data-tab="listings" onclick="switchTab('listings')">Listings</button>
+      <button class="profile-tab" data-tab="reviews" onclick="switchTab('reviews')">Reviews</button>
+      <button class="profile-tab" data-tab="wishlist" onclick="switchTab('wishlist')">Wishlist</button>
+    </div>
+
+    <!-- Listings Tab -->
+    <div class="tab-content active" id="listings-content">
+      <div class="listings-grid" id="profile-listings">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- Reviews Tab -->
+    <div class="tab-content" id="reviews-content" style="display:none;">
+      <div class="empty-state">
+        <div class="empty-state-icon">⭐</div>
+        <h3>No reviews yet</h3>
+        <p>Complete transactions to receive reviews from the community.</p>
+      </div>
+    </div>
+
+    <!-- Wishlist Tab -->
+    <div class="tab-content" id="wishlist-content" style="display:none;">
+      <div class="empty-state">
+        <div class="empty-state-icon">♡</div>
+        <h3>No wishlist items</h3>
+        <p>Start saving items you're interested in!</p>
+        <a href="../index.html#listings" class="btn btn-primary">Browse listings</a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- User Listings -->
-<section class="section">
+<!-- Settings Panel (Sidebar) -->
+<div class="profile-settings-panel" id="settings-panel">
+  <div class="settings-panel-header">
+    <h2>Settings</h2>
+    <button class="panel-close-btn" aria-label="Close">
+      <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="settings-section">
+    <h3>Profile Settings</h3>
+    <form class="auth-form">
+      <div class="field-group">
+        <input type="text" id="edit-username" placeholder=" ">
+        <label for="edit-username">Username</label>
+      </div>
+      <div class="field-group">
+        <input type="email" id="edit-email" placeholder=" ">
+        <label for="edit-email">Email</label>
+      </div>
+      <div class="field-group">
+        <input type="text" id="edit-bio" placeholder=" ">
+        <label for="edit-bio">Bio</label>
+      </div>
+      <button type="submit" class="btn btn-primary btn-auth">Save Changes</button>
+    </form>
+  </div>
+</div>
+
+<!-- Settings Overlay -->
+<div class="settings-overlay"></div>
+
+<!-- Footer -->
+<footer class="footer">
   <div class="container">
-    <h2 class="section-title">My Listings</h2>
-    <div class="listings-grid" id="profile-listings">
-      <!-- JS will insert listings here -->
+    <div class="footer-bottom">
+      <p>&copy; 2025 Cosnima. All rights reserved.</p>
+      <div class="footer-bottom-links">
+        <a href="#">Terms</a>
+        <a href="#">Privacy</a>
+      </div>
     </div>
   </div>
-</section>
-
-<script src="js/profile.js"></script>
-</body>
-</html>
-
-<!-- Footer (reuse homepage) -->
-<footer class="footer container">
-    <p>© 2026 Cosnima</p>
 </footer>
 
-<script>
-    const themeBtn = document.getElementById('theme-toggle');
-    themeBtn.addEventListener('click', () => {
-        const current = document.documentElement.getAttribute('data-theme');
-        const next = current === 'light' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('cosnimaTheme', next);
-    });
-</script>
+<script src="../js/api.js"></script>
+<script src="../js/home.js"></script>
+<script src="../js/profile.js"></script>
 </body>
 </html>

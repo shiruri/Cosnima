@@ -1,5 +1,5 @@
 /* ============================================
-   COSNIMA — Homepage JS
+   COSNIMA — Homepage JS (Improved)
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedTheme = localStorage.getItem('cosnimaTheme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
 
-  const themeToggle = document.getElementById('theme-toggle');
+  // FIX: Use correct ID for theme toggle
+  const themeToggle = document.getElementById('theme-btn');
   if (themeToggle) {
     themeToggle.addEventListener('click', () => {
       const current = document.documentElement.getAttribute('data-theme');
@@ -28,26 +29,72 @@ document.addEventListener('DOMContentLoaded', () => {
     onScroll();
   }
 
+  // ── Mobile Hamburger Menu ────────────────────────
+  const hamburger = document.getElementById('hamburger');
+  const mobileNav = document.getElementById('mobile-nav');
+  let mobileOverlay = document.querySelector('.mobile-overlay');
+  
+  // Create overlay if it doesn't exist
+  if (!mobileOverlay && mobileNav) {
+    mobileOverlay = document.createElement('div');
+    mobileOverlay.className = 'mobile-overlay';
+    document.body.appendChild(mobileOverlay);
+  }
+
+  if (hamburger && mobileNav) {
+    const toggleMenu = () => {
+      const isOpen = hamburger.getAttribute('aria-expanded') === 'true';
+      hamburger.setAttribute('aria-expanded', !isOpen);
+      mobileNav.classList.toggle('open');
+      if (mobileOverlay) {
+        mobileOverlay.classList.toggle('active');
+      }
+      // Prevent body scroll when menu is open
+      document.body.style.overflow = isOpen ? '' : 'hidden';
+    };
+
+    hamburger.addEventListener('click', toggleMenu);
+    
+    if (mobileOverlay) {
+      mobileOverlay.addEventListener('click', toggleMenu);
+    }
+
+    // Close menu on link click
+    mobileNav.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        if (mobileNav.classList.contains('open')) {
+          toggleMenu();
+        }
+      });
+    });
+  }
+
   // ── Auth nav state ───────────────────────────────
   const navAuth = document.getElementById('nav-auth');
-  if (navAuth) {
+  const mobileAuth = document.getElementById('mobile-auth');
+  
+  const renderAuthButtons = (container) => {
+    if (!container) return;
+    
     if (API.isLoggedIn()) {
       const user = API.getUser();
-      navAuth.innerHTML = `
-        <span style="font-size:0.85rem;color:var(--ink-muted);">
+      container.innerHTML = `
+        <a href = "/profile.html"><span style="font-size:0.85rem;color:var(--ink-muted);">
           Hi, <strong style="color:var(--ink)">${user?.username || 'Cosplayer'}</strong>
         </span>
+        </a>
         <button class="btn btn-outline btn-nav" onclick="logout()">Log out</button>
       `;
     } else {
-     navAuth.innerHTML = `
-  <a href="login/login.html" class="btn btn-outline btn-nav">Log in</a>
-  <a href="signup/register.html" class="btn btn-primary btn-nav">Register</a>
-`;
+      container.innerHTML = `
+        <a href="/login.html" class="btn btn-outline btn-nav">Log in</a>
+        <a href="/register.html" class="btn btn-primary btn-nav">Register</a>
+      `;
+    }
+  };
 
-
-    } 
-  }
+  renderAuthButtons(navAuth);
+  renderAuthButtons(mobileAuth);
 
   // ── Scroll reveals ───────────────────────────────
   const revealEls = document.querySelectorAll('.reveal, .stagger');
@@ -59,10 +106,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }, { threshold: 0.12 });
+  
   revealEls.forEach(el => observer.observe(el));
 
   // ── Series pills ─────────────────────────────────
-  const pills = document.querySelectorAll('.series-pill');
+  const pills = document.querySelectorAll('.pill');
   pills.forEach(pill => {
     pill.addEventListener('click', () => {
       pills.forEach(p => p.classList.remove('active'));
@@ -72,45 +120,50 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── Wishlist heart toggle (visual only for now) ──
-  document.querySelectorAll('.wishlist-btn').forEach(btn => {
+  document.querySelectorAll('.card-wish').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       if (!API.isLoggedIn()) {
-        window.location.href = 'login.html';
+        window.location.href = '/login.html';
         return;
       }
       btn.classList.toggle('active');
-      btn.textContent = btn.classList.contains('active') ? '♥' : '♡';
-      btn.style.color = btn.classList.contains('active') ? 'var(--error)' : '';
+      // Visual feedback only - backend integration needed
     });
   });
 
-  // ── Smooth page link transitions ─────────────────
+  // ── Smooth page transitions ──────────────────────
   document.querySelectorAll('a[href]:not([href^="#"]):not([target])').forEach(link => {
     link.addEventListener('click', (e) => {
       const href = link.getAttribute('href');
-      if (!href || href.startsWith('http') || href.startsWith('mailto')) return;
+      // Skip external links and special protocols
+      if (!href || href.startsWith('http') || href.startsWith('mailto') || href.startsWith('javascript:')) {
+        return;
+      }
       e.preventDefault();
       document.body.classList.add('fade-out');
-      setTimeout(() => { window.location.href = href; }, 260);
+      setTimeout(() => { 
+        window.location.href = href; 
+      }, 260);
     });
   });
 });
 
+// ── Logout Function ──────────────────────────────
 async function logout() {
   try {
     // Attempt server logout
     await API.post('/api/auth/logout', {}, true);
   } catch (err) {
-    console.warn('Server session clear failed, proceeding with local logout.');
+    console.warn('Server logout failed, clearing local session:', err);
   } finally {
-    // 1. Clear local storage
+    // Clear local storage
     API.clearSession();
     
-    // 2. Use standard redirect since redirectTo is missing in this file
-    document.body.classList.add('fade-out'); // Optional if you have the CSS
+    // Redirect with fade effect
+    document.body.classList.add('fade-out');
     setTimeout(() => { 
-      window.location.href = 'login/login.html'; 
+      window.location.href = '/login.html'; 
     }, 280);
   }
 }
