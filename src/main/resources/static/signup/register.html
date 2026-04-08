@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account — Cosnima</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <script>
+    (function() {
+      const t = localStorage.getItem('cosnimaTheme') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+</head>
+<body>
+
+<div class="auth-wrapper">
+
+  <!-- ═══ Left Brand Panel ═══ -->
+  <aside class="auth-panel">
+
+    <div class="sparkles" aria-hidden="true">
+      <span>✦</span><span>✦</span><span>✦</span><span>✦</span><span>✦</span>
+      <span>✦</span><span>✦</span><span>✦</span><span>✦</span><span>✦</span>
+    </div>
+
+    <div class="panel-inner">
+      <div class="brand">
+        <span class="brand-mark">✦</span>
+        <span class="brand-name">COSNIMA</span>
+        <span class="brand-mark">✦</span>
+      </div>
+
+      <p class="panel-tagline">
+        Join the<br><em>cosplay community.</em>
+      </p>
+
+      <div class="panel-features">
+        <div class="panel-feature">Free to join &amp; list your items</div>
+        <div class="panel-feature">Connect with cosplayers nationwide</div>
+        <div class="panel-feature">Buy, sell &amp; rent with confidence</div>
+        <div class="panel-feature">Meet up at local conventions</div>
+      </div>
+    </div>
+
+    <div class="panel-bottom">
+      <a href="index.html">← Back to homepage</a>
+    </div>
+  </aside>
+
+  <!-- ═══ Right Form Side ═══ -->
+  <main class="auth-form-side">
+    <div class="form-container">
+
+      <div class="form-header">
+        <h1>Create account</h1>
+        <p>Start your cosplay journey on Cosnima</p>
+      </div>
+
+      <!-- Error / success banner -->
+      <div id="error-msg" class="error-banner" style="display:none;"></div>
+
+      <form id="register-form" class="auth-form" novalidate>
+
+        <!-- Username -->
+        <div class="field-group">
+          <input
+            type="text"
+            id="username"
+            name="username"
+            placeholder=" "
+            autocomplete="username"
+            minlength="3"
+            required
+          >
+          <label for="username">Username</label>
+          <span class="field-error" role="alert"></span>
+        </div>
+
+        <!-- Email -->
+        <div class="field-group">
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder=" "
+            autocomplete="email"
+            required
+          >
+          <label for="email">Email address</label>
+          <span class="field-error" role="alert"></span>
+        </div>
+
+        <!-- Password -->
+        <div class="field-group">
+          <div class="pw-field">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder=" "
+              autocomplete="new-password"
+              minlength="6"
+              required
+            >
+            <label for="password">Password</label>
+            <button type="button" class="pw-toggle" aria-label="Toggle password">
+              <svg class="eye-open" xmlns="http://www.w3.org/2000/svg" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7
+                     -1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="eye-close" style="display:none;" xmlns="http://www.w3.org/2000/svg"
+                   fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7
+                     a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878
+                     l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59
+                     3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025
+                     10.025 0 01-4.132 5.411m0 0L21 21"/>
+              </svg>
+            </button>
+          </div>
+          <span class="field-error" role="alert"></span>
+        </div>
+
+        <!-- Confirm password -->
+        <div class="field-group">
+          <div class="pw-field">
+            <input
+              type="password"
+              id="confirm-password"
+              name="confirm-password"
+              placeholder=" "
+              autocomplete="new-password"
+              required
+            >
+            <label for="confirm-password">Confirm password</label>
+            <button type="button" class="pw-toggle" aria-label="Toggle password">
+              <svg class="eye-open" xmlns="http://www.w3.org/2000/svg" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7
+                     -1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="eye-close" style="display:none;" xmlns="http://www.w3.org/2000/svg"
+                   fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7
+                     a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878
+                     l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59
+                     3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025
+                     10.025 0 01-4.132 5.411m0 0L21 21"/>
+              </svg>
+            </button>
+          </div>
+          <span class="field-error" role="alert"></span>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" id="submit-btn" class="btn btn-primary btn-auth">
+          <span class="btn-text">Create account</span>
+          <span class="btn-loader" style="display:none;"></span>
+        </button>
+
+      </form>
+
+      <p class="terms-note">
+        By creating an account, you agree to our
+        <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+      </p>
+
+      <p class="auth-switch">
+        Already have an account? <a href="login.html">Log in</a>
+      </p>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>

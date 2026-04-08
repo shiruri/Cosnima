@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log In — Cosnima</title>
+  <!-- Assumes files live in /static/login/login.html
+       Spring Boot serves /static/ at root, so CSS is at /css/... -->
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/auth.css">
+  <script>
+    (function(){
+      var t = localStorage.getItem('cosnimaTheme') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+</head>
+<body>
+
+<div class="auth-page">
+
+  <!-- ══ Left brand panel ══ -->
+  <aside class="auth-panel">
+
+    <!-- Dot sparkles -->
+    <div class="sparkles" aria-hidden="true">
+      <span>✦</span><span>✦</span><span>✦</span><span>✦</span><span>✦</span>
+      <span>✦</span><span>✦</span><span>✦</span><span>✦</span><span>✦</span>
+    </div>
+
+    <!-- Orbs -->
+    <div class="panel-orb panel-orb-1" aria-hidden="true"></div>
+    <div class="panel-orb panel-orb-2" aria-hidden="true"></div>
+    <div class="panel-orb panel-orb-3" aria-hidden="true"></div>
+
+    <div class="panel-content">
+
+      <div class="panel-logo">
+        <span class="panel-logo-star">✦</span>
+        <span class="panel-logo-name">COSNIMA</span>
+        <span class="panel-logo-star">✦</span>
+      </div>
+
+      <p class="panel-tagline">
+        Your cosplay,<br><em>our stage.</em>
+      </p>
+
+      <div class="panel-perks">
+        <div class="panel-perk">Buy, sell &amp; rent cosplay outfits</div>
+        <div class="panel-perk">Convention meetup support</div>
+        <div class="panel-perk">Community ratings &amp; trust</div>
+        <div class="panel-perk">Browse by anime / game series</div>
+      </div>
+
+    </div>
+
+    <div class="panel-back">
+      <a href="/index.html">← Back to homepage</a>
+    </div>
+
+  </aside>
+
+  <!-- ══ Right form side ══ -->
+  <main class="auth-form-side">
+    <div class="form-box">
+
+      <div class="form-card">
+
+        <div class="form-title-row">
+          <h1>Welcome back</h1>
+          <p>Sign in to continue to Cosnima</p>
+        </div>
+
+        <!-- Banner -->
+        <div id="error-msg" class="error-banner" style="display:none;"></div>
+
+        <form id="login-form" class="auth-form" novalidate autocomplete="on">
+
+          <!-- Email / username -->
+          <div class="field-wrap">
+            <label class="field-label" for="login">Email or username</label>
+            <div class="field-input-wrap">
+              <input
+                type="text" id="login" name="login"
+                class="field-input"
+                autocomplete="username"
+                placeholder="your@email.com or handle"
+                required
+              >
+            </div>
+            <span class="field-error-msg" role="alert"></span>
+          </div>
+
+          <!-- Password -->
+          <div class="field-wrap">
+            <label class="field-label" for="password">Password</label>
+            <div class="field-input-wrap">
+              <input
+                type="password" id="password" name="password"
+                class="field-input with-icon"
+                autocomplete="current-password"
+                placeholder="••••••••"
+                required
+              >
+              <button type="button" class="pw-toggle" aria-label="Toggle password">
+                <svg class="eye-open" xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943
+                       9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg class="eye-close" style="display:none" xmlns="http://www.w3.org/2000/svg"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7
+                       a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878
+                       l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59
+                       m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025
+                       0 01-4.132 5.411m0 0L21 21"/>
+                </svg>
+              </button>
+            </div>
+            <span class="field-error-msg" role="alert"></span>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" id="submit-btn" class="btn btn-primary btn-submit">
+            <span class="btn-text">Sign in</span>
+            <span class="btn-loader" style="display:none;"></span>
+          </button>
+
+        </form>
+
+      </div><!-- /form-card -->
+
+      <p class="auth-bottom">
+        Don't have an account? <a href="/signup/register.html">Create one →</a>
+      </p>
+
+    </div><!-- /form-box -->
+  </main>
+
+</div><!-- /auth-page -->
+
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+</body>
+</html>
