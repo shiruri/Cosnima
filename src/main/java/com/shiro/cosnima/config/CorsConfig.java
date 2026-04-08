@@ -13,10 +13,11 @@ public class CorsConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**")           // only for API endpoints
-                .allowedOrigins(frontendUrl)     // from property
+        registry.addMapping("/api/**") // Allow all API endpoints
+                .allowedOriginPatterns(frontendUrl) // Supports localhost + production
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowCredentials(true)         // allow cookies / auth headers if needed
-                .maxAge(3600);                  // cache preflight for 1 hour
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .maxAge(3600); // Cache preflight response for 1 hour
     }
 }

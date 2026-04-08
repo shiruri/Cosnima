@@ -3,7 +3,6 @@
    ============================================ */
 
 const API = (() => {
-  // ↓ Change this to your Render URL in production
   const BASE_URL = 'http://localhost:8080';
 
   function getToken() {
@@ -44,20 +43,31 @@ const API = (() => {
 
     const res = await fetch(`${BASE_URL}${endpoint}`, options);
 
-    // Handle 401 globally
+    // Handle 401 globally - Use absolute path to avoid "login/login.html" issues
     if (res.status === 401) {
       clearSession();
-      window.location.href = 'login.html';
+      window.location.href = '/login/login.html'; 
       return;
     }
 
-    const data = await res.json().catch(() => ({}));
+    // --- FIX FOR LINE 43 ---
+    // Check if there is content to parse before calling .json()
+    const contentType = res.headers.get("content-type");
+    let data = {};
+    if (contentType && contentType.includes("application/json")) {
+      data = await res.json().catch(() => ({}));
+    } else {
+      // If it's not JSON, get the text instead (or default to empty object)
+      const text = await res.text().catch(() => "");
+      data = { message: text };
+    }
+
     if (!res.ok) throw { status: res.status, data };
     return data;
   }
 
   return {
-    get:    (endpoint, auth = true)       => request('GET',    endpoint, null, auth),
+    get:    (endpoint, auth = true)        => request('GET',    endpoint, null, auth),
     post:   (endpoint, body, auth = false) => request('POST',   endpoint, body, auth),
     put:    (endpoint, body, auth = true)  => request('PUT',    endpoint, body, auth),
     delete: (endpoint, auth = true)        => request('DELETE', endpoint, null, auth),

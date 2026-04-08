@@ -5,7 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   // Redirect if already logged in
   if (API.isLoggedIn()) {
-    window.location.href = 'index.html';
+    window.location.href = '/index.html';
     return;
   }
 
@@ -48,8 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         API.setSession(result.token, result.user);
-        redirectTo('index.html');
-
+        redirectTo('../index.html');
       } catch (err) {
         const msg = err?.data?.message || 'Something went wrong. Please try again.';
         showBanner(msg);
@@ -62,40 +61,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Register Form ────────────────────────────────
   const registerForm = document.getElementById('register-form');
+
   if (registerForm) {
     registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       clearErrors();
 
-      const username  = document.getElementById('username').value.trim();
-      const email     = document.getElementById('email').value.trim();
-      const password  = document.getElementById('password').value;
-      const confirm   = document.getElementById('confirm-password').value;
+      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirm = document.getElementById('confirm-password').value;
       let valid = true;
 
-      if (!username || username.length < 3) {
-        setFieldError('username', 'Username must be at least 3 characters');
+      // 1. Username: 3-20 chars, alphanumeric and underscores only
+      const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+      if (!usernameRegex.test(username)) {
+        setFieldError('username', 'Username must be 3-20 characters (letters, numbers, underscores only)');
         valid = false;
       }
-      if (!email || !email.includes('@')) {
-        setFieldError('email', 'Please enter a valid email');
+
+      // 2. Email: RFC 5322 standard regex (much safer than .includes('@'))
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(email)) {
+        setFieldError('email', 'Please enter a valid email address');
         valid = false;
       }
-      if (!password || password.length < 6) {
-        setFieldError('password', 'Password must be at least 6 characters');
+
+      // 3. Password Strength: Min 8 chars, 1 uppercase, 1 number
+      const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/; 
+      if (!passwordRegex.test(password)) {
+        setFieldError('password', 'Password must be at least 8 characters, include 1 uppercase letter and 1 number');
         valid = false;
       }
+
+      // 4. Confirm Password
       if (password !== confirm) {
         setFieldError('confirm-password', 'Passwords do not match');
         valid = false;
       }
+
       if (!valid) return;
 
       const btn = document.getElementById('submit-btn');
       setLoading(btn, true);
 
       try {
-        // Backend field is named passwordHash but receives plain password
         await API.post('/api/auth/register', {
           username,
           email,
@@ -103,8 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         showBanner('Account created! Redirecting to login…', 'success');
-        setTimeout(() => redirectTo('login.html'), 1500);
-
+        setTimeout(() => redirectTo('login/login.html'), 1500); 
       } catch (err) {
         const msg = err?.data?.message || 'Registration failed. The username or email may already be taken.';
         showBanner(msg);
@@ -114,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-});
+}); // Fixed the closing of the DOMContentLoaded listener
 
 /* ── Helpers ──────────────────────────────────────── */
 
@@ -131,9 +140,7 @@ function showBanner(msg, type = 'error') {
   if (!el) return;
   el.textContent = msg;
   el.style.display = 'block';
-  el.className = type === 'success'
-    ? 'error-banner'
-    : 'error-banner';
+  el.className = type === 'success' ? 'error-banner' : 'error-banner';
   if (type === 'success') {
     el.style.background = '#f0fdf4';
     el.style.borderColor = '#bbf7d0';
@@ -163,7 +170,7 @@ function clearErrors() {
 
 function shakeForm(form) {
   form.classList.remove('shake');
-  void form.offsetWidth; // reflow to restart animation
+  void form.offsetWidth; 
   form.classList.add('shake');
   form.addEventListener('animationend', () => form.classList.remove('shake'), { once: true });
 }

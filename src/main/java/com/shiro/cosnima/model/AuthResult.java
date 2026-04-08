@@ -1,4 +1,7 @@
 package com.shiro.cosnima.model;
 
-public class AuthResult {
-}
+import com.shiro.cosnima.dto.UserDto;
+
+public record AuthResult(UserDto user, String token) {}
+
+

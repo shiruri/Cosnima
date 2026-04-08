@@ -1,10 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosnima — Profile</title>
+   <link rel="stylesheet" href="../css/variables.css">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/home.css">
+    <style>
+   .profile-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-lg);
+  padding-top: var(--space-3xl);
+}
+
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.profile-avatar img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  object-fit: cover;
+}
+
+.profile-info h1 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  margin: 0;
+  color: var(--ink);
+}
+
+.profile-info p {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--ink-muted);
+  max-width: 500px;
+}
+
+.profile-stats {
+  display: flex;
+  gap: var(--space-xl);
+  margin-top: var(--space-md);
+}
+
+.profile-stat {
+  text-align: center;
+}
+
+.profile-stat-num {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--ink);
+}
+
+.profile-stat-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  margin-bottom: var(--space-lg);
+  color: var(--ink);
+}
+
+    </style>
+    <script>
+        (function(){
+            var t = localStorage.getItem('cosnimaTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
 </head>
 <body>
-$END$
+
+<!-- Navbar (reuse from homepage) -->
+<nav class="navbar">
+    <div class="nav-inner">
+        <a href="./index.html" class="nav-logo"><span class="nav-logo-star">✦</span><span class="nav-logo-name">COSNIMA</span><span class="nav-logo-star">✦</span></a>
+        <div class="nav-links">
+            <a href="#listings">Browse</a>
+            <a href="#">Sell / Rent</a>
+            <a href="#">Conventions</a>
+            <a href="#">Community</a>
+        </div>
+        <div class="nav-actions">
+            <button class="theme-toggle" id="theme-toggle"></button>
+        </div>
+    </div>
+</nav>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cosnima — Profile</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/profile.css">
+  <script>
+    // Load theme
+    (function(){
+      var t = localStorage.getItem('cosnimaTheme') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="./index.html" class="nav-logo">
+      <span class="nav-logo-star">✦</span>
+      <span class="nav-logo-name">COSNIMA</span>
+      <span class="nav-logo-star">✦</span>
+    </a>
+  </div>
+</nav>
+
+<!-- Profile Hero -->
+<section class="profile-hero section">
+  <div class="container profile-inner">
+
+    <div class="profile-header">
+      <div class="profile-avatar" id="profile-avatar"></div>
+      <div class="profile-info">
+        <h1 id="profile-username">Loading...</h1>
+        <p id="profile-bio">Loading bio...</p>
+      </div>
+    </div>
+
+    <div class="profile-stats">
+      <div class="profile-stat">
+        <span class="profile-stat-num" id="stat-listings">0</span>
+        <span class="profile-stat-label">Listings</span>
+      </div>
+      <div class="profile-stat">
+        <span class="profile-stat-num" id="stat-followers">0</span>
+        <span class="profile-stat-label">Followers</span>
+      </div>
+      <div class="profile-stat">
+        <span class="profile-stat-num" id="stat-rating">0 ✦</span>
+        <span class="profile-stat-label">Rating</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- User Listings -->
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">My Listings</h2>
+    <div class="listings-grid" id="profile-listings">
+      <!-- JS will insert listings here -->
+    </div>
+  </div>
+</section>
+
+<script src="js/profile.js"></script>
+</body>
+</html>
+
+<!-- Footer (reuse homepage) -->
+<footer class="footer container">
+    <p>© 2026 Cosnima</p>
+</footer>
+
+<script>
+    const themeBtn = document.getElementById('theme-toggle');
+    themeBtn.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('cosnimaTheme', next);
+    });
+</script>
 </body>
 </html>

@@ -40,11 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="btn btn-outline btn-nav" onclick="logout()">Log out</button>
       `;
     } else {
-      navAuth.innerHTML = `
-        <a href="login/login.html"    class="btn btn-outline btn-nav">Log in</a>
-        <a href="signup/register.html" class="btn btn-primary btn-nav">Register</a>
-      `;
-    }
+     navAuth.innerHTML = `
+  <a href="login/login.html" class="btn btn-outline btn-nav">Log in</a>
+  <a href="signup/register.html" class="btn btn-primary btn-nav">Register</a>
+`;
+
+
+    } 
   }
 
   // ── Scroll reveals ───────────────────────────────
@@ -95,9 +97,20 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ── Logout ─────────────────────────────────────────
-function logout() {
-  API.clearSession();
-  document.body.classList.add('fade-out');
-  setTimeout(() => { window.location.href = 'login.html'; }, 260);
+async function logout() {
+  try {
+    // Attempt server logout
+    await API.post('/api/auth/logout', {}, true);
+  } catch (err) {
+    console.warn('Server session clear failed, proceeding with local logout.');
+  } finally {
+    // 1. Clear local storage
+    API.clearSession();
+    
+    // 2. Use standard redirect since redirectTo is missing in this file
+    document.body.classList.add('fade-out'); // Optional if you have the CSS
+    setTimeout(() => { 
+      window.location.href = 'login/login.html'; 
+    }, 280);
+  }
 }
