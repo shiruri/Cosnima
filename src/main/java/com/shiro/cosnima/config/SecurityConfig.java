@@ -33,12 +33,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 1. Tell Spring Security to use your CorsConfig bean
                 .cors(Customizer.withDefaults())
-                // 2. Disable CSRF for JWT-based auth
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // 3. Permit all OPTIONS requests (Browser pre-flights)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                         .requestMatchers("/api/auth/logout").authenticated()
@@ -69,13 +66,14 @@ public class SecurityConfig {
                 String token = authHeader.substring(7);
 
                 try {
-                    String username = jwtUtils.extractUsername(token);
+                    String userId = jwtUtils.extractUserId(token);  // now extracts UUID string
 
-                    if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                        boolean valid = jwtUtils.validateToken(token, username);
+                    if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                        boolean valid = jwtUtils.validateToken(token, userId);
 
                         if (valid) {
-                            User userDetails = new User(username, "", Collections.emptyList());
+                            // Principal is now the user's UUID
+                            User userDetails = new User(userId, "", Collections.emptyList());
                             UsernamePasswordAuthenticationToken authentication =
                                     new UsernamePasswordAuthenticationToken(
                                             userDetails,
@@ -84,7 +82,6 @@ public class SecurityConfig {
                                     );
                             SecurityContextHolder.getContext().setAuthentication(authentication);
                         } else {
-                            // If token is invalid, don't let it reach the controller
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             return;
                         }

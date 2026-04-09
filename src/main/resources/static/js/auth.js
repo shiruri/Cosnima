@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Success - redirect with fade
         showBanner('Login successful! Redirecting...', 'success');
-        setTimeout(() => redirectTo('/index.html'), 800);
+        setTimeout(() => redirectTo('./index.html'), 800);
         
       } catch (err) {
         const msg = err?.data?.message || err?.message || 'Login failed. Please try again.';

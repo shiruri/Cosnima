@@ -14,6 +14,63 @@
       document.documentElement.setAttribute('data-theme', t);
     })(); 
   </script>
+  <style>
+  /* Navbar auth container styling */
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  .auth-greeting {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    background: var(--bg-alt);
+    padding: 0.25rem 0.5rem 0.25rem 1rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+  }
+
+  .auth-greeting a {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+  }
+
+  .greeting-text {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  .greeting-text strong {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .auth-greeting .btn-nav {
+    margin-left: var(--space-xs);
+  }
+
+  /* Separator dot */
+  .auth-separator {
+    width: 4px;
+    height: 4px;
+    background: var(--ink-faint);
+    border-radius: 50%;
+    margin: 0 var(--space-xs);
+  }
+
+  @media (max-width: 768px) {
+    .auth-greeting {
+      padding: 0.25rem 0.5rem;
+    }
+    .greeting-text {
+      font-size: 0.75rem;
+    }
+  }
+</style>
 </head>
 <body>
 
@@ -23,10 +80,10 @@
 <nav class="navbar" role="navigation" aria-label="Main navigation">
   <div class="nav-inner">
 
-    <a href="/index.html" class="nav-logo" aria-label="Cosnima home">
-      <span class="nav-logo-star"></span>
+    <a href="./index.html" class="nav-logo" aria-label="Cosnima home">
+      <span class="nav-logo-star">✦</span>
       <span class="nav-logo-name">COSNIMA</span>
-      <span class="nav-logo-star"></span>
+      <span class="nav-logo-star">✦</span>
     </a>
 
     <div class="nav-links" role="list">
@@ -37,15 +94,16 @@
     </div>
 
     <div class="nav-right">
-      <!-- Theme toggle - FIXED ID -->
+
+      <!-- Theme toggle -->
       <button class="theme-btn" id="theme-btn" aria-label="Toggle dark mode">
-        <svg class="icon-moon icon" xmlns="http://www.w3.org/2000/svg" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor">
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
         </svg>
-        <svg class="icon-sun icon" xmlns="http://www.w3.org/2000/svg" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
           <circle cx="12" cy="12" r="5"/>
           <path stroke-linecap="round"
             d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42
@@ -53,14 +111,15 @@
         </svg>
       </button>
 
-      <!-- Desktop auth -->
-      <div id="nav-auth"></div>
+      <!-- Desktop auth (hidden on mobile via CSS) -->
+      <div id="nav-auth">
+        <a href="login/login.html"    class="btn btn-outline btn-nav">Log in</a>
+        <a href="signup/register.html" class="btn btn-primary btn-nav">Register</a>
+      </div>
 
       <!-- Hamburger -->
       <button class="nav-hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
-        <span></span>
-        <span></span>
-        <span></span>
+        <span></span><span></span><span></span>
       </button>
     </div>
 
@@ -75,7 +134,11 @@
     <a href="#">Conventions</a>
     <a href="#">Community</a>
   </nav>
-  <div class="mobile-nav-actions" id="mobile-auth"></div>
+  <div class="mobile-nav-actions" id="mobile-auth">
+    <!-- Injected by home.js -->
+    <a href="login/login.html"    class="btn btn-outline">Log in</a>
+    <a href="signup/register.html" class="btn btn-primary">Register</a>
+  </div>
 </div>
 
 <!-- ════════════════════════════════════════
@@ -86,24 +149,25 @@
     <div class="hero-inner">
 
       <div class="hero-content">
-        <span class="hero-eyebrow">The Cosplay Marketplace</span>
+        <span class="hero-eyebrow">✦ The Cosplay Marketplace</span>
 
         <h1 class="hero-title">
           Find. Sell.<br><em>Cosplay.</em>
         </h1>
 
         <p class="hero-desc">
-          Cosnima is the dedicated marketplace for the Philippine cosplay community — buy, sell & rent outfits, and meet at your next convention.
+          Cosnima is the dedicated marketplace for the Philippine cosplay community —
+          buy, sell &amp; rent outfits, and meet at your next convention.
         </p>
 
         <div class="hero-search" role="search">
-          <input type="search" placeholder="Search outfits, series, characters..." aria-label="Search listings">
+          <input type="search" placeholder="Search outfits, series, characters…" aria-label="Search listings">
           <button type="submit">Search</button>
         </div>
 
         <div class="hero-ctas">
           <a href="#listings" class="btn btn-primary">Browse listings</a>
-          <a href="/register.html" class="btn btn-outline">Start selling</a>
+          <a href="signup/register.html" class="btn btn-outline">Start selling</a>
         </div>
       </div>
 
@@ -130,27 +194,25 @@
      STATS STRIP
 ════════════════════════════════════════ -->
 <div class="stats-strip" aria-label="Platform statistics">
-  <div class="container">
-    <div class="stats-inner">
-      <div class="stat" role="listitem">
-        <span class="stat-num">1,240+</span>
-        <span class="stat-lbl">Active Listings</span>
-      </div>
-      <div class="stat-dot" aria-hidden="true"></div>
-      <div class="stat" role="listitem">
-        <span class="stat-num">820+</span>
-        <span class="stat-lbl">Cosplayers</span>
-      </div>
-      <div class="stat-dot" aria-hidden="true"></div>
-      <div class="stat" role="listitem">
-        <span class="stat-num">60+</span>
-        <span class="stat-lbl">Conventions</span>
-      </div>
-      <div class="stat-dot" aria-hidden="true"></div>
-      <div class="stat" role="listitem">
-        <span class="stat-num">4.8</span>
-        <span class="stat-lbl">Avg. Rating</span>
-      </div>
+  <div class="stats-inner">
+    <div class="stat" role="listitem">
+      <span class="stat-num">1,240+</span>
+      <span class="stat-lbl">Active Listings</span>
+    </div>
+    <div class="stat-dot" aria-hidden="true"></div>
+    <div class="stat" role="listitem">
+      <span class="stat-num">820+</span>
+      <span class="stat-lbl">Cosplayers</span>
+    </div>
+    <div class="stat-dot" aria-hidden="true"></div>
+    <div class="stat" role="listitem">
+      <span class="stat-num">60+</span>
+      <span class="stat-lbl">Conventions</span>
+    </div>
+    <div class="stat-dot" aria-hidden="true"></div>
+    <div class="stat" role="listitem">
+      <span class="stat-num">4.8 ✦</span>
+      <span class="stat-lbl">Avg. Rating</span>
     </div>
   </div>
 </div>
@@ -196,7 +258,7 @@
         <p class="section-eyebrow">Featured Listings</p>
         <h2 style="margin:0">Recently listed</h2>
       </div>
-      <a href="#">View all</a>
+      <a href="#">View all →</a>
     </div>
 
     <div class="listings-grid stagger">
@@ -339,17 +401,17 @@
     <div class="steps-grid stagger">
       <div class="step-card">
         <div class="step-num">01</div>
-        <h3 class="step-title">Browse & Discover</h3>
+        <h3 class="step-title">Browse &amp; Discover</h3>
         <p>Search by series, character, size, or type. Find exactly what your next cosplay needs.</p>
       </div>
       <div class="step-card">
         <div class="step-num">02</div>
-        <h3 class="step-title">Offer & Connect</h3>
+        <h3 class="step-title">Offer &amp; Connect</h3>
         <p>Make an offer or send a rental request. Chat directly with sellers to nail the details.</p>
       </div>
       <div class="step-card">
         <div class="step-num">03</div>
-        <h3 class="step-title">Meet & Trade</h3>
+        <h3 class="step-title">Meet &amp; Trade</h3>
         <p>Meet at a convention or arrange a handoff. Rate after to build community trust.</p>
       </div>
     </div>
@@ -365,9 +427,9 @@
     <div class="convention-banner reveal">
       <div class="conv-text">
         <h2>Upcoming Conventions</h2>
-        <p>Browse listings with convention pickup — meet sellers at AnimeX, COSMANIA & more.</p>
+        <p>Browse listings with convention pickup — meet sellers at AnimeX, COSMANIA &amp; more.</p>
       </div>
-      <a href="#" class="btn btn-conv">View convention hub</a>
+      <a href="#" class="btn btn-conv">View convention hub →</a>
     </div>
   </div>
 </section>
@@ -380,7 +442,7 @@
 
     <div class="footer-top">
       <div class="footer-brand">
-        <div class="footer-logo-name">COSNIMA</div>
+        <div class="footer-logo-name">✦ COSNIMA ✦</div>
         <p>The cosplay marketplace built for the Philippine community.</p>
       </div>
 
@@ -388,8 +450,8 @@
         <h4>Marketplace</h4>
         <ul>
           <li><a href="#listings">Browse Listings</a></li>
-          <li><a href="/register.html">Sell an Item</a></li>
-          <li><a href="/register.html">Rent an Outfit</a></li>
+          <li><a href="signup/register.html">Sell an Item</a></li>
+          <li><a href="signup/register.html">Rent an Outfit</a></li>
           <li><a href="#">Convention Hub</a></li>
         </ul>
       </div>
@@ -398,7 +460,7 @@
         <h4>Account</h4>
         <ul>
           <li><a href="signup/register.html">Register</a></li>
-          <li><a href="/login/login.html">Log In</a></li>
+          <li><a href="login/login.html">Log In</a></li>
           <li><a href="#">My Listings</a></li>
           <li><a href="#">Wishlist</a></li>
         </ul>
@@ -416,7 +478,7 @@
     </div>
 
     <div class="footer-bottom">
-      <p>&copy; 2025 Cosnima. All rights reserved.</p>
+      <p>© 2025 Cosnima. All rights reserved.</p>
       <div class="footer-bottom-links">
         <a href="#">Terms</a>
         <a href="#">Privacy</a>

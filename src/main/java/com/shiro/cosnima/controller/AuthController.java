@@ -56,8 +56,7 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<?> logoutUser(@RequestHeader("Authorization") String authorizationHeader) {
        if(authorizationHeader != null && authorizationHeader.startsWith(("Bearer "))) {
-           String token = authorizationHeader.substring(7);
-           return authServ.logoutUser(token);
+           return authServ.logoutUser(authorizationHeader);
        }
        return ResponseEntity.badRequest().body("Invalid Request");
 

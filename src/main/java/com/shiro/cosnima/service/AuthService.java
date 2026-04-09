@@ -1,7 +1,7 @@
 package com.shiro.cosnima.service;
 
 
-import com.shiro.cosnima.dto.response.UserDto;
+import com.shiro.cosnima.dto.request.UserDto;
 import com.shiro.cosnima.dto.request.UserLoginDto;
 import com.shiro.cosnima.dto.response.AuthResult;
 import com.shiro.cosnima.model.User;
@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -36,8 +37,8 @@ public class AuthService {
          userRepo.save(user);
     }
 
-    public int setUserActive(String username, boolean status) {
-        return userRepo.updateIsActive(username,status);
+    public int setUserActive(UUID id, boolean status) {
+        return userRepo.updateIsActive(id,status);
     }
 
     public AuthResult loginUser(UserLoginDto userLogin) {
@@ -55,12 +56,12 @@ public class AuthService {
             return new AuthResult(null,"ERORR HASH");
         }
         user.setIsActive(true);
-        String token = jwtUtils.generateToken(user.getUsername());
+        String token = jwtUtils.generateToken(user.getId());
         return new AuthResult(UserDto.fromEntity(user), token);
     }
 
     public ResponseEntity<?> logoutUser(String token) {
-        int isUpdated = setUserActive(jwtUtils.extractUsername(token),false);
+        int isUpdated = setUserActive(UUID.fromString(jwtUtils.extractUserId(token)),false);
         if(isUpdated < 0) {
             return ResponseEntity.badRequest().body("Internal Server Error");
         }

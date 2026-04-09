@@ -40,6 +40,17 @@ public class User {
     @Size(max = 500)
     private String avatarUrl;
 
+    @Column(name = "avatar_public_id")
+    private String avatarPublicId;
+
+    public String getAvatarPublicId() {
+        return avatarPublicId;
+    }
+
+    public void setAvatarPublicId(String avatarPublicId) {
+        this.avatarPublicId = avatarPublicId;
+    }
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

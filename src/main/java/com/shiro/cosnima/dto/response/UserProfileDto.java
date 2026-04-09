@@ -9,14 +9,25 @@ public class UserProfileDto {
     private String bio;
     private String avatarUrl;
 
+    public String getAvatarPublicId() {
+        return avatarPublicId;
+    }
+
+    public void setAvatarPublicId(String avatarPublicId) {
+        this.avatarPublicId = avatarPublicId;
+    }
+
+    private String avatarPublicId;
+
     // ===== Constructors =====
     public UserProfileDto() {}
 
-    public UserProfileDto(String username, String email, String bio, String avatarUrl) {
+    public UserProfileDto(String username, String email, String bio, String avatarUrl,String avatarPublicId) {
         this.username = username;
         this.email = email;
         this.bio = bio;
         this.avatarUrl = avatarUrl;
+        this.avatarPublicId = avatarPublicId;
     }
 
     // ===== Getters & Setters =====
@@ -39,7 +50,8 @@ public class UserProfileDto {
                 user.getUsername(),
                 user.getEmail(),
                 user.getBio(),
-                user.getAvatarUrl()
+                user.getAvatarUrl(),
+                user.getAvatarPublicId()
         );
     }
 

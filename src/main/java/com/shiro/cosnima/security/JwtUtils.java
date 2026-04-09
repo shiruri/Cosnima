@@ -7,10 +7,11 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
- * Utility class for generating and validating JWT tokens.
+ * Utility class for generating and validating JWT tokens using UUID (user ID).
  */
 @Component
 public class JwtUtils {
@@ -26,11 +27,13 @@ public class JwtUtils {
     }
 
     /**
-     * Generate a JWT token for a given username.
+     * Generate a JWT token for a given user ID (UUID).
+     * @param userId the user's UUID as string
+     * @return JWT token
      */
-    public String generateToken(String username) {
+    public String generateToken(String userId) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(userId)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -38,9 +41,18 @@ public class JwtUtils {
     }
 
     /**
-     * Extract username from JWT token.
+     * Generate a JWT token for a given UUID object.
+     * @param userId the user's UUID
+     * @return JWT token
      */
-    public String extractUsername(String token) {
+    public String generateToken(UUID userId) {
+        return generateToken(userId.toString());
+    }
+
+    /**
+     * Extract user ID (UUID string) from JWT token.
+     */
+    public String extractUserId(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
@@ -53,15 +65,25 @@ public class JwtUtils {
     }
 
     /**
-     * Validate the token against username and expiration.
+     * Validate the token against the user ID and expiration.
+     * @param token JWT token
+     * @param userId expected user ID (UUID string)
+     * @return true if valid, false otherwise
      */
-    public boolean validateToken(String token, String username) {
+    public boolean validateToken(String token, String userId) {
         try {
-            String extractedUsername = extractUsername(token);
-            return (extractedUsername.equals(username) && !isTokenExpired(token));
+            String extractedUserId = extractUserId(token);
+            return (extractedUserId.equals(userId) && !isTokenExpired(token));
         } catch (JwtException | IllegalArgumentException e) {
             return false; // Invalid token
         }
+    }
+
+    /**
+     * Validate the token against a UUID object.
+     */
+    public boolean validateToken(String token, UUID userId) {
+        return validateToken(token, userId.toString());
     }
 
     /**
