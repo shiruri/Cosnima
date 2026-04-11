@@ -1,31 +1,30 @@
 package com.shiro.cosnima.dto.request;
 
+import com.shiro.cosnima.model.Listing;
 import java.math.BigDecimal;
 
 public class ListingRequest {
 
     // ===== PAGINATION =====
-    private int page = 0;     // default first page
-    private int size = 10;    // default page size
+    private int page = 0;
+    private int size = 10;
 
     // ===== SORTING =====
-    private String sortBy = "createdAt";  // default field
-    private String sortDir = "desc";      // asc or desc
+    private String sortBy = "createdAt";
+    private String sortDir = "desc";
 
     // ===== FILTERS =====
-    private String keyword;               // search title/description
-    private String category;              // category filter
+    private String keyword;
 
     private BigDecimal minPrice;
     private BigDecimal maxPrice;
 
-    private String condition;             // e.g. NEW, USED
-    private Boolean isAvailable;          // availability filter
+    private Listing.Condition condition;
+    private Boolean isActive;
+    private Listing.Status status; // ✅ ADD THIS
 
-    // ===== CONSTRUCTORS =====
-    public ListingRequest() {}
+    // ===== GETTERS / SETTERS =====
 
-    // ===== GETTERS & SETTERS =====
     public int getPage() { return page; }
     public void setPage(int page) { this.page = page; }
 
@@ -41,18 +40,20 @@ public class ListingRequest {
     public String getKeyword() { return keyword; }
     public void setKeyword(String keyword) { this.keyword = keyword; }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
-
     public BigDecimal getMinPrice() { return minPrice; }
     public void setMinPrice(BigDecimal minPrice) { this.minPrice = minPrice; }
 
     public BigDecimal getMaxPrice() { return maxPrice; }
     public void setMaxPrice(BigDecimal maxPrice) { this.maxPrice = maxPrice; }
 
-    public String getCondition() { return condition; }
-    public void setCondition(String condition) { this.condition = condition; }
+    public Listing.Condition getCondition() { return condition; }
+    public void setCondition(Listing.Condition condition) {
+        this.condition = condition;
+    }
 
-    public Boolean getIsAvailable() { return isAvailable; }
-    public void setIsAvailable(Boolean isAvailable) { this.isAvailable = isAvailable; }
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+
+    public Listing.Status getStatus() { return status; }
+    public void setStatus(Listing.Status status) { this.status = status; }
 }

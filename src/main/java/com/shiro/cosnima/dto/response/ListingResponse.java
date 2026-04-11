@@ -32,6 +32,15 @@ public class ListingResponse {
 
     private String status;
     private Boolean isActive;
+
+    public Boolean getActive() {
+        return isActive;
+    }
+
+    public void setActive(Boolean active) {
+        isActive = active;
+    }
+
     private Integer viewCount;
     // ===== PERMISSIONS =====
     private Boolean isOwner;

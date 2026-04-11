@@ -12,117 +12,102 @@
     (function(){
       var t = localStorage.getItem('cosnimaTheme') || 'light';
       document.documentElement.setAttribute('data-theme', t);
-    })(); 
+    })();
   </script>
-  <style>
-  /* Navbar auth container styling */
-  .nav-right {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
-  }
-
-  .auth-greeting {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
-    background: var(--bg-alt);
-    padding: 0.25rem 0.5rem 0.25rem 1rem;
-    border-radius: var(--radius-pill);
-    border: 1px solid var(--border);
-  }
-
-  .auth-greeting a {
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-  }
-
-  .greeting-text {
-    font-size: 0.85rem;
-    color: var(--ink-muted);
-    white-space: nowrap;
-  }
-
-  .greeting-text strong {
-    color: var(--accent);
-    font-weight: 600;
-  }
-
-  .auth-greeting .btn-nav {
-    margin-left: var(--space-xs);
-  }
-
-  /* Separator dot */
-  .auth-separator {
-    width: 4px;
-    height: 4px;
-    background: var(--ink-faint);
-    border-radius: 50%;
-    margin: 0 var(--space-xs);
-  }
-
-  @media (max-width: 768px) {
-    .auth-greeting {
-      padding: 0.25rem 0.5rem;
-    }
-    .greeting-text {
-      font-size: 0.75rem;
-    }
-  }
-</style>
 </head>
 <body>
 
-<!-- ════════════════════════════════════════
-     NAVBAR
-════════════════════════════════════════ -->
+<!-- Loading Screen -->
+<div id="loading-screen" aria-hidden="true">
+  <div class="loader-beaver">
+    <svg width="90" height="90" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Body -->
+      <g class="beaver-body">
+        <!-- Main body oval -->
+        <ellipse cx="45" cy="52" rx="22" ry="20" fill="#c87a50"/>
+        <!-- Belly -->
+        <ellipse cx="45" cy="56" rx="13" ry="12" fill="#e8a878"/>
+        <!-- Head -->
+        <ellipse cx="45" cy="32" rx="18" ry="16" fill="#c87a50"/>
+        <!-- Cheeks -->
+        <ellipse cx="36" cy="36" rx="6" ry="5" fill="#e8a878"/>
+        <ellipse cx="54" cy="36" rx="6" ry="5" fill="#e8a878"/>
+        <!-- Eyes -->
+        <circle cx="39" cy="29" r="4" fill="#2a1a1f"/>
+        <circle cx="51" cy="29" r="4" fill="#2a1a1f"/>
+        <circle cx="40" cy="28" r="1.5" fill="white"/>
+        <circle cx="52" cy="28" r="1.5" fill="white"/>
+        <!-- Nose -->
+        <ellipse cx="45" cy="35" rx="4" ry="3" fill="#8b4c30"/>
+        <!-- Teeth -->
+        <rect x="41" y="37" width="4" height="5" rx="1" fill="#f8f0e0"/>
+        <rect x="46" y="37" width="4" height="5" rx="1" fill="#f8f0e0"/>
+        <!-- Ears -->
+        <ellipse cx="31" cy="19" rx="6" ry="7" fill="#c87a50"/>
+        <ellipse cx="31" cy="19" rx="3.5" ry="4.5" fill="#e8a878"/>
+        <ellipse cx="59" cy="19" rx="6" ry="7" fill="#c87a50"/>
+        <ellipse cx="59" cy="19" rx="3.5" ry="4.5" fill="#e8a878"/>
+        <!-- Arms -->
+        <ellipse cx="26" cy="55" rx="6" ry="10" fill="#c87a50" transform="rotate(-15 26 55)"/>
+        <ellipse cx="64" cy="55" rx="6" ry="10" fill="#c87a50" transform="rotate(15 64 55)"/>
+        <!-- Feet -->
+        <ellipse cx="36" cy="72" rx="9" ry="5" fill="#8b4c30"/>
+        <ellipse cx="54" cy="72" rx="9" ry="5" fill="#8b4c30"/>
+      </g>
+      <!-- Tail -->
+      <g class="beaver-tail">
+        <ellipse cx="45" cy="76" rx="16" ry="8" fill="#8b4c30" transform="rotate(-5 45 76)"/>
+        <!-- Tail texture lines -->
+        <path d="M33 75 Q45 70 57 75" stroke="#6b3420" stroke-width="1.2" fill="none" opacity="0.5"/>
+        <path d="M34 78 Q45 73 56 78" stroke="#6b3420" stroke-width="1.2" fill="none" opacity="0.5"/>
+      </g>
+      <!-- Pink heart accent -->
+      <path d="M44 23 C44 21 41 19 39 21 C37 23 39 26 44 29 C49 26 51 23 49 21 C47 19 44 21 44 23Z" fill="#e8547a" opacity="0.7"/>
+    </svg>
+  </div>
+  <div class="loader-dots">
+    <span></span><span></span><span></span>
+  </div>
+  <p class="loader-text">Finding your next cosplay...</p>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container" aria-live="polite"></div>
+
+<!-- NAVBAR -->
 <nav class="navbar" role="navigation" aria-label="Main navigation">
   <div class="nav-inner">
-
     <a href="./index.html" class="nav-logo" aria-label="Cosnima home">
-      <span class="nav-logo-star">✦</span>
-      <span class="nav-logo-name">COSNIMA</span>
-      <span class="nav-logo-star">✦</span>
+      <img src="images/logo.png" alt="Cosnima" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+      <span class="nav-logo-name" style="display:none">COSNIMA</span>
     </a>
 
     <div class="nav-links" role="list">
       <a href="#listings">Browse</a>
-      <a href="#">Sell / Rent</a>
-      <a href="#">Conventions</a>
-      <a href="#">Community</a>
+      <a href="#how">How it works</a>
+      <a href="#conventions">Conventions</a>
     </div>
 
     <div class="nav-right">
-
-      <!-- Theme toggle -->
       <button class="theme-btn" id="theme-btn" aria-label="Toggle dark mode">
-        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
         </svg>
-        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
           <circle cx="12" cy="12" r="5"/>
-          <path stroke-linecap="round"
-            d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42
-               M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          <path stroke-linecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
         </svg>
       </button>
 
-      <!-- Desktop auth (hidden on mobile via CSS) -->
       <div id="nav-auth">
-        <a href="login/login.html"    class="btn btn-outline btn-nav">Log in</a>
+        <a href="login/login.html" class="btn btn-ghost btn-nav">Log in</a>
         <a href="signup/register.html" class="btn btn-primary btn-nav">Register</a>
       </div>
 
-      <!-- Hamburger -->
       <button class="nav-hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
     </div>
-
   </div>
 </nav>
 
@@ -130,39 +115,35 @@
 <div class="mobile-nav" id="mobile-nav" role="dialog" aria-label="Mobile menu" aria-modal="true">
   <nav class="mobile-nav-links">
     <a href="#listings">Browse</a>
-    <a href="#">Sell / Rent</a>
-    <a href="#">Conventions</a>
-    <a href="#">Community</a>
+    <a href="#how">How it works</a>
+    <a href="#conventions">Conventions</a>
   </nav>
   <div class="mobile-nav-actions" id="mobile-auth">
-    <!-- Injected by home.js -->
-    <a href="login/login.html"    class="btn btn-outline">Log in</a>
+    <a href="login/login.html" class="btn btn-ghost">Log in</a>
     <a href="signup/register.html" class="btn btn-primary">Register</a>
   </div>
 </div>
 
-<!-- ════════════════════════════════════════
-     HERO
-════════════════════════════════════════ -->
+<!-- HERO -->
 <section class="hero section">
   <div class="container">
     <div class="hero-inner">
 
       <div class="hero-content">
-        <span class="hero-eyebrow">✦ The Cosplay Marketplace</span>
+        <span class="hero-eyebrow">The Philippine Cosplay Marketplace</span>
 
         <h1 class="hero-title">
           Find. Sell.<br><em>Cosplay.</em>
         </h1>
 
         <p class="hero-desc">
-          Cosnima is the dedicated marketplace for the Philippine cosplay community —
-          buy, sell &amp; rent outfits, and meet at your next convention.
+          Cosnima connects the Philippine cosplay community — buy, sell and rent outfits,
+          and meet at your next convention.
         </p>
 
         <div class="hero-search" role="search">
-          <input type="search" placeholder="Search outfits, series, characters…" aria-label="Search listings">
-          <button type="submit">Search</button>
+          <input type="search" id="hero-search-input" placeholder="Search outfits, series, characters..." aria-label="Search listings">
+          <button type="submit" onclick="handleSearch()">Search</button>
         </div>
 
         <div class="hero-ctas">
@@ -175,13 +156,13 @@
       <div class="hero-visual" aria-hidden="true">
         <div class="card-stack">
           <div class="hero-card">
-            <img src="https://picsum.photos/seed/cos1/400/500?grayscale" alt="">
+            <img src="https://picsum.photos/seed/cos1/400/500" alt="">
           </div>
           <div class="hero-card">
-            <img src="https://picsum.photos/seed/cos2/400/500?grayscale" alt="">
+            <img src="https://picsum.photos/seed/cos2/400/500" alt="">
           </div>
           <div class="hero-card">
-            <img src="https://picsum.photos/seed/cos3/400/500?grayscale" alt="">
+            <img src="https://picsum.photos/seed/cos3/400/500" alt="">
           </div>
         </div>
       </div>
@@ -190,85 +171,79 @@
   </div>
 </section>
 
-<!-- ════════════════════════════════════════
-     STATS STRIP
-════════════════════════════════════════ -->
+<!-- STATS STRIP -->
 <div class="stats-strip" aria-label="Platform statistics">
-  <div class="stats-inner">
-    <div class="stat" role="listitem">
-      <span class="stat-num">1,240+</span>
-      <span class="stat-lbl">Active Listings</span>
-    </div>
-    <div class="stat-dot" aria-hidden="true"></div>
-    <div class="stat" role="listitem">
-      <span class="stat-num">820+</span>
-      <span class="stat-lbl">Cosplayers</span>
-    </div>
-    <div class="stat-dot" aria-hidden="true"></div>
-    <div class="stat" role="listitem">
-      <span class="stat-num">60+</span>
-      <span class="stat-lbl">Conventions</span>
-    </div>
-    <div class="stat-dot" aria-hidden="true"></div>
-    <div class="stat" role="listitem">
-      <span class="stat-num">4.8 ✦</span>
-      <span class="stat-lbl">Avg. Rating</span>
+  <div class="container">
+    <div class="stats-inner">
+      <div class="stat" role="listitem">
+        <span class="stat-num">1,240+</span>
+        <span class="stat-lbl">Active Listings</span>
+      </div>
+      <div class="stat-dot" aria-hidden="true"></div>
+      <div class="stat" role="listitem">
+        <span class="stat-num">820+</span>
+        <span class="stat-lbl">Cosplayers</span>
+      </div>
+      <div class="stat-dot" aria-hidden="true"></div>
+      <div class="stat" role="listitem">
+        <span class="stat-num">60+</span>
+        <span class="stat-lbl">Conventions</span>
+      </div>
+      <div class="stat-dot" aria-hidden="true"></div>
+      <div class="stat" role="listitem">
+        <span class="stat-num">4.8</span>
+        <span class="stat-lbl">Avg. Rating</span>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════════
-     SERIES BROWSER
-════════════════════════════════════════ -->
+<!-- SERIES BROWSER -->
 <section class="section" style="padding-bottom:0;">
   <div class="container">
-
     <div class="reveal">
       <p class="section-eyebrow">Browse by Series</p>
       <h2 style="margin-bottom:var(--space-lg)">What are you<br><em>cosplaying next?</em></h2>
     </div>
-
     <div class="series-rail reveal">
-      <button class="pill active">All</button>
-      <button class="pill">Genshin Impact</button>
-      <button class="pill">One Piece</button>
-      <button class="pill">Demon Slayer</button>
-      <button class="pill">Jujutsu Kaisen</button>
-      <button class="pill">Hololive / VTubers</button>
-      <button class="pill">Honkai: Star Rail</button>
-      <button class="pill">Attack on Titan</button>
-      <button class="pill">Sword Art Online</button>
-      <button class="pill">Chainsaw Man</button>
-      <button class="pill">My Hero Academia</button>
-      <button class="pill">Vocaloid</button>
-      <button class="pill">Original Design</button>
+      <button class="pill active" data-series="All">All</button>
+      <button class="pill" data-series="Genshin Impact">Genshin Impact</button>
+      <button class="pill" data-series="One Piece">One Piece</button>
+      <button class="pill" data-series="Demon Slayer">Demon Slayer</button>
+      <button class="pill" data-series="Jujutsu Kaisen">Jujutsu Kaisen</button>
+      <button class="pill" data-series="Hololive">Hololive / VTubers</button>
+      <button class="pill" data-series="Honkai Star Rail">Honkai: Star Rail</button>
+      <button class="pill" data-series="Attack on Titan">Attack on Titan</button>
+      <button class="pill" data-series="Chainsaw Man">Chainsaw Man</button>
+      <button class="pill" data-series="My Hero Academia">My Hero Academia</button>
+      <button class="pill" data-series="Vocaloid">Vocaloid</button>
+      <button class="pill" data-series="Original">Original Design</button>
     </div>
-
   </div>
 </section>
 
-<!-- ════════════════════════════════════════
-     LISTINGS
-════════════════════════════════════════ -->
+<!-- LISTINGS -->
 <section class="section" id="listings">
   <div class="container">
-
     <div class="section-header reveal">
       <div>
         <p class="section-eyebrow">Featured Listings</p>
         <h2 style="margin:0">Recently listed</h2>
       </div>
-      <a href="#">View all →</a>
+      <a href="#">View all
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
     </div>
 
     <div class="listings-grid stagger">
 
-      <!-- Card 1 -->
       <article class="listing-card">
         <div class="card-thumb">
-          <img src="https://picsum.photos/seed/l1/400/300?grayscale" alt="Hu Tao outfit">
+          <img src="https://picsum.photos/seed/l1/400/300" alt="Hu Tao outfit" loading="lazy">
           <div class="card-badges"><span class="badge badge-sell">Sell</span></div>
-          <button class="card-wish" aria-label="Wishlist">♡</button>
+          <button class="card-wish" aria-label="Add to wishlist">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
         </div>
         <div class="card-body">
           <p class="card-series">Genshin Impact</p>
@@ -283,12 +258,13 @@
         </div>
       </article>
 
-      <!-- Card 2 -->
       <article class="listing-card">
         <div class="card-thumb">
-          <img src="https://picsum.photos/seed/l2/400/300?grayscale" alt="Luffy outfit">
+          <img src="https://picsum.photos/seed/l2/400/300" alt="Luffy outfit" loading="lazy">
           <div class="card-badges"><span class="badge badge-rent">Rent</span></div>
-          <button class="card-wish" aria-label="Wishlist">♡</button>
+          <button class="card-wish" aria-label="Add to wishlist">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
         </div>
         <div class="card-body">
           <p class="card-series">One Piece</p>
@@ -303,12 +279,13 @@
         </div>
       </article>
 
-      <!-- Card 3 -->
       <article class="listing-card">
         <div class="card-thumb">
-          <img src="https://picsum.photos/seed/l3/400/300?grayscale" alt="Nezuko kimono">
+          <img src="https://picsum.photos/seed/l3/400/300" alt="Nezuko kimono" loading="lazy">
           <div class="card-badges"><span class="badge badge-sell">Sell</span></div>
-          <button class="card-wish" aria-label="Wishlist">♡</button>
+          <button class="card-wish" aria-label="Add to wishlist">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
         </div>
         <div class="card-body">
           <p class="card-series">Demon Slayer</p>
@@ -323,12 +300,13 @@
         </div>
       </article>
 
-      <!-- Card 4 -->
       <article class="listing-card">
         <div class="card-thumb">
-          <img src="https://picsum.photos/seed/l4/400/300?grayscale" alt="Gojo Satoru outfit">
+          <img src="https://picsum.photos/seed/l4/400/300" alt="Gojo outfit" loading="lazy">
           <div class="card-badges"><span class="badge badge-sell">Sell</span></div>
-          <button class="card-wish" aria-label="Wishlist">♡</button>
+          <button class="card-wish" aria-label="Add to wishlist">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
         </div>
         <div class="card-body">
           <p class="card-series">Jujutsu Kaisen</p>
@@ -343,12 +321,13 @@
         </div>
       </article>
 
-      <!-- Card 5 -->
       <article class="listing-card">
         <div class="card-thumb">
-          <img src="https://picsum.photos/seed/l5/400/300?grayscale" alt="Miku outfit">
+          <img src="https://picsum.photos/seed/l5/400/300" alt="Miku outfit" loading="lazy">
           <div class="card-badges"><span class="badge badge-rent">Rent</span></div>
-          <button class="card-wish" aria-label="Wishlist">♡</button>
+          <button class="card-wish" aria-label="Add to wishlist">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
         </div>
         <div class="card-body">
           <p class="card-series">Vocaloid</p>
@@ -363,12 +342,13 @@
         </div>
       </article>
 
-      <!-- Card 6 -->
       <article class="listing-card">
         <div class="card-thumb">
-          <img src="https://picsum.photos/seed/l6/400/300?grayscale" alt="Itachi cloak">
+          <img src="https://picsum.photos/seed/l6/400/300" alt="Itachi cloak" loading="lazy">
           <div class="card-badges"><span class="badge badge-sell">Sell</span></div>
-          <button class="card-wish" aria-label="Wishlist">♡</button>
+          <button class="card-wish" aria-label="Add to wishlist">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
         </div>
         <div class="card-body">
           <p class="card-series">Naruto Shippuden</p>
@@ -387,75 +367,65 @@
   </div>
 </section>
 
-<!-- ════════════════════════════════════════
-     HOW IT WORKS
-════════════════════════════════════════ -->
-<section class="how-section">
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
   <div class="container">
-
     <div class="reveal" style="text-align:center;">
       <p class="section-eyebrow" style="justify-content:center;">How It Works</p>
       <h2>Simple as 1, 2, 3</h2>
     </div>
-
     <div class="steps-grid stagger">
       <div class="step-card">
         <div class="step-num">01</div>
-        <h3 class="step-title">Browse &amp; Discover</h3>
+        <h3 class="step-title">Browse & Discover</h3>
         <p>Search by series, character, size, or type. Find exactly what your next cosplay needs.</p>
       </div>
       <div class="step-card">
         <div class="step-num">02</div>
-        <h3 class="step-title">Offer &amp; Connect</h3>
+        <h3 class="step-title">Offer & Connect</h3>
         <p>Make an offer or send a rental request. Chat directly with sellers to nail the details.</p>
       </div>
       <div class="step-card">
         <div class="step-num">03</div>
-        <h3 class="step-title">Meet &amp; Trade</h3>
+        <h3 class="step-title">Meet & Trade</h3>
         <p>Meet at a convention or arrange a handoff. Rate after to build community trust.</p>
       </div>
     </div>
-
   </div>
 </section>
 
-<!-- ════════════════════════════════════════
-     CONVENTION BANNER
-════════════════════════════════════════ -->
-<section class="section">
+<!-- CONVENTION BANNER -->
+<section class="section" id="conventions">
   <div class="container">
     <div class="convention-banner reveal">
       <div class="conv-text">
         <h2>Upcoming Conventions</h2>
         <p>Browse listings with convention pickup — meet sellers at AnimeX, COSMANIA &amp; more.</p>
       </div>
-      <a href="#" class="btn btn-conv">View convention hub →</a>
+      <a href="#" class="btn btn-conv">View convention hub
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
     </div>
   </div>
 </section>
 
-<!-- ════════════════════════════════════════
-     FOOTER
-════════════════════════════════════════ -->
+<!-- FOOTER -->
 <footer class="footer">
   <div class="container">
-
     <div class="footer-top">
       <div class="footer-brand">
-        <div class="footer-logo-name">✦ COSNIMA ✦</div>
+        <div class="footer-logo-name">COSNIMA</div>
         <p>The cosplay marketplace built for the Philippine community.</p>
       </div>
-
       <div class="footer-col">
         <h4>Marketplace</h4>
         <ul>
           <li><a href="#listings">Browse Listings</a></li>
           <li><a href="signup/register.html">Sell an Item</a></li>
           <li><a href="signup/register.html">Rent an Outfit</a></li>
-          <li><a href="#">Convention Hub</a></li>
+          <li><a href="#conventions">Convention Hub</a></li>
         </ul>
       </div>
-
       <div class="footer-col">
         <h4>Account</h4>
         <ul>
@@ -465,7 +435,6 @@
           <li><a href="#">Wishlist</a></li>
         </ul>
       </div>
-
       <div class="footer-col">
         <h4>Info</h4>
         <ul>
@@ -476,7 +445,6 @@
         </ul>
       </div>
     </div>
-
     <div class="footer-bottom">
       <p>© 2025 Cosnima. All rights reserved.</p>
       <div class="footer-bottom-links">
@@ -485,7 +453,6 @@
         <a href="#">Cookies</a>
       </div>
     </div>
-
   </div>
 </footer>
 

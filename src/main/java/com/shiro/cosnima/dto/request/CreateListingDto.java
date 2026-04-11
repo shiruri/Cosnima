@@ -67,5 +67,5 @@ public class CreateListingDto {
     public void setConventionPickup(Boolean conventionPickup) { this.conventionPickup = conventionPickup; }
 
     public List<MultipartFile> getImages() { return images; }
-    public void setImageUrls(List<MultipartFile> images) { this.images= images; }
+    public void setImages(List<MultipartFile> images) { this.images= images; }
 }

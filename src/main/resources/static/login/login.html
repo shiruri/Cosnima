@@ -16,20 +16,30 @@
 </head>
 <body>
 
+<div id="toast-container" aria-live="polite"></div>
+
 <div class="auth-wrapper">
 
   <!-- Left Brand Panel -->
   <aside class="auth-panel">
     <div class="sparkles" aria-hidden="true">
-      <span>✦</span><span>✦</span><span>✦</span><span>✦</span><span>✦</span>
-      <span>✦</span><span>✦</span><span>✦</span><span>✦</span><span>✦</span>
+      <!-- Using SVG stars instead of emoji -->
+      <span><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></span>
+      <span><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></span>
+      <span><svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></span>
+      <span><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></span>
+      <span><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></span>
+      <span><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></span>
+      <span><svg width="7" height="7" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></span>
+      <span><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></span>
+      <span><svg width="6" height="6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></span>
+      <span><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></span>
     </div>
 
     <div class="panel-inner">
       <div class="brand">
-        <span class="brand-mark">✦</span>
-        <span class="brand-name">COSNIMA</span>
-        <span class="brand-mark">✦</span>
+        <img src="../images/logo.png" alt="Cosnima" class="brand-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+        <span class="brand-name" style="display:none">COSNIMA</span>
       </div>
 
       <p class="panel-tagline">
@@ -37,15 +47,15 @@
       </p>
 
       <div class="panel-features">
-        <div class="panel-feature">Buy, sell & rent cosplay outfits</div>
+        <div class="panel-feature">Buy, sell and rent cosplay outfits</div>
         <div class="panel-feature">Convention meetup support</div>
-        <div class="panel-feature">Community ratings & trust</div>
-        <div class="panel-feature">Browse by anime / game series</div>
+        <div class="panel-feature">Community ratings and trust</div>
+        <div class="panel-feature">Browse by anime or game series</div>
       </div>
     </div>
 
     <div class="panel-bottom">
-      <a href="/index.html">Back to homepage</a>
+      <a href="../index.html">Back to homepage</a>
     </div>
   </aside>
 
@@ -58,12 +68,10 @@
         <p>Sign in to continue to Cosnima</p>
       </div>
 
-      <!-- Error banner -->
-      <div id="error-msg" class="error-banner"></div>
+      <div id="error-msg" class="error-banner" role="alert"></div>
 
       <form id="login-form" class="auth-form" novalidate>
 
-        <!-- Login field -->
         <div class="field-group">
           <input
             type="text"
@@ -77,7 +85,6 @@
           <span class="field-error" role="alert"></span>
         </div>
 
-        <!-- Password field -->
         <div class="field-group">
           <div class="pw-field">
             <input
@@ -90,21 +97,18 @@
             >
             <label for="password">Password</label>
             <button type="button" class="pw-toggle" aria-label="Toggle password visibility">
-              <svg class="eye-open icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              <svg class="eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                 <circle cx="12" cy="12" r="3"/>
               </svg>
-              <svg class="eye-close icon" style="display:none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+              <svg class="eye-close" style="display:none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
               </svg>
             </button>
           </div>
           <span class="field-error" role="alert"></span>
         </div>
 
-        <!-- Submit -->
         <button type="submit" id="submit-btn" class="btn btn-primary btn-auth">
           <span class="btn-text">Sign in</span>
           <span class="btn-loader" style="display:none;"></span>
@@ -113,7 +117,7 @@
       </form>
 
       <p class="auth-switch">
-        Don't have an account? <a href="/signup/register.html">Create one</a>
+        Don't have an account? <a href="../signup/register.html">Create one</a>
       </p>
 
     </div>

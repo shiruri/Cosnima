@@ -26,28 +26,30 @@ public interface ListingRepository extends JpaRepository<Listing,Long> {
     @Query("""
 SELECT l FROM Listing l
 LEFT JOIN FETCH l.images
+LEFT JOIN FETCH l.seller
 WHERE l.id = :id
 """)
     Optional<Listing> findByIdWithImages(@Param("id") Long id);
 
 
     @Query("""
-    SELECT l FROM Listing l
-    WHERE (:keyword IS NULL OR LOWER(l.title) LIKE LOWER(CONCAT('%', :keyword, '%')))
-    AND (:category IS NULL OR l.category = :category)
-    AND (:minPrice IS NULL OR l.price >= :minPrice)
-    AND (:maxPrice IS NULL OR l.price <= :maxPrice)
-    AND (:condition IS NULL OR l.condition = :condition)
-    AND (:isAvailable IS NULL OR l.isAvailable = :isAvailable)
+SELECT l FROM Listing l
+WHERE (:keyword IS NULL OR LOWER(l.title) LIKE LOWER(CONCAT('%', :keyword, '%')))
+AND (:minPrice IS NULL OR l.price >= :minPrice)
+AND (:maxPrice IS NULL OR l.price <= :maxPrice)
+AND (:condition IS NULL OR l.condition = :condition)
+AND (:isActive IS NULL OR l.isActive = :isActive)
+AND (:status IS NULL OR l.status = :status)
 """)
     Page<Listing> getListings(
-            String keyword,
-            String category,
-            BigDecimal minPrice,
-            BigDecimal maxPrice,
-            String condition,
-            Boolean isAvailable,
+            @Param("keyword") String keyword,
+            @Param("minPrice") BigDecimal minPrice,
+            @Param("maxPrice") BigDecimal maxPrice,
+            @Param("condition") Listing.Condition condition,
+            @Param("isActive") Boolean isActive,
+            @Param("status") Listing.Status status,
             Pageable pageable
     );
+
 
 }

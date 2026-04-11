@@ -9,7 +9,9 @@ import com.shiro.cosnima.dto.response.ImageResponse;
 import com.shiro.cosnima.dto.response.ListingResponse;
 import com.shiro.cosnima.model.Listing;
 import com.shiro.cosnima.model.ListingImage;
+import com.shiro.cosnima.model.User;
 import com.shiro.cosnima.repository.ListingRepository;
+import com.shiro.cosnima.repository.UserRepository;
 import com.shiro.cosnima.utility.ListingMapper;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,11 +42,13 @@ public class ListingService {
 
     private final ListingRepository listingRepo;
     private final CloudinaryService cloudinaryService;
+    private final UserRepository userRepo;
 
     @Autowired
-    public ListingService(ListingRepository listingRepo, CloudinaryService cloudinaryService) {
+    public ListingService(ListingRepository listingRepo, CloudinaryService cloudinaryService, UserRepository userRepo) {
         this.listingRepo = listingRepo;
         this.cloudinaryService = cloudinaryService;
+        this.userRepo = userRepo;
     }
 
 
@@ -76,37 +82,43 @@ public class ListingService {
                 sort
         );
 
-        // 1. get paginated listings
+        // 1. GET PAGED LISTINGS
         Page<Listing> listingPage = listingRepo.getListings(
                 listingRequest.getKeyword(),
-                listingRequest.getCategory(),
                 listingRequest.getMinPrice(),
                 listingRequest.getMaxPrice(),
                 listingRequest.getCondition(),
-                listingRequest.getIsAvailable(),
+                listingRequest.getIsActive(),
+                listingRequest.getStatus(),
                 pageable
         );
 
         List<Listing> listings = listingPage.getContent();
 
-        // 2. extract listing IDs
+        if (listings.isEmpty()) {
+            return List.of();
+        }
+
+        // 2. EXTRACT IDS
         List<Long> listingIds = listings.stream()
                 .map(Listing::getId)
                 .toList();
 
-        // 3. fetch all images in ONE query
+        // 3. FETCH IMAGES ONLY IF IDS EXIST
         List<ListingImage> images = listingRepo.findImagesByListingIds(listingIds);
 
-        // 4. group images by listingId
+        // 4. GROUP IMAGES
         Map<Long, List<ListingImage>> imageMap = images.stream()
                 .collect(Collectors.groupingBy(img -> img.getListing().getId()));
 
-        // 5. map to DTO
+        // 5. MAP RESPONSE
         return listings.stream()
                 .map(listing -> {
+
                     ListingResponse dto = ListingMapper.toDto(listing);
 
-                    List<ListingImage> imgs = imageMap.getOrDefault(listing.getId(), List.of());
+                    List<ListingImage> imgs =
+                            imageMap.getOrDefault(listing.getId(), List.of());
 
                     dto.setImages(
                             imgs.stream().map(img -> {
@@ -125,40 +137,74 @@ public class ListingService {
                 .toList();
     }
 
-    public void postListing(CreateListingDto listingReq) throws IOException {
 
+    public void postListing(
+            CreateListingDto listingReq,
+            List<MultipartFile> images,
+            UUID sellerId
+    ) throws IOException {
+
+        // 🔐 1. GET SELLER
+        User seller = userRepo.findById(sellerId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 🧠 2. MAP DTO → ENTITY
+        Listing listing = new Listing();
+
+        listing.setSeller(seller);
+        listing.setTitle(listingReq.getTitle());
+        listing.setDescription(listingReq.getDescription());
+        listing.setPrice(listingReq.getPrice());
+
+        listing.setType(
+                Listing.Type.valueOf(listingReq.getType().toUpperCase())
+        );
+
+        if (listingReq.getCondition() != null) {
+            listing.setCondition(
+                    Listing.Condition.valueOf(listingReq.getCondition().toUpperCase())
+            );
+        }
+
+        listing.setSize(listingReq.getSize());
+        listing.setCharacterName(listingReq.getCharacterName());
+        listing.setSeriesName(listingReq.getSeriesName());
+        listing.setLocation(listingReq.getLocation());
+
+        if (listingReq.getConventionPickup() != null) {
+            listing.setConventionPickup(listingReq.getConventionPickup());
+        }
+
+        // 🖼️ 3. HANDLE IMAGES
         List<ListingImage> imageEntities = new ArrayList<>();
 
-        if (listingReq.getImages() != null) {
+        if (images != null && !images.isEmpty()) {
 
-            for (MultipartFile file : listingReq.getImages()) {
+            for (MultipartFile file : images) {
 
-                // 1. upload to cloudinary
                 Map uploadResult =
                         cloudinaryService.uploadImage(file, "listing_images");
 
-                String imageUrl = (String) uploadResult.get("secure_url");
-                String publicId = (String) uploadResult.get("public_id");
-
                 ListingImage img = new ListingImage();
-                img.setImageUrl(imageUrl);
-                img.setPublicId(publicId);
+                img.setImageUrl(uploadResult.get("secure_url").toString());
+                img.setPublicId(uploadResult.get("public_id").toString());
                 img.setIsPrimary(false);
-                img.setSortOrder(0);
+                img.setSortOrder(imageEntities.size());
+                img.setListing(listing);
 
                 imageEntities.add(img);
-
             }
+
+            // optional: first image = primary
+            imageEntities.get(0).setIsPrimary(true);
         }
 
-        // 3. create listing
-        Listing listing = new Listing();
         listing.setImages(imageEntities);
-
-        imageEntities.forEach(img -> img.setListing(listing));
 
         listingRepo.save(listing);
     }
+
+
     public ListingResponse updateListing(
             Long id,
             UUID userId,
