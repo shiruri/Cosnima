@@ -3,6 +3,7 @@ package com.shiro.cosnima.utility;
 import com.shiro.cosnima.dto.response.ImageResponse;
 import com.shiro.cosnima.model.Listing;
 import com.shiro.cosnima.dto.response.ListingResponse;
+import com.shiro.cosnima.model.Tags;
 
 import java.util.stream.Collectors;
 
@@ -50,6 +51,11 @@ public class ListingMapper {
         dto.setIsActive(listing.getIsActive());
         dto.setViewCount(listing.getViewCount());
         dto.setCreatedAt(listing.getCreatedAt());
+        dto.setTags(
+                listing.getTags().stream()
+                        .map(Tags::getName)
+                        .toList()
+        );
 
         return dto;
     }

@@ -1,21 +1,25 @@
 package com.shiro.cosnima.model;
 
+import io.micrometer.core.instrument.Tag;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "listings")
 public class Listing {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @UuidGenerator
+    @Column(columnDefinition = "CHAR(36)")
+    private String  id;
 
     // ===== RELATIONSHIPS =====
     @ManyToOne(fetch = FetchType.LAZY)
@@ -45,6 +49,7 @@ public class Listing {
     private Type type;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "`condition`")
     private Condition condition;
 
     @Size(max = 50)
@@ -101,6 +106,22 @@ public class Listing {
         WORN
     }
 
+    public List<Tags> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<Tags> tags) {
+        this.tags = tags;
+    }
+
+    @ManyToMany
+    @JoinTable(
+            name = "listing_tags",
+            joinColumns = @JoinColumn(name = "listing_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private List<Tags> tags;
+
     public enum Status {
         AVAILABLE,
         SOLD,
@@ -109,8 +130,8 @@ public class Listing {
     }
 
     // ===== GETTERS & SETTERS =====
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public String getId() { return id; }
+    public void setId(String  id) { this.id = id; }
 
     public User getSeller() { return seller; }
     public void setSeller(User seller) { this.seller = seller; }

@@ -7,34 +7,27 @@ import com.shiro.cosnima.dto.request.ListingRequest;
 import com.shiro.cosnima.dto.request.UpdateListingRequest;
 import com.shiro.cosnima.dto.response.ImageResponse;
 import com.shiro.cosnima.dto.response.ListingResponse;
-import com.shiro.cosnima.model.Listing;
-import com.shiro.cosnima.model.ListingImage;
-import com.shiro.cosnima.model.User;
+import com.shiro.cosnima.dto.response.StatsResponse;
+import com.shiro.cosnima.model.*;
 import com.shiro.cosnima.repository.ListingRepository;
+import com.shiro.cosnima.repository.ListingViewRepository;
+import com.shiro.cosnima.repository.TagRepository;
 import com.shiro.cosnima.repository.UserRepository;
 import com.shiro.cosnima.utility.ListingMapper;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
 
 @Service
 @Transactional
@@ -43,16 +36,19 @@ public class ListingService {
     private final ListingRepository listingRepo;
     private final CloudinaryService cloudinaryService;
     private final UserRepository userRepo;
+    private final TagRepository tagRepo;
+    private final ListingViewRepository listingViewRepo;
 
-    @Autowired
-    public ListingService(ListingRepository listingRepo, CloudinaryService cloudinaryService, UserRepository userRepo) {
+    public ListingService(ListingRepository listingRepo, CloudinaryService cloudinaryService, UserRepository userRepo, TagRepository tagRepo, ListingViewRepository listingViewRepo) {
         this.listingRepo = listingRepo;
         this.cloudinaryService = cloudinaryService;
         this.userRepo = userRepo;
+        this.tagRepo = tagRepo;
+        this.listingViewRepo = listingViewRepo;
     }
 
 
-    public ListingResponse getListingById(Long id, UUID userId) {
+    public ListingResponse getListingById(String id, UUID userId) {
 
         Listing listing = listingRepo.findByIdWithImages(id)
                 .orElseThrow(() -> new RuntimeException("Listing not found"));
@@ -64,6 +60,17 @@ public class ListingService {
         dto.setIsOwner(isOwner);
         dto.setCanEdit(isOwner);
         dto.setCanDelete(isOwner);
+
+        if (!isOwner && userId != null) {
+            boolean alreadyViewed = listingViewRepo.hasUserViewed(id, userId);
+
+            if (!alreadyViewed) {
+                listingRepo.incrementViewCount(id);
+
+                listingViewRepo.save(new ListingView(id, userId));
+            }
+        }
+
 
         return dto;
     }
@@ -78,7 +85,7 @@ public class ListingService {
 
         Pageable pageable = PageRequest.of(
                 listingRequest.getPage(),
-                listingRequest.getSize(),
+                listingRequest.getPageSize(),
                 sort
         );
 
@@ -100,15 +107,15 @@ public class ListingService {
         }
 
         // 2. EXTRACT IDS
-        List<Long> listingIds = listings.stream()
+        List<String> listingIds = listings.stream()
                 .map(Listing::getId)
-                .toList();
+                .collect(Collectors.toList());
 
         // 3. FETCH IMAGES ONLY IF IDS EXIST
         List<ListingImage> images = listingRepo.findImagesByListingIds(listingIds);
 
         // 4. GROUP IMAGES
-        Map<Long, List<ListingImage>> imageMap = images.stream()
+        Map<String, List<ListingImage>> imageMap = images.stream()
                 .collect(Collectors.groupingBy(img -> img.getListing().getId()));
 
         // 5. MAP RESPONSE
@@ -138,7 +145,7 @@ public class ListingService {
     }
 
 
-    public void postListing(
+    public String postListing(
             CreateListingDto listingReq,
             List<MultipartFile> images,
             UUID sellerId
@@ -201,12 +208,32 @@ public class ListingService {
 
         listing.setImages(imageEntities);
 
+        List<Tags> tagEntities = new ArrayList<>();
+
+        if (listingReq.getTags() != null) {
+            for (String tagName : listingReq.getTags()) {
+
+                Tags tag = tagRepo.findByName(tagName)
+                        .orElseGet(() -> {
+                            Tags newTag = new Tags();
+                            newTag.setName(tagName);
+                            return tagRepo.save(newTag);
+                        });
+
+                tagEntities.add(tag);
+            }
+        }
+
+        listing.setTags(tagEntities);
+        listing.setCreatedAt(LocalDateTime.now());
+        listing.setUpdatedAt(LocalDateTime.now());
         listingRepo.save(listing);
+        return listing.getId();
     }
 
 
     public ListingResponse updateListing(
-            Long id,
+            String id,
             UUID userId,
             UpdateListingRequest request,
             List<MultipartFile> files
@@ -278,6 +305,7 @@ public class ListingService {
             }
         }
 
+
         // 5. SAVE
         Listing saved = listingRepo.save(listing);
 
@@ -292,7 +320,7 @@ public class ListingService {
         return dto;
     }
 
-    public void deleteListing(long id, UUID userId) {
+    public void deleteListing(String id, UUID userId) {
         Listing listing = listingRepo.findByIdWithImages(id)
                 .orElseThrow(() -> new RuntimeException("Listing not found"));
 
@@ -304,7 +332,7 @@ public class ListingService {
 
     }
 
-    public ListingResponse updateStatus(Long id, UUID userId, String status) throws AccessDeniedException {
+    public ListingResponse updateStatus(String id, UUID userId, String status) throws AccessDeniedException {
 
         Listing listing = listingRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Not found"));
@@ -320,7 +348,7 @@ public class ListingService {
         return ListingMapper.toDto(saved);
     }
 
-    public Boolean isAvailable(Long id, String startDate, String endDate) {
+    public Boolean isAvailable(String id, String startDate, String endDate) {
 
         Listing listing = listingRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Not found"));
@@ -332,6 +360,18 @@ public class ListingService {
         return listing.getStatus() == Listing.Status.AVAILABLE;
     }
 
+    public StatsResponse getStats() {
+        long listingCount = listingRepo.countAllListings();
+        long sellerCount = userRepo.count();
+        return new StatsResponse(listingCount, sellerCount);
+    }
+
+    public String getUserImage(String id) {
+        return listingRepo.findById(id)
+                .map(Listing::getSeller)
+                .map(User::getAvatarUrl)
+                .orElse(null);
+    }
 
 
 }

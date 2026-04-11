@@ -1,97 +1,189 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page Not Found — Cosnima</title>
-    <link rel="stylesheet" href="/css/variables.css">
-    <link rel="stylesheet" href="/css/global.css">
-    <script>
-        (function() {
-            const t = localStorage.getItem('cosnimaTheme') || 'light';
-            document.documentElement.setAttribute('data-theme', t);
-        })();
-    </script>
-    <style>
-        body { display:flex; align-items:center; justify-content:center; min-height:100vh; }
-        .not-found-wrapper {
-            text-align: center;
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-        }
-        .not-found-num {
-            font-family: var(--font-display);
-            font-size: clamp(5rem, 20vw, 9rem);
-            font-weight: 700;
-            line-height: 1;
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .not-found-title { font-size: 1.6rem; color: var(--ink); margin-bottom: 0; }
-        .not-found-desc { max-width: 380px; font-size: 0.96rem; color: var(--ink-muted); }
-        .not-found-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; margin-top: 0.5rem; }
-        .beaver-bounce { animation: beaverBounce 1.2s ease-in-out infinite; }
-        @keyframes beaverBounce {
-            0%, 100% { transform: translateY(0); }
-            50%       { transform: translateY(-14px); }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Not Found — Cosnima</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/global.css">
+  <script>(function(){var t=localStorage.getItem('cosnimaTheme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: var(--space-xl);
+      background: var(--bg);
+    }
+
+    /* Deco circles */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -150px; right: -150px;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(240,98,146,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    body::after { display: none; } /* remove grain for this page */
+
+    .not-found-wrapper {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-md);
+      position: relative;
+      z-index: 1;
+      animation: slideUp 0.6s ease both;
+    }
+    @keyframes slideUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:none; } }
+
+    .beaver-bounce {
+      animation: beaverBounce 1.4s cubic-bezier(0.34,1.56,0.64,1) infinite;
+      filter: drop-shadow(0 10px 20px rgba(200,122,80,0.25));
+    }
+    @keyframes beaverBounce {
+      0%,100% { transform: translateY(0) rotate(-3deg); }
+      50%      { transform: translateY(-20px) rotate(3deg); }
+    }
+
+    .not-found-num {
+      font-family: var(--font-display);
+      font-size: clamp(5rem, 20vw, 10rem);
+      line-height: 1;
+      background: linear-gradient(135deg, var(--beaver), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0;
+    }
+
+    .not-found-title {
+      font-size: clamp(1.3rem, 4vw, 2rem);
+      color: var(--ink);
+      margin-bottom: 0;
+    }
+
+    .not-found-desc {
+      max-width: 360px;
+      font-size: 0.96rem;
+      color: var(--ink-muted);
+      font-weight: 500;
+      line-height: 1.65;
+    }
+
+    .not-found-actions {
+      display: flex;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: var(--space-sm);
+    }
+
+    .error-code {
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-top: var(--space-xl);
+    }
+
+    /* Floating paws decoration */
+    .paw-decor {
+      position: fixed;
+      pointer-events: none;
+      opacity: 0.06;
+      font-size: 2rem;
+      animation: float 6s ease-in-out infinite;
+    }
+    .paw-1 { top: 10%; left: 5%;  animation-delay: 0s; }
+    .paw-2 { top: 20%; right: 8%; animation-delay: 1s; font-size:1.4rem; }
+    .paw-3 { bottom: 20%; left: 10%; animation-delay: 2s; font-size:1.6rem; }
+    .paw-4 { bottom: 15%; right: 5%; animation-delay: 0.5s; }
+    @keyframes float { 0%,100% { transform:translateY(0) rotate(-5deg); } 50% { transform:translateY(-15px) rotate(5deg); } }
+  </style>
 </head>
 <body>
-<div class="not-found-wrapper">
-    <!-- Cute beaver SVG -->
-    <div class="beaver-bounce" aria-hidden="true">
-        <svg width="100" height="100" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="45" cy="52" rx="22" ry="20" fill="#c87a50"/>
-            <ellipse cx="45" cy="56" rx="13" ry="12" fill="#e8a878"/>
-            <ellipse cx="45" cy="32" rx="18" ry="16" fill="#c87a50"/>
-            <ellipse cx="36" cy="36" rx="6" ry="5" fill="#e8a878"/>
-            <ellipse cx="54" cy="36" rx="6" ry="5" fill="#e8a878"/>
-            <!-- Sad eyes -->
-            <path d="M36 27 Q39 25 42 27" stroke="#2a1a1f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <path d="M48 27 Q51 25 54 27" stroke="#2a1a1f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <circle cx="39" cy="30" r="3.5" fill="#2a1a1f"/>
-            <circle cx="51" cy="30" r="3.5" fill="#2a1a1f"/>
-            <circle cx="40" cy="29" r="1.2" fill="white"/>
-            <circle cx="52" cy="29" r="1.2" fill="white"/>
-            <!-- Teardrop -->
-            <ellipse cx="36" cy="35" rx="2" ry="3" fill="#a8d4f5" opacity="0.8"/>
-            <ellipse cx="54" cy="35" rx="2" ry="3" fill="#a8d4f5" opacity="0.8"/>
-            <ellipse cx="45" cy="36" rx="4" ry="3" fill="#8b4c30"/>
-            <rect x="41" y="38" width="4" height="5" rx="1" fill="#f8f0e0"/>
-            <rect x="46" y="38" width="4" height="5" rx="1" fill="#f8f0e0"/>
-            <ellipse cx="31" cy="19" rx="6" ry="7" fill="#c87a50"/>
-            <ellipse cx="31" cy="19" rx="3.5" ry="4.5" fill="#e8a878"/>
-            <ellipse cx="59" cy="19" rx="6" ry="7" fill="#c87a50"/>
-            <ellipse cx="59" cy="19" rx="3.5" ry="4.5" fill="#e8a878"/>
-            <ellipse cx="26" cy="55" rx="6" ry="10" fill="#c87a50" transform="rotate(-15 26 55)"/>
-            <ellipse cx="64" cy="55" rx="6" ry="10" fill="#c87a50" transform="rotate(15 64 55)"/>
-            <ellipse cx="36" cy="72" rx="9" ry="5" fill="#8b4c30"/>
-            <ellipse cx="54" cy="72" rx="9" ry="5" fill="#8b4c30"/>
-            <!-- Tail -->
-            <ellipse cx="45" cy="78" rx="16" ry="7" fill="#8b4c30"/>
-            <path d="M33 77 Q45 72 57 77" stroke="#6b3420" stroke-width="1.2" fill="none" opacity="0.5"/>
-            <!-- Lost sign -->
-            <rect x="60" y="38" width="26" height="18" rx="3" fill="white" stroke="#e0b8c4" stroke-width="1.5"/>
-            <text x="73" y="51" text-anchor="middle" font-size="8" fill="#e8547a" font-family="sans-serif" font-weight="bold">LOST</text>
-        </svg>
-    </div>
 
-    <div class="not-found-num">404</div>
-    <h1 class="not-found-title">Page not found</h1>
-    <p class="not-found-desc">
-        Oops! This beaver got lost looking for that page.
-        Looks like it wandered off somewhere we can't find.
-    </p>
-    <div class="not-found-actions">
-        <a href="/index.html" class="btn btn-primary">Go home</a>
-        <a href="/index.html#listings" class="btn btn-outline">Browse listings</a>
-    </div>
+<span class="paw-decor paw-1" aria-hidden="true">🐾</span>
+<span class="paw-decor paw-2" aria-hidden="true">🐾</span>
+<span class="paw-decor paw-3" aria-hidden="true">🐾</span>
+<span class="paw-decor paw-4" aria-hidden="true">🐾</span>
+
+<div class="not-found-wrapper" role="main">
+
+  <!-- Sad beaver -->
+  <div class="beaver-bounce" aria-hidden="true">
+    <svg width="120" height="120" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Body -->
+      <ellipse cx="45" cy="52" rx="22" ry="20" fill="#c87a50"/>
+      <ellipse cx="45" cy="56" rx="13" ry="12" fill="#e8a878"/>
+      <!-- Head -->
+      <ellipse cx="45" cy="32" rx="18" ry="16" fill="#c87a50"/>
+      <!-- Cheeks -->
+      <ellipse cx="36" cy="36" rx="6" ry="5" fill="#e8a878"/>
+      <ellipse cx="54" cy="36" rx="6" ry="5" fill="#e8a878"/>
+      <!-- Sad brow lines -->
+      <path d="M34 25 Q37 22.5 40 24.5" stroke="#2a1a1f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M50 24.5 Q53 22.5 56 25" stroke="#2a1a1f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- Eyes -->
+      <circle cx="39" cy="30" r="3.5" fill="#2a1a1f"/>
+      <circle cx="51" cy="30" r="3.5" fill="#2a1a1f"/>
+      <circle cx="40" cy="29" r="1.2" fill="white"/>
+      <circle cx="52" cy="29" r="1.2" fill="white"/>
+      <!-- Tears -->
+      <path d="M37 33.5 Q36 36 37 38.5" stroke="#87ceeb" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.8"/>
+      <path d="M53 33.5 Q54 36 53 38.5" stroke="#87ceeb" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.8"/>
+      <!-- Nose -->
+      <ellipse cx="45" cy="36" rx="4" ry="3" fill="#8b4c30"/>
+      <!-- Teeth -->
+      <rect x="41" y="38" width="4" height="5" rx="1" fill="#f8f0e0"/>
+      <rect x="46" y="38" width="4" height="5" rx="1" fill="#f8f0e0"/>
+      <!-- Ears -->
+      <ellipse cx="31" cy="19" rx="6" ry="7" fill="#c87a50"/>
+      <ellipse cx="31" cy="19" rx="3.5" ry="4.5" fill="#e8a878"/>
+      <ellipse cx="59" cy="19" rx="6" ry="7" fill="#c87a50"/>
+      <ellipse cx="59" cy="19" rx="3.5" ry="4.5" fill="#e8a878"/>
+      <!-- Arms -->
+      <ellipse cx="26" cy="55" rx="6" ry="10" fill="#c87a50" transform="rotate(-15 26 55)"/>
+      <ellipse cx="64" cy="55" rx="6" ry="10" fill="#c87a50" transform="rotate(15 64 55)"/>
+      <!-- Feet -->
+      <ellipse cx="36" cy="72" rx="9" ry="5" fill="#8b4c30"/>
+      <ellipse cx="54" cy="72" rx="9" ry="5" fill="#8b4c30"/>
+      <!-- Tail -->
+      <ellipse cx="45" cy="78" rx="16" ry="7" fill="#8b4c30"/>
+      <path d="M33 77 Q45 72 57 77" stroke="#6b3420" stroke-width="1.2" fill="none" opacity="0.5"/>
+      <!-- Lost sign -->
+      <rect x="58" y="35" width="28" height="20" rx="4" fill="white" stroke="#f8b4c8" stroke-width="2"/>
+      <text x="72" y="44" text-anchor="middle" font-size="7" fill="#f06292" font-family="sans-serif" font-weight="900">LOST</text>
+      <text x="72" y="52" text-anchor="middle" font-size="5.5" fill="#e8547a" font-family="sans-serif">page 404</text>
+    </svg>
+  </div>
+
+  <div class="not-found-num" aria-label="404">404</div>
+  <h1 class="not-found-title">Oops! Page not found</h1>
+  <p class="not-found-desc">
+    This little beaver got totally lost trying to find that page.
+    It probably wandered off to a convention somewhere.
+  </p>
+
+  <div class="not-found-actions">
+    <a href="../index.html" class="btn btn-primary">
+      🏠 Go Home
+    </a>
+    <a href="../listing/listings.html" class="btn btn-outline">
+      Browse Listings
+    </a>
+    <button onclick="history.back()" class="btn btn-ghost">
+      ← Go Back
+    </button>
+  </div>
+
+  <p class="error-code">Error 404 · Page not found · Cosnima</p>
 </div>
+
 </body>
 </html>

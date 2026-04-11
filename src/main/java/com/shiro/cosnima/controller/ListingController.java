@@ -1,11 +1,13 @@
 package com.shiro.cosnima.controller;
 
 
+import com.cloudinary.http44.api.Response;
 import com.shiro.cosnima.dto.request.*;
+import com.shiro.cosnima.dto.response.ImageResponse;
 import com.shiro.cosnima.dto.response.ListingResponse;
+import com.shiro.cosnima.dto.response.StatsResponse;
 import com.shiro.cosnima.service.ListingService;
 import jakarta.validation.Valid;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,10 +19,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("api/listings/")
+@RequestMapping("api/listings")
 public class ListingController {
 
     private final ListingService listingServ;
@@ -30,9 +33,20 @@ public class ListingController {
         this.listingServ = listingServ;
     }
 
+    @GetMapping("/stats")
+    public ResponseEntity<StatsResponse> getStats() {
+
+        StatsResponse statResponse = listingServ.getStats();
+        if(statResponse != null) {
+            return ResponseEntity.ok().body(statResponse);
+
+        }
+        return ResponseEntity.badRequest().build();
+
+    }
     @GetMapping("/{id}/availability")
     public ResponseEntity<Boolean> checkAvailability(
-            @PathVariable Long id,
+            @PathVariable String id,
             @RequestParam String startDate,
             @RequestParam String endDate
     ) {
@@ -45,7 +59,7 @@ public class ListingController {
 
     @PatchMapping("/{id}/status")
     public ResponseEntity<ListingResponse> updateStatus(
-            @PathVariable Long id,
+            @PathVariable String id,
             @RequestParam String status
     ) throws AccessDeniedException {
 
@@ -58,9 +72,17 @@ public class ListingController {
         );
     }
 
+    @GetMapping("/{id}/user-profile")
+    public ResponseEntity<String> getUserProfile(@PathVariable String id) {
+        String avatarUrl = listingServ.getUserImage(id);
+        if(avatarUrl != null) {
+            return ResponseEntity.ok().body(avatarUrl);
+        }
+        return ResponseEntity.badRequest().build();
 
-    @GetMapping("/{id}/listings")
-    public ResponseEntity<ListingResponse> getListingById(@PathVariable long id) {
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<ListingResponse> getListingById(@PathVariable String id) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(auth != null) {
             UUID userId = UUID.fromString(auth.getName());
@@ -78,7 +100,7 @@ public class ListingController {
 
     @PatchMapping("/update/{id}")
     public ResponseEntity<ListingResponse> updateListing(
-            @PathVariable Long id,
+            @PathVariable String id,
             @RequestPart("value") UpdateListingRequest request,
             @RequestPart(value = "files", required = false) List<MultipartFile> files
     ) throws IOException {
@@ -94,7 +116,7 @@ public class ListingController {
 
 
     @GetMapping()
-    public ResponseEntity<List<ListingResponse>> getListings(@RequestParam ListingRequest listingReq) {
+    public ResponseEntity<List<ListingResponse>> getListings(@ModelAttribute ListingRequest listingReq) {
         List<ListingResponse> listingResponse = listingServ.getListings(listingReq);
         if(listingResponse != null) {
             return ResponseEntity.ok().body(listingResponse);
@@ -103,30 +125,28 @@ public class ListingController {
     }
 
     @PostMapping("/post")
-    public ResponseEntity<String> postListing(
+    public ResponseEntity<?> postListing(
             @RequestPart("value") @Valid CreateListingDto listingReq,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images,
-            BindingResult result) throws IOException {
+            BindingResult bindingResult,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) throws IOException {
+
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(bindingResult.getAllErrors().toString());
+        }
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
         if (auth == null || !auth.isAuthenticated()) {
             return ResponseEntity.status(401).body("Unauthorized");
         }
 
-        UUID sellerId;
+        UUID sellerId = UUID.fromString(auth.getName());
+        String listingId = listingServ.postListing(listingReq, images, sellerId);
 
-        try {
-            sellerId = UUID.fromString(auth.getName());
-            listingServ.postListing(listingReq,images,sellerId);
-            return ResponseEntity.ok().body("Posted Succesfully");
-        } catch (Exception e) {
-            return ResponseEntity.status(400).body("Invalid user ID");
-        }
+        return ResponseEntity.ok(Map.of("id", listingId));
     }
 
 
-        @DeleteMapping("/{id}") ResponseEntity<String> deleteListing(@PathVariable long id) throws IOException{
+        @DeleteMapping("/{id}") ResponseEntity<String> deleteListing(@PathVariable String id) throws IOException{
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(auth != null) {
             UUID userId = UUID.fromString(auth.getName());

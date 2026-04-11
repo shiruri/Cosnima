@@ -1,150 +1,93 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cosnima — Browse Cosplay Listings</title>
-  <meta name="description" content="Buy, sell, and rent cosplay outfits in the Philippines.">
+  <title>Cosnima — Philippine Cosplay Marketplace</title>
+  <meta name="description" content="Buy, sell, and rent cosplay outfits in the Philippines. The cutest cosplay marketplace around!">
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/home.css">
-  <!-- Additional styles for dynamic browse page (will be appended to home.css if needed) -->
-  <style>
-    /* Browse page specific */
-    .browse-header {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: var(--space-lg);
-    }
-    .browse-title {
-      font-size: 2rem;
-      font-weight: 600;
-    }
-    .filter-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-sm);
-      margin-bottom: var(--space-xl);
-    }
-    .filter-select {
-      padding: 8px 16px;
-      border-radius: 40px;
-      border: 1px solid var(--border);
-      background: var(--bg-surface);
-      color: var(--ink);
-      font-size: 0.9rem;
-    }
-    .search-input {
-      padding: 10px 18px;
-      border-radius: 40px;
-      border: 1px solid var(--border);
-      background: var(--bg-surface);
-      width: 260px;
-    }
-    .pagination {
-      display: flex;
-      justify-content: center;
-      gap: var(--space-sm);
-      margin-top: var(--space-2xl);
-    }
-    .page-btn {
-      padding: 8px 16px;
-      border-radius: 40px;
-      border: 1px solid var(--border);
-      background: var(--bg-surface);
-      cursor: pointer;
-    }
-    .page-btn.active {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-    }
-    .page-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  </style>
-  <script>
-    (function(){
-      var t = localStorage.getItem('cosnimaTheme') || 'light';
-      document.documentElement.setAttribute('data-theme', t);
-    })();
-  </script>
+  <script>(function(){var t=localStorage.getItem('cosnimaTheme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
 </head>
 <body>
 
-<!-- Loading Screen (will be hidden after data loads) -->
-<div id="loading-screen" aria-hidden="true">
-  <div class="loader-beaver">
-    <!-- same beaver SVG as before -->
+<!-- Loading Screen -->
+<div id="loading-screen">
+  <div class="loader-beaver" aria-hidden="true">
     <svg width="90" height="90" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <g class="beaver-body">
-        <ellipse cx="45" cy="52" rx="22" ry="20" fill="#c87a50"/>
-        <ellipse cx="45" cy="56" rx="13" ry="12" fill="#e8a878"/>
-        <ellipse cx="45" cy="32" rx="18" ry="16" fill="#c87a50"/>
-        <ellipse cx="36" cy="36" rx="6" ry="5" fill="#e8a878"/>
-        <ellipse cx="54" cy="36" rx="6" ry="5" fill="#e8a878"/>
-        <circle cx="39" cy="29" r="4" fill="#2a1a1f"/>
-        <circle cx="51" cy="29" r="4" fill="#2a1a1f"/>
-        <circle cx="40" cy="28" r="1.5" fill="white"/>
-        <circle cx="52" cy="28" r="1.5" fill="white"/>
-        <ellipse cx="45" cy="35" rx="4" ry="3" fill="#8b4c30"/>
-        <rect x="41" y="37" width="4" height="5" rx="1" fill="#f8f0e0"/>
-        <rect x="46" y="37" width="4" height="5" rx="1" fill="#f8f0e0"/>
-        <ellipse cx="31" cy="19" rx="6" ry="7" fill="#c87a50"/>
-        <ellipse cx="31" cy="19" rx="3.5" ry="4.5" fill="#e8a878"/>
-        <ellipse cx="59" cy="19" rx="6" ry="7" fill="#c87a50"/>
-        <ellipse cx="59" cy="19" rx="3.5" ry="4.5" fill="#e8a878"/>
-        <ellipse cx="26" cy="55" rx="6" ry="10" fill="#c87a50" transform="rotate(-15 26 55)"/>
-        <ellipse cx="64" cy="55" rx="6" ry="10" fill="#c87a50" transform="rotate(15 64 55)"/>
-        <ellipse cx="36" cy="72" rx="9" ry="5" fill="#8b4c30"/>
-        <ellipse cx="54" cy="72" rx="9" ry="5" fill="#8b4c30"/>
-      </g>
-      <g class="beaver-tail">
-        <ellipse cx="45" cy="76" rx="16" ry="8" fill="#8b4c30" transform="rotate(-5 45 76)"/>
-        <path d="M33 75 Q45 70 57 75" stroke="#6b3420" stroke-width="1.2" fill="none" opacity="0.5"/>
-        <path d="M34 78 Q45 73 56 78" stroke="#6b3420" stroke-width="1.2" fill="none" opacity="0.5"/>
-      </g>
-      <path d="M44 23 C44 21 41 19 39 21 C37 23 39 26 44 29 C49 26 51 23 49 21 C47 19 44 21 44 23Z" fill="#e8547a" opacity="0.7"/>
+      <ellipse cx="45" cy="52" rx="22" ry="20" fill="#c87a50"/>
+      <ellipse cx="45" cy="56" rx="13" ry="12" fill="#e8a878"/>
+      <ellipse cx="45" cy="32" rx="18" ry="16" fill="#c87a50"/>
+      <ellipse cx="36" cy="36" rx="6" ry="5" fill="#e8a878"/>
+      <ellipse cx="54" cy="36" rx="6" ry="5" fill="#e8a878"/>
+      <circle cx="39" cy="29" r="4" fill="#2a1a1f"/>
+      <circle cx="51" cy="29" r="4" fill="#2a1a1f"/>
+      <circle cx="40" cy="28" r="1.5" fill="white"/>
+      <circle cx="52" cy="28" r="1.5" fill="white"/>
+      <ellipse cx="45" cy="35" rx="4" ry="3" fill="#8b4c30"/>
+      <rect x="41" y="37" width="4" height="5" rx="1" fill="#f8f0e0"/>
+      <rect x="46" y="37" width="4" height="5" rx="1" fill="#f8f0e0"/>
+      <ellipse cx="31" cy="19" rx="6" ry="7" fill="#c87a50"/>
+      <ellipse cx="31" cy="19" rx="3.5" ry="4.5" fill="#e8a878"/>
+      <ellipse cx="59" cy="19" rx="6" ry="7" fill="#c87a50"/>
+      <ellipse cx="59" cy="19" rx="3.5" ry="4.5" fill="#e8a878"/>
+      <ellipse cx="26" cy="55" rx="6" ry="10" fill="#c87a50" transform="rotate(-15 26 55)"/>
+      <ellipse cx="64" cy="55" rx="6" ry="10" fill="#c87a50" transform="rotate(15 64 55)"/>
+      <ellipse cx="36" cy="72" rx="9" ry="5" fill="#8b4c30"/>
+      <ellipse cx="54" cy="72" rx="9" ry="5" fill="#8b4c30"/>
+      <ellipse cx="45" cy="76" rx="16" ry="8" fill="#8b4c30" transform="rotate(-5 45 76)"/>
+      <!-- Heart on chest -->
+      <path d="M44 23 C44 21 41 19 39 21 C37 23 39 26 44 29 C49 26 51 23 49 21 C47 19 44 21 44 23Z" fill="#f06292" opacity="0.7"/>
     </svg>
   </div>
-  <div class="loader-dots">
-    <span></span><span></span><span></span>
-  </div>
-  <p class="loader-text">Loading listings...</p>
+  <div class="loader-dots"><span></span><span></span><span></span></div>
+  <p class="loader-text">Loading the marketplace…</p>
 </div>
 
 <!-- Toast container -->
 <div id="toast-container" aria-live="polite"></div>
 
-<!-- NAVBAR (same as before) -->
+<!-- ── NAVBAR ── -->
 <nav class="navbar" role="navigation" aria-label="Main navigation">
   <div class="nav-inner">
-    <a href="./index.html" class="nav-logo" aria-label="Cosnima home">
-      <img src="images/logo.png" alt="Cosnima" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
-      <span class="nav-logo-name" style="display:none">COSNIMA</span>
+    <!-- Logo -->
+    <a href="index.html" class="nav-logo" aria-label="Cosnima home">
+      <svg class="nav-logo-beaver" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="18" cy="21" rx="9" ry="8" fill="#c87a50"/>
+        <ellipse cx="18" cy="22.5" rx="5.5" ry="5" fill="#e8a878"/>
+        <ellipse cx="18" cy="13" rx="7.5" ry="6.5" fill="#c87a50"/>
+        <ellipse cx="14.5" cy="14.5" rx="2.5" ry="2" fill="#e8a878"/>
+        <ellipse cx="21.5" cy="14.5" rx="2.5" ry="2" fill="#e8a878"/>
+        <circle cx="15.5" cy="12" r="1.8" fill="#2a1a1f"/>
+        <circle cx="20.5" cy="12" r="1.8" fill="#2a1a1f"/>
+        <circle cx="16" cy="11.5" r="0.7" fill="white"/>
+        <circle cx="21" cy="11.5" r="0.7" fill="white"/>
+        <ellipse cx="12.5" cy="7.5" rx="2.5" ry="3" fill="#c87a50"/>
+        <ellipse cx="23.5" cy="7.5" rx="2.5" ry="3" fill="#c87a50"/>
+        <rect x="16" y="15.5" width="2" height="2.5" rx="0.5" fill="#f8f0e0"/>
+        <rect x="18.5" y="15.5" width="2" height="2.5" rx="0.5" fill="#f8f0e0"/>
+        <ellipse cx="18" cy="31" rx="7" ry="3.5" fill="#8b4c30"/>
+        <path d="M17.5 9 C17.5 8 16 7 15 8 C14 9 15 10.5 17.5 12 C20 10.5 21 9 20 8 C19 7 17.5 8 17.5 9Z" fill="#f06292"/>
+      </svg>
+      <span class="nav-logo-name">COS<span>NIMA</span></span>
     </a>
+
+    <!-- Desktop links -->
     <div class="nav-links" role="list">
-      <a href="index.html" class="active">Browse</a>
-      <a href="#how">How it works</a>
-      <a href="#conventions">Conventions</a>
+      <a href="index.html" class="active" role="listitem">Browse</a>
+      <a href="#how" role="listitem">How it works</a>
+      <a href="#conventions" role="listitem">Conventions</a>
+      <a href="listing/create-listing.html" role="listitem" id="sell-link" style="display:none;">+ Sell / Rent</a>
     </div>
+
+    <!-- Right cluster -->
     <div class="nav-right">
       <button class="theme-btn" id="theme-btn" aria-label="Toggle dark mode">
-        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
-        </svg>
-        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-          <circle cx="12" cy="12" r="5"/>
-          <path stroke-linecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-        </svg>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="5"/><path stroke-linecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
       </button>
-      <div id="nav-auth">
-        <a href="login/login.html" class="btn btn-ghost btn-nav">Log in</a>
-        <a href="signup/register.html" class="btn btn-primary btn-nav">Register</a>
-      </div>
+      <div id="nav-auth"></div>
       <button class="nav-hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
@@ -152,97 +95,233 @@
   </div>
 </nav>
 
-<!-- Mobile drawer (same) -->
+<!-- Mobile drawer -->
 <div class="mobile-nav" id="mobile-nav" role="dialog" aria-label="Mobile menu" aria-modal="true">
   <nav class="mobile-nav-links">
     <a href="index.html">Browse</a>
     <a href="#how">How it works</a>
     <a href="#conventions">Conventions</a>
+    <a href="listing/create-listing.html" id="mobile-sell-link" style="display:none;">+ Sell / Rent</a>
   </nav>
-  <div class="mobile-nav-actions" id="mobile-auth">
-    <a href="login/login.html" class="btn btn-ghost">Log in</a>
-    <a href="signup/register.html" class="btn btn-primary">Register</a>
+  <div class="mobile-nav-actions" id="mobile-auth"></div>
+</div>
+<div class="mobile-overlay" id="mobile-overlay"></div>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div class="hero-content">
+        <div class="hero-eyebrow" style="animation:slideUp 0.6s ease 0.1s both;">
+          🦫 Philippine Cosplay Marketplace
+        </div>
+        <h1 class="hero-title" style="animation:slideUp 0.6s ease 0.2s both;">
+          Your next <em>iconic</em><br>
+          <span class="wiggle-line">cosplay</span> awaits
+        </h1>
+        <p class="hero-desc">
+          Buy, sell, and rent cosplay outfits directly within the Philippine community. 
+          From maid dresses to full armour — find your look.
+        </p>
+
+        <!-- Search -->
+        <div class="hero-search">
+          <input type="search" id="hero-search-input" placeholder="Search outfits, characters, series…" autocomplete="off">
+          <button onclick="handleSearch()" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            Search
+          </button>
+        </div>
+
+        <div class="hero-ctas">
+          <a href="listing/listings.html" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Browse All
+          </a>
+          <a href="listing/create-listing.html" class="btn btn-outline" id="hero-sell-btn">
+            + List Your Cosplay
+          </a>
+        </div>
+      </div>
+
+      <!-- Floating card stack -->
+      <div class="hero-visual" aria-hidden="true">
+        <div class="card-stack">
+          <div class="hero-card">
+            <div class="hero-card-placeholder">🌸</div>
+          </div>
+          <div class="hero-card">
+            <div class="hero-card-placeholder">⚔️</div>
+          </div>
+          <div class="hero-card">
+            <div class="hero-card-placeholder">🎭</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── STATS STRIP ── -->
+<div class="stats-strip">
+  <div class="container">
+    <div class="stats-inner">
+      <div class="stat"><span class="stat-num" id="stat-listings">—</span><span class="stat-lbl">Active Listings</span></div>
+      <div class="stat-sep"></div>
+      <div class="stat"><span class="stat-num" id="stat-sellers">—</span><span class="stat-lbl">Sellers</span></div>
+      <div class="stat-sep"></div>
+      <div class="stat"><span class="stat-num">Free</span><span class="stat-lbl">to Join</span></div>
+    </div>
   </div>
 </div>
 
-<!-- MAIN CONTENT: Browse Listings -->
-<main class="section" style="padding-top: 100px;">
+<!-- ── BROWSE SECTION ── -->
+<section class="section" id="listings">
   <div class="container">
-    <!-- Header with filters -->
-    <div class="browse-header">
-      <h1 class="browse-title">Browse Listings</h1>
-      <div style="display:flex; gap: var(--space-sm);">
-        <input type="search" id="search-input" class="search-input" placeholder="Search by title, series...">
-        <select id="type-filter" class="filter-select">
-          <option value="">All Types</option>
-          <option value="SELL">Sell</option>
-          <option value="RENT">Rent</option>
-        </select>
-        <select id="condition-filter" class="filter-select">
-          <option value="">Any Condition</option>
-          <option value="NEW">New</option>
-          <option value="LIKE_NEW">Like New</option>
-          <option value="USED">Used</option>
-          <option value="WORN">Worn</option>
-        </select>
-        <button id="apply-filters" class="btn btn-primary">Apply</button>
+
+    <!-- Series pills -->
+    <div class="section-header reveal">
+      <div>
+        <p class="section-label">Trending Series</p>
+        <h2>Find by Universe</h2>
       </div>
     </div>
 
-    <!-- Series pills (dynamic) -->
-    <div class="series-rail" id="series-pills">
+    <div class="series-rail stagger" id="series-pills">
       <!-- Populated by JS -->
+      <button class="pill active" data-series="">All Series</button>
     </div>
 
-    <!-- Listings Grid -->
+    <div class="divider"></div>
+
+    <!-- Featured listings -->
+    <div class="section-header reveal">
+      <div>
+        <p class="section-label">Fresh Drops</p>
+        <h2>Latest Listings</h2>
+      </div>
+      <a href="listing/listings.html">See all →</a>
+    </div>
+
+    <!-- Error banner for listings -->
+    <div id="listings-error" class="error-banner" style="display:none;margin-bottom:var(--space-lg);">
+      Could not load listings. <button onclick="loadFeaturedListings()" style="text-decoration:underline;color:inherit;font-weight:700;">Try again</button>
+    </div>
+
     <div id="listings-container" class="listings-grid stagger">
-      <!-- Will be filled by JS -->
+      <!-- Skeleton loaders -->
+      <div class="skeleton-card"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div></div>
     </div>
 
-    <!-- Pagination -->
-    <div id="pagination" class="pagination"></div>
   </div>
-</main>
+</section>
 
-<!-- HOW IT WORKS (static, can be kept) -->
+<!-- ── HOW IT WORKS ── -->
 <section class="how-section" id="how">
   <div class="container">
     <div class="reveal" style="text-align:center;">
-      <p class="section-eyebrow" style="justify-content:center;">How It Works</p>
-      <h2>Simple as 1, 2, 3</h2>
+      <p class="section-label" style="justify-content:center;">Simple as 1-2-3</p>
+      <h2>How It Works</h2>
+      <p style="max-width:420px;margin:var(--space-md) auto 0;">Getting your cosplay fix has never been easier.</p>
     </div>
     <div class="steps-grid stagger">
-      <div class="step-card"><div class="step-num">01</div><h3>Browse & Discover</h3><p>Search by series, character, size, or type.</p></div>
-      <div class="step-card"><div class="step-num">02</div><h3>Offer & Connect</h3><p>Chat directly with sellers to nail the details.</p></div>
-      <div class="step-card"><div class="step-num">03</div><h3>Meet & Trade</h3><p>Meet at a convention or arrange a handoff.</p></div>
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <h3 class="step-title">Browse & Discover</h3>
+        <p>Search by series, character, size, or listing type. Filter to find exactly what you need.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <h3 class="step-title">Connect & Negotiate</h3>
+        <p>Chat directly with sellers. Ask questions, negotiate prices, and lock in the details.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <h3 class="step-title">Meet & Trade</h3>
+        <p>Meet at your nearest convention or arrange a safe meetup. Build trust, build community.</p>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- CONVENTION BANNER (static) -->
+<!-- ── CONVENTION BANNER ── -->
 <section class="section" id="conventions">
   <div class="container">
     <div class="convention-banner reveal">
-      <div class="conv-text"><h2>Upcoming Conventions</h2><p>Browse listings with convention pickup.</p></div>
-      <a href="#" class="btn btn-conv">View convention hub <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+      <div class="conv-text">
+        <h2>Upcoming Conventions</h2>
+        <p>Browse listings tagged for convention pickup — meet your seller right at the venue.</p>
+      </div>
+      <a href="listing/listings.html?type=convention" class="btn btn-conv">
+        Explore Convention Listings
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
     </div>
   </div>
 </section>
 
-<!-- FOOTER (same) -->
+<!-- ── FOOTER ── -->
 <footer class="footer">
   <div class="container">
     <div class="footer-top">
-      <div class="footer-brand"><div class="footer-logo-name">COSNIMA</div><p>The cosplay marketplace built for the Philippine community.</p></div>
-      <div class="footer-col"><h4>Marketplace</h4><ul><li><a href="index.html">Browse Listings</a></li><li><a href="signup/register.html">Sell an Item</a></li><li><a href="signup/register.html">Rent an Outfit</a></li><li><a href="#conventions">Convention Hub</a></li></ul></div>
-      <div class="footer-col"><h4>Account</h4><ul><li><a href="signup/register.html">Register</a></li><li><a href="login/login.html">Log In</a></li><li><a href="#">My Listings</a></li><li><a href="#">Wishlist</a></li></ul></div>
-      <div class="footer-col"><h4>Info</h4><ul><li><a href="#">About</a></li><li><a href="#">Safety Tips</a></li><li><a href="#">Report an Issue</a></li><li><a href="#">Contact</a></li></ul></div>
+      <div class="footer-brand">
+        <div class="footer-logo-name">COS<span>NIMA</span></div>
+        <p>The cosplay marketplace built lovingly for the Philippine community. 🦫</p>
+      </div>
+      <div class="footer-col">
+        <h4>Marketplace</h4>
+        <ul>
+          <li><a href="listing/listings.html">Browse Listings</a></li>
+          <li><a href="listing/create-listing.html">Sell an Item</a></li>
+          <li><a href="listing/create-listing.html">Rent an Outfit</a></li>
+          <li><a href="#conventions">Convention Hub</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Account</h4>
+        <ul>
+          <li><a href="signup/register.html">Register</a></li>
+          <li><a href="login/login.html">Log In</a></li>
+          <li><a href="profile/profile.html">My Profile</a></li>
+          <li><a href="profile/profile.html">My Listings</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Info</h4>
+        <ul>
+          <li><a href="#">About Cosnima</a></li>
+          <li><a href="#">Safety Tips</a></li>
+          <li><a href="#">Report an Issue</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </div>
     </div>
-    <div class="footer-bottom"><p>© 2025 Cosnima. All rights reserved.</p><div class="footer-bottom-links"><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Cookies</a></div></div>
+    <div class="footer-bottom">
+      <p>© 2025 Cosnima. Made with 🦫 in the Philippines.</p>
+      <div class="footer-bottom-links">
+        <a href="#">Terms</a>
+        <a href="#">Privacy</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
   </div>
 </footer>
 
+<!-- ── Inline styles for skeleton (listings page also uses these) ── -->
+<style>
+  .skeleton-card { background:var(--card); border-radius:var(--radius-lg); border:2px solid var(--border); overflow:hidden; }
+  .skeleton-thumb { height:220px; background:linear-gradient(90deg,var(--bg-alt) 25%,var(--border) 50%,var(--bg-alt) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; }
+  .skeleton-body  { padding:var(--space-md); }
+  .skeleton-line  { height:12px; border-radius:6px; background:linear-gradient(90deg,var(--bg-alt) 25%,var(--border) 50%,var(--bg-alt) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; margin-bottom:var(--space-sm); }
+  .skeleton-line.medium { width:80%; }
+  .skeleton-line.short  { width:55%; }
+  @keyframes shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
+</style>
+
 <script src="js/api.js"></script>
+<script src="js/nav.js"></script>
 <script src="js/home.js"></script>
 </body>
 </html>

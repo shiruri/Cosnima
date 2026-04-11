@@ -7,7 +7,16 @@ public class ListingRequest {
 
     // ===== PAGINATION =====
     private int page = 0;
-    private int size = 10;
+    private int pageSize = 10;
+    private String size; // for XS, S, M
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
 
     // ===== SORTING =====
     private String sortBy = "createdAt";
@@ -21,15 +30,25 @@ public class ListingRequest {
 
     private Listing.Condition condition;
     private Boolean isActive;
-    private Listing.Status status; // ✅ ADD THIS
+    private Listing.Status status; //
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
+
+    private String tag;
 
     // ===== GETTERS / SETTERS =====
 
     public int getPage() { return page; }
     public void setPage(int page) { this.page = page; }
 
-    public int getSize() { return size; }
-    public void setSize(int size) { this.size = size; }
+    public int getPageSize() { return pageSize; }
+    public void setPageSize(int pageSize) { this.pageSize = pageSize; }
 
     public String getSortBy() { return sortBy; }
     public void setSortBy(String sortBy) { this.sortBy = sortBy; }

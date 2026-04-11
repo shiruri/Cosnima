@@ -54,13 +54,13 @@ const API = (() => {
 
       if (res.status === 401) {
         clearSession();
-        const base = window.location.pathname.includes('/login/') || window.location.pathname.includes('/signup/') ? '../' : '';
-        window.location.href = base + 'login/login.html';
+        window.location.href =  'login/login.html';
         return;
       }
 
       if (res.status === 404) {
         throw { status: 404, message: 'Resource not found.', data: {} };
+        r
       }
 
       const contentType = res.headers.get('content-type');
@@ -93,7 +93,7 @@ const API = (() => {
 
   return {
     get:       (endpoint, auth = true)              => request('GET',    endpoint, null, auth),
-    post:      (endpoint, body, auth = false)        => request('POST',   endpoint, body, auth),
+    post:      (endpoint, body, auth = true)        => request('POST',   endpoint, body, auth),
     put:       (endpoint, body, auth = true)         => request('PUT',    endpoint, body, auth),
     patch:     (endpoint, body, auth = true)         => request('PATCH',  endpoint, body, auth),
     patchForm: (endpoint, formData)                  => request('PATCH',  endpoint, formData, true, true),

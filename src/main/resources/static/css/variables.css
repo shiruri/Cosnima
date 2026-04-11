@@ -1,34 +1,53 @@
 /* ============================================
-   COSNIMA — Design Tokens
+   COSNIMA — Design Tokens (Zanmang Loopy × Beaver)
    ============================================ */
 
+@import url('https://fonts.googleapis.com/css2?family=Gasoek+One&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap');
+
 :root {
-  /* Colors — Light Mode */
-  --bg:          #fafaf8;
-  --bg-alt:      #f2f2ee;
-  --bg-panel:    #0d0d0b;
-  --ink:         #0d0d0b;
-  --ink-muted:   #70706b;
-  --ink-faint:   #b0b0aa;
-  --border:      #e2e2dc;
-  --border-dark: #c8c8c0;
-  --card:        #ffffff;
-  --card-hover:  #f7f7f4;
+  /* ── Beaver Palette ── */
+  --beaver:        #c87a50;
+  --beaver-dark:   #9e5c38;
+  --beaver-light:  #e8a878;
+  --beaver-cream:  #fdf6ee;
+  --beaver-tail:   #7a3e25;
 
-  /* Accent — stays ink in B&W theme */
-  --accent:       #0d0d0b;
-  --accent-light: #2a2a28;
+  /* ── Zanmang Loopy Accent ── */
+  --loopy-pink:    #f06292;
+  --loopy-coral:   #ff7f6e;
+  --loopy-peach:   #ffb085;
+  --loopy-lemon:   #ffe57a;
+  --loopy-mint:    #80cbc4;
+  --loopy-sky:     #87ceeb;
 
-  /* Semantic */
-  --error:   #c0392b;
-  --success: #27ae60;
-  --warning: #e67e22;
+  /* ── Primary Accent ── */
+  --accent:        #f06292;
+  --accent-dark:   #c0395c;
+  --accent-light:  #ff8fb1;
+  --accent-2:      #ffb085;
 
-  /* Typography */
-  --font-display: 'Cormorant Garamond', Georgia, serif;
-  --font-body:    'Jost', 'Helvetica Neue', sans-serif;
+  /* ── Neutrals Light ── */
+  --bg:            #fdf6ee;
+  --bg-alt:        #faeee0;
+  --bg-panel:      #1a0e08;
+  --ink:           #2a1a0e;
+  --ink-muted:     #7a5c46;
+  --ink-faint:     #b89a86;
+  --border:        #e8d5c0;
+  --border-dark:   #d4b89a;
+  --card:          #fffcf8;
+  --card-hover:    #fff8f0;
 
-  /* Spacing scale */
+  /* ── Semantic ── */
+  --error:         #c0392b;
+  --success:       #27ae60;
+  --warning:       #e67e22;
+
+  /* ── Typography ── */
+  --font-display:  'Gasoek One', 'Georgia', serif;
+  --font-body:     'Nunito', 'Helvetica Neue', sans-serif;
+
+  /* ── Spacing ── */
   --space-xs:  0.25rem;
   --space-sm:  0.5rem;
   --space-md:  1rem;
@@ -37,46 +56,42 @@
   --space-2xl: 3rem;
   --space-3xl: 5rem;
 
-  /* Radius */
-  --radius-sm: 4px;
-  --radius:    8px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  /* ── Radius ── */
+  --radius-sm:   6px;
+  --radius:      12px;
+  --radius-lg:   20px;
+  --radius-xl:   28px;
   --radius-pill: 999px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 6px rgba(13,13,11,0.06);
-  --shadow:    0 4px 20px rgba(13,13,11,0.08);
-  --shadow-lg: 0 12px 48px rgba(13,13,11,0.12);
+  /* ── Shadows ── */
+  --shadow-sm: 0 2px 8px rgba(42,26,14,0.08);
+  --shadow:    0 6px 24px rgba(42,26,14,0.12);
+  --shadow-lg: 0 16px 56px rgba(42,26,14,0.16);
+  --shadow-pink: 0 8px 32px rgba(240,98,146,0.25);
 
-  /* Transitions */
-  --t-fast:   0.15s ease;
-  --t-base:   0.25s ease;
-  --t-slow:   0.4s ease;
+  /* ── Transitions ── */
+  --t-fast:  0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --t-base:  0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --t-slow:  0.45s ease;
 
-  /* Nav height */
-  --nav-h: 64px;
+  /* ── Nav ── */
+  --nav-h: 68px;
 }
 
-/* ============================================
-   Dark Mode
-   ============================================ */
+/* ── Dark Mode ── */
 [data-theme="dark"] {
-  --bg:          #0d0d0b;
-  --bg-alt:      #181816;
-  --bg-panel:    #fafaf8;
-  --ink:         #fafaf8;
-  --ink-muted:   #9a9a93;
-  --ink-faint:   #4a4a46;
-  --border:      #2a2a28;
-  --border-dark: #3a3a38;
-  --card:        #181816;
-  --card-hover:  #222220;
+  --bg:            #1a0e08;
+  --bg-alt:        #241408;
+  --bg-panel:      #fdf6ee;
+  --ink:           #fdf6ee;
+  --ink-muted:     #c4a088;
+  --ink-faint:     #6a4a36;
+  --border:        #3a2418;
+  --border-dark:   #4a3020;
+  --card:          #241408;
+  --card-hover:    #2e1a0e;
 
-  --accent:       #fafaf8;
-  --accent-light: #e2e2dc;
-
-  --shadow-sm: 0 1px 6px rgba(0,0,0,0.3);
-  --shadow:    0 4px 20px rgba(0,0,0,0.4);
-  --shadow-lg: 0 12px 48px rgba(0,0,0,0.5);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
+  --shadow:    0 6px 24px rgba(0,0,0,0.5);
+  --shadow-lg: 0 16px 56px rgba(0,0,0,0.6);
 }

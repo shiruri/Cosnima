@@ -30,6 +30,15 @@ public class CreateListingDto {
     private String location;
 
     private Boolean conventionPickup = false;
+    private List<String> tags;
+
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
+    }
 
     // Only URLs for creation (IDs don’t exist yet)
     private List<MultipartFile> images;

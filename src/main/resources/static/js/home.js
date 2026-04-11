@@ -1,206 +1,315 @@
 /* ============================================
-   COSNIMA — Homepage JS
+   COSNIMA — Home Page Logic
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // --- Loading Screen ---
+  // ── Loading screen ──
   const loadingScreen = document.getElementById('loading-screen');
   const hideLoader = () => {
     if (!loadingScreen) return;
-    loadingScreen.classList.add('hide');
-    loadingScreen.addEventListener('transitionend', () => loadingScreen.remove(), { once: true });
+    loadingScreen.style.opacity = '0';
+    setTimeout(() => loadingScreen.remove(), 400);
   };
-
-  // Hide loader after page is fully ready (min 800ms for the cute animation)
-  const loaderMin = new Promise(res => setTimeout(res, 800));
-  const pageReady = new Promise(res => {
+  const loaderMin  = new Promise(res => setTimeout(res, 900));
+  const pageReady  = new Promise(res => {
     if (document.readyState === 'complete') res();
     else window.addEventListener('load', res, { once: true });
   });
   Promise.all([loaderMin, pageReady]).then(hideLoader);
 
-  // --- Dark Mode ---
-  const savedTheme = localStorage.getItem('cosnimaTheme') || 'light';
-  document.documentElement.setAttribute('data-theme', savedTheme);
+  // ── Load everything ──
+  loadFeaturedListings();
+  loadStats();
 
-  const themeToggle = document.getElementById('theme-btn');
-  if (themeToggle) {
-    themeToggle.addEventListener('click', () => {
-      const current = document.documentElement.getAttribute('data-theme');
-      const next = current === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('cosnimaTheme', next);
-    });
-  }
-
-  // --- Navbar scroll shadow ---
-  const navbar = document.querySelector('.navbar');
-  if (navbar) {
-    const onScroll = () => navbar.classList.toggle('scrolled', window.scrollY > 20);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-  }
-
-  // --- Hamburger Menu ---
-  const hamburger = document.getElementById('hamburger');
-  const mobileNav = document.getElementById('mobile-nav');
-  let mobileOverlay = document.querySelector('.mobile-overlay');
-
-  if (!mobileOverlay && mobileNav) {
-    mobileOverlay = document.createElement('div');
-    mobileOverlay.className = 'mobile-overlay';
-    document.body.appendChild(mobileOverlay);
-  }
-
-  if (hamburger && mobileNav) {
-    const toggleMenu = () => {
-      const isOpen = hamburger.getAttribute('aria-expanded') === 'true';
-      hamburger.setAttribute('aria-expanded', String(!isOpen));
-      mobileNav.classList.toggle('open');
-      if (mobileOverlay) mobileOverlay.classList.toggle('active');
-      document.body.style.overflow = isOpen ? '' : 'hidden';
-    };
-
-    hamburger.addEventListener('click', toggleMenu);
-    if (mobileOverlay) mobileOverlay.addEventListener('click', toggleMenu);
-    mobileNav.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => {
-        if (mobileNav.classList.contains('open')) toggleMenu();
-      });
-    });
-  }
-
-  // --- Auth nav state ---
-  const navAuth = document.getElementById('nav-auth');
-  const mobileAuth = document.getElementById('mobile-auth');
-
-  const renderAuthButtons = (container) => {
-    if (!container) return;
-    if (API.isLoggedIn()) {
-      const user = API.getUser();
-      const name = user?.username || 'Cosplayer';
-      const initial = name.charAt(0).toUpperCase();
-      container.innerHTML = `
-        <div class="auth-greeting">
-          <a href="profile/profile.html" style="text-decoration:none; display:flex; align-items:center; gap:0.5rem;">
-            <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:white;font-size:0.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;">
-              ${initial}
-            </div>
-            <span class="greeting-text">Hi, <strong>${name}</strong></span>
-          </a>
-          <button class="btn btn-ghost btn-nav" onclick="logout()" style="padding:0.35rem 0.8rem;font-size:0.8rem;">Log out</button>
-        </div>
-      `;
-    } else {
-      container.innerHTML = `
-        <a href="login/login.html" class="btn btn-ghost btn-nav">Log in</a>
-        <a href="signup/register.html" class="btn btn-primary btn-nav">Register</a>
-      `;
-    }
-  };
-
-  renderAuthButtons(navAuth);
-  renderAuthButtons(mobileAuth);
-
-  // --- Scroll reveals ---
-  const revealEls = document.querySelectorAll('.reveal, .stagger');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.08 });
-  revealEls.forEach(el => observer.observe(el));
-
-  // --- Series pills ---
-  const pills = document.querySelectorAll('.pill');
-  pills.forEach(pill => {
-    pill.addEventListener('click', () => {
-      pills.forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      // In a real app, you'd filter the listings here
-    });
-  });
-
-  // --- Wishlist heart toggle ---
-  document.querySelectorAll('.card-wish').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (!API.isLoggedIn()) {
-        showToast('Log in to save to your wishlist', 'info');
-        setTimeout(() => {
-          document.body.classList.add('fade-out');
-          setTimeout(() => { window.location.href = 'login/login.html'; }, 280);
-        }, 900);
-        return;
-      }
-      const isActive = btn.classList.toggle('active');
-      // Update SVG fill to indicate saved state
-      const svg = btn.querySelector('svg');
-      if (svg) {
-        svg.style.fill = isActive ? 'var(--accent)' : 'none';
-        svg.style.stroke = 'var(--accent)';
-      }
-      showToast(isActive ? 'Added to wishlist' : 'Removed from wishlist', isActive ? 'success' : 'info', 2000);
-    });
-  });
-
-  // --- Smooth page transitions ---
-  document.querySelectorAll('a[href]:not([href^="#"]):not([href^="http"]):not([href^="mailto"]):not([target])').forEach(link => {
-    link.addEventListener('click', (e) => {
-      const href = link.getAttribute('href');
-      if (!href || href === '#') return;
-      e.preventDefault();
-      document.body.classList.add('fade-out');
-      setTimeout(() => { window.location.href = href; }, 260);
-    });
-  });
-
-  // --- Image error fallback ---
-  document.querySelectorAll('img').forEach(img => {
-    img.addEventListener('error', () => {
-      img.style.background = 'var(--bg-alt)';
-      img.removeAttribute('src');
-    });
-  });
-
-});
-
-// --- Search handler ---
-function handleSearch() {
-  const val = document.getElementById('hero-search-input')?.value?.trim();
-  if (!val) return;
-  // Scroll to listings section and show toast; real implementation would filter
-  document.getElementById('listings')?.scrollIntoView({ behavior: 'smooth' });
-  showToast(`Searching for "${val}"...`, 'info', 2000);
-}
-
-// Also allow Enter key in search
-document.addEventListener('DOMContentLoaded', () => {
+  // ── Hero search ──
   const searchInput = document.getElementById('hero-search-input');
   if (searchInput) {
-    searchInput.addEventListener('keydown', (e) => {
+    searchInput.addEventListener('keydown', e => {
       if (e.key === 'Enter') handleSearch();
     });
   }
+
 });
 
-// --- Logout ---
-async function logout() {
+/* ── Featured listings ── */
+async function loadFeaturedListings() {
+  const container = document.getElementById('listings-container');
+  const errorEl   = document.getElementById('listings-error');
+  if (!container) return;
+
+  // Show skeletons
+  container.innerHTML = Array(6).fill(`
+    <div class="skeleton-card" aria-hidden="true">
+      <div class="skeleton-thumb"></div>
+      <div class="skeleton-body">
+        <div class="skeleton-line medium"></div>
+        <div class="skeleton-line short"></div>
+      </div>
+    </div>
+  `).join('');
+
+  if (errorEl) errorEl.style.display = 'none';
+
   try {
-    await API.post('/api/auth/logout', {}, true);
+    const data = await API.get('/api/listings?page=0&size=6&sort=newest', false);
+    const listings = Array.isArray(data) ? data : (data?.content || data?.listings || []);
+
+    if (errorEl) errorEl.style.display = 'none';
+
+    if (!listings.length) {
+      container.innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1">
+          <div style="font-size:4rem;">🦫</div>
+          <h3>No listings yet!</h3>
+          <p>Be the first to list a cosplay on Cosnima.</p>
+          <a href="listing/create-listing.html" class="btn btn-primary" style="margin-top:var(--space-md)">Create First Listing</a>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = listings.slice(0, 6).map(buildListingCard).join('');
+    container.classList.add('visible');
+
+    // Load series pills from listings
+    const series = [...new Set(listings.map(l => l.series).filter(Boolean))];
+    buildSeriesPills(series);
+
+    // Wishlist buttons
+    initWishButtons();
+
+    // Card clicks
+    container.querySelectorAll('.listing-card').forEach(card => {
+      card.addEventListener('click', e => {
+        if (e.target.closest('.card-wish')) return;
+        const id = card.dataset.id;
+        if (id) redirectTo(`listing/view-listing.html?id=${id}`);
+      });
+    });
+
   } catch (err) {
-    // Proceed with client-side logout even if server call fails
-    console.warn('Server logout failed:', err);
-  } finally {
-    API.clearSession();
-    showToast('Logged out successfully', 'success', 1500);
-    setTimeout(() => {
-      document.body.classList.add('fade-out');
-      setTimeout(() => { window.location.href = 'login/login.html'; }, 280);
-    }, 600);
+    console.error('Failed to load listings:', err);
+    container.innerHTML = '';
+    if (errorEl) {
+      errorEl.style.display = 'block';
+      errorEl.innerHTML = `
+        Could not load listings.
+        <button onclick="loadFeaturedListings()" style="text-decoration:underline;font-weight:700;color:inherit;margin-left:8px;">Try again</button>
+      `;
+    }
   }
+}
+
+/* ── Stats ── */
+async function loadStats() {
+  const CACHE_KEY = 'cosnimaStats';
+  const CACHE_TIME_KEY = 'cosnimaStatsTime';
+  const ONE_HOUR = 60 * 60 * 1000;
+
+  // Try to load from cache
+  const cached = localStorage.getItem(CACHE_KEY);
+  const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+  const now = Date.now();
+
+  if (cached && cachedTime) {
+    const age = now - parseInt(cachedTime, 10);
+    if (age < ONE_HOUR) {
+      // Use cached data
+      try {
+        const data = JSON.parse(cached);
+        updateStatsDisplay(data);
+        return;
+      } catch (e) {
+        // Invalid cache, proceed to fetch
+      }
+    }
+  }
+
+  // Fetch fresh data
+  try {
+    const data = await API.get('/api/listings/stats', false);
+    // Save to cache
+    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    localStorage.setItem(CACHE_TIME_KEY, now.toString());
+    updateStatsDisplay(data);
+  } catch {
+    // Silently skip if stats endpoint fails
+  }
+}
+
+function updateStatsDisplay(data) {
+  const listEl   = document.getElementById('stat-listings');
+  const sellerEl = document.getElementById('stat-sellers');
+  if (listEl && data?.listings != null)  listEl.textContent  = formatNum(data.listings);
+  if (sellerEl && data?.sellers != null) sellerEl.textContent = formatNum(data.sellers);
+}
+function formatNum(n) {
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+  return String(n);
+}
+
+/* ── Series pills ── */
+function buildSeriesPills(seriesList) {
+  const rail = document.getElementById('series-pills');
+  if (!rail) return;
+  rail.innerHTML = `<button class="pill active" data-series="">All Series</button>`;
+  seriesList.slice(0, 12).forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'pill';
+    btn.dataset.series = s;
+    btn.textContent = s;
+    rail.appendChild(btn);
+  });
+
+  rail.classList.add('visible');
+
+  rail.querySelectorAll('.pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      rail.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      const series = pill.dataset.series;
+      filterHomeListings(series);
+    });
+  });
+}
+
+async function filterHomeListings(series) {
+  const container = document.getElementById('listings-container');
+  if (!container) return;
+  container.innerHTML = Array(3).fill(`
+    <div class="skeleton-card"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div></div>
+  `).join('');
+
+  try {
+    const url = series
+      ? `/api/listings?page=0&size=6&series=${encodeURIComponent(series)}`
+      : '/api/listings?page=0&size=6&sort=newest';
+    const data = await API.get(url, false);
+    const listings = Array.isArray(data) ? data : (data?.content || data?.listings || []);
+
+    if (!listings.length) {
+      container.innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1">
+          <div style="font-size:3rem;">🎭</div>
+          <h3>No listings for "${series}"</h3>
+          <p>Try another series or browse everything.</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = listings.map(buildListingCard).join('');
+    container.classList.add('visible');
+    initWishButtons();
+    container.querySelectorAll('.listing-card').forEach(card => {
+      card.addEventListener('click', e => {
+        if (e.target.closest('.card-wish')) return;
+        const id = card.dataset.id;
+        if (id) redirectTo(`listing/view-listing.html?id=${id}`);
+      });
+    });
+  } catch {
+    container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h3>Could not filter</h3><p>Please try again.</p></div>`;
+  }
+}
+
+/* ── Build listing card HTML ── */
+function buildListingCard(listing) {
+  const typeBadge = listing.type === 'RENT'
+    ? '<span class="badge badge-rent">Rent</span>'
+    : '<span class="badge badge-sell">Sale</span>';
+
+  const priceNote = listing.type === 'RENT' ? '<span class="price-note">/ event</span>' : '';
+  const price = listing.price != null ? `₱${Number(listing.price).toLocaleString('en-PH')}` : '—';
+  const sellerName = listing.sellerUsername || listing.seller?.username || 'Seller';
+  const initial = sellerName.charAt(0).toUpperCase();
+  const series = listing.series || '';
+
+let primaryImage = null;
+if (listing.imageUrl) {
+  primaryImage = listing.imageUrl;
+} else if (listing.images && listing.images.length > 0) {
+  // images[0] could be a string (if backend returns just URLs) or an object with imageUrl
+  const first = listing.images[0];
+  primaryImage = typeof first === 'string' ? first : first.imageUrl;
+}
+
+const imgHtml = primaryImage
+  ? `<img src="${primaryImage}" alt="${escapeHtml(listing.title || 'Listing')}" loading="lazy">`
+  : `<div class="card-thumb-placeholder">🌸</div>`;
+  const isWished = isInWishlist(listing.id);
+
+  return `
+    <article class="listing-card" data-id="${listing.id}" role="listitem" tabindex="0" aria-label="${escapeHtml(listing.title || 'Listing')}">
+      <div class="card-thumb">
+        ${imgHtml}
+        <div class="card-badges">${typeBadge}</div>
+        <button class="card-wish ${isWished ? 'active' : ''}" data-id="${listing.id}" aria-label="${isWished ? 'Remove from wishlist' : 'Add to wishlist'}">
+          <svg viewBox="0 0 24 24" fill="${isWished ? 'var(--accent)' : 'none'}" stroke="var(--accent)" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="card-body">
+        ${series ? `<p class="card-series">${escapeHtml(series)}</p>` : ''}
+        <h3 class="card-name">${escapeHtml(listing.title || 'Untitled')}</h3>
+        <div class="card-foot">
+          <div>
+            <div class="card-price">${price}${priceNote}</div>
+          </div>
+          <div class="card-seller">
+            <div class="seller-ava">${initial}</div>
+            <span class="seller-n">${escapeHtml(sellerName)}</span>
+          </div>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+/* ── Wishlist ── */
+function getWishlist() {
+  try { return JSON.parse(localStorage.getItem('cosnimaWishlist') || '[]'); } catch { return []; }
+}
+function isInWishlist(id) { return getWishlist().includes(String(id)); }
+function toggleWishlist(id) {
+  const list = getWishlist();
+  const sid = String(id);
+  const idx = list.indexOf(sid);
+  if (idx > -1) { list.splice(idx, 1); } else { list.push(sid); }
+  localStorage.setItem('cosnimaWishlist', JSON.stringify(list));
+  return idx === -1; // true = added
+}
+
+function initWishButtons() {
+  document.querySelectorAll('.card-wish').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (!API.isLoggedIn()) {
+        showToast('Log in to save to your wishlist 🦫', 'info');
+        return;
+      }
+      const id = btn.dataset.id;
+      const added = toggleWishlist(id);
+      btn.classList.toggle('active', added);
+      const svg = btn.querySelector('svg');
+      if (svg) svg.setAttribute('fill', added ? 'var(--accent)' : 'none');
+      btn.setAttribute('aria-label', added ? 'Remove from wishlist' : 'Add to wishlist');
+      showToast(added ? '❤️ Added to wishlist' : 'Removed from wishlist', added ? 'success' : 'info', 2000);
+    });
+  });
+}
+
+/* ── Search ── */
+function handleSearch() {
+  const val = document.getElementById('hero-search-input')?.value?.trim();
+  if (!val) return;
+  document.body.classList.add('fade-out');
+  setTimeout(() => {
+    window.location.href = `listing/listings.html?q=${encodeURIComponent(val)}`;
+  }, 260);
+}
+
+/* ── Helpers ── */
+function escapeHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }

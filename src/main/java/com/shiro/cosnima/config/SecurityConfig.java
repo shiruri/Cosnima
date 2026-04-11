@@ -36,13 +36,17 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        // Public static resources
+                        .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/images/**", "/*.html", "/login/**", "/signup/**", "/profile/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Auth endpoints
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                         .requestMatchers("/api/auth/logout").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/listings", "/api/listings/**").permitAll()
+                        .requestMatchers("/error/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 

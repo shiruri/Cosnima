@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public class ListingResponse {
 
-    private Long id;
+    private String id;
 
     // Seller info (flattened to avoid sending full User entity)
     private UUID sellerId;
@@ -42,6 +42,17 @@ public class ListingResponse {
     }
 
     private Integer viewCount;
+
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
+    }
+
+    private List<String> tags;
+
     // ===== PERMISSIONS =====
     private Boolean isOwner;
     private Boolean canEdit;
@@ -75,8 +86,8 @@ public class ListingResponse {
 
     // ===== GETTERS & SETTERS =====
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
     public UUID getSellerId() { return sellerId; }
     public void setSellerId(UUID sellerId) { this.sellerId = sellerId; }
