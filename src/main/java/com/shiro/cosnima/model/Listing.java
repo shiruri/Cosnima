@@ -21,7 +21,7 @@ public class Listing {
     private User seller;
 
     @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Image> images;
+    private List<ListingImage> images;
 
     // ===== FIELDS =====
     @NotBlank
@@ -111,8 +111,9 @@ public class Listing {
     public User getSeller() { return seller; }
     public void setSeller(User seller) { this.seller = seller; }
 
-    public List<Image> getImages() { return images; }
-    public void setImages(List<Image> images) { this.images = images; }
+    public List<ListingImage> getImages() { return images; }
+    public void setImages(List<ListingImage> images) { this.images = images; }
+
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }

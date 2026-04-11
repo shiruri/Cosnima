@@ -39,10 +39,22 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<UserDto> getLoggedUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String userId = auth.getName();
-        UserDto user = userServ.getUserById(UUID.fromString(userId));
-        return ResponseEntity.ok(user);
+        if(auth != null) {
+            String userId = (auth.getName());
+            UserDto user = userServ.getUserById(UUID.fromString(userId));
+            return ResponseEntity.ok(user);
+        }
+        return ResponseEntity.badRequest().build();
     }
+    @GetMapping("/{id}/listings")
+    public ResponseEntity<List<ListingResponse>> getUserListing(@PathVariable UUID id) {
+        List<ListingResponse> listingResponse = userServ.getUserListingByActive(id);
+        if (listingResponse != null) {
+            return ResponseEntity.ok().body(listingResponse);
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
 
     @PatchMapping("/me/update")
     public ResponseEntity<UserDto> updateUser(@RequestPart("value") UpdateProfileRequest user,
@@ -53,14 +65,6 @@ public class UserController {
         return ResponseEntity.ok(updated);
     }
 
-    @GetMapping("/{id}/listings")
-    public ResponseEntity<List<ListingResponse>> getUserListing(@PathVariable UUID id) {
-        List<ListingResponse> listingResponse = userServ.getUserListingByActive(id);
-        if (listingResponse != null) {
-            return ResponseEntity.ok().body(listingResponse);
-        }
-        return ResponseEntity.badRequest().build();
-    }
     @GetMapping("/{id}/ratings")
     public ResponseEntity<List<Rating>> getUserRatings(@PathVariable UUID id) {
         List<Rating> ratings = userServ.getUserRatings(id);

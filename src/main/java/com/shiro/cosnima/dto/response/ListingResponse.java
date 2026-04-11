@@ -14,7 +14,7 @@ public class ListingResponse {
     private String sellerUsername;
 
     // Images (simple URLs instead of full Image entity)
-    private List<String> imageUrls;
+    private List<ImageResponse> images;
 
     private String title;
     private String description;
@@ -33,6 +33,34 @@ public class ListingResponse {
     private String status;
     private Boolean isActive;
     private Integer viewCount;
+    // ===== PERMISSIONS =====
+    private Boolean isOwner;
+    private Boolean canEdit;
+    private Boolean canDelete;
+    public Boolean getIsOwner() {
+        return isOwner;
+    }
+
+    public void setIsOwner(Boolean isOwner) {
+        this.isOwner = isOwner;
+    }
+
+    public Boolean getCanEdit() {
+        return canEdit;
+    }
+
+    public void setCanEdit(Boolean canEdit) {
+        this.canEdit = canEdit;
+    }
+
+    public Boolean getCanDelete() {
+        return canDelete;
+    }
+
+    public void setCanDelete(Boolean canDelete) {
+        this.canDelete = canDelete;
+    }
+
 
     private LocalDateTime createdAt;
 
@@ -47,9 +75,12 @@ public class ListingResponse {
     public String getSellerUsername() { return sellerUsername; }
     public void setSellerUsername(String sellerUsername) { this.sellerUsername = sellerUsername; }
 
-    public List<String> getImageUrls() { return imageUrls; }
-    public void setImageUrls(List<String> imageUrls) { this.imageUrls = imageUrls; }
-
+    public void setImages(List<ImageResponse> images) {
+        this.images = images;
+    }
+    public List<ImageResponse> getImages() {
+        return this.images;
+    }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
 

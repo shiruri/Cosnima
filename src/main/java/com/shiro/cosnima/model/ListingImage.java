@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "listing_images")
-public class Image {
+public class ListingImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

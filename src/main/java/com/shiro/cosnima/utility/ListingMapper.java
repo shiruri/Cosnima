@@ -1,5 +1,6 @@
 package com.shiro.cosnima.utility;
 
+import com.shiro.cosnima.dto.response.ImageResponse;
 import com.shiro.cosnima.model.Listing;
 import com.shiro.cosnima.dto.response.ListingResponse;
 
@@ -18,11 +19,22 @@ public class ListingMapper {
 
         // Flatten images to URL list
         if (listing.getImages() != null) {
-            dto.setImageUrls(listing.getImages()
-                    .stream()
-                    .map(image -> image.getImageUrl())  // assuming Image entity has getUrl()
-                    .collect(Collectors.toList()));
+            dto.setImages(
+                    listing.getImages()
+                            .stream()
+                            .map(image -> {
+                                ImageResponse ir = new ImageResponse();
+                                ir.setId(image.getId());
+                                ir.setImageUrl(image.getImageUrl());
+                                ir.setPublicId(image.getPublicId());
+                                ir.setIsPrimary(image.getIsPrimary());
+                                ir.setSortOrder(image.getSortOrder());
+                                return ir;
+                            })
+                            .collect(Collectors.toList())
+            );
         }
+
 
         dto.setTitle(listing.getTitle());
         dto.setDescription(listing.getDescription());
