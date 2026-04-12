@@ -46,6 +46,17 @@ public class UserController {
         }
         return ResponseEntity.badRequest().build();
     }
+
+    @GetMapping("/me/profile")
+    public ResponseEntity<String> getoggedUserProfile() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(auth != null) {
+            String userId = (auth.getName());
+            String userAvatar = userServ.getUserById(UUID.fromString(userId)).getAvatarUrl();
+            return ResponseEntity.ok(userAvatar);
+        }
+        return ResponseEntity.badRequest().build();
+    }
     @GetMapping("/{id}/listings")
     public ResponseEntity<List<ListingResponse>> getUserListing(@PathVariable UUID id) {
         List<ListingResponse> listingResponse = userServ.getUserListingByActive(id);

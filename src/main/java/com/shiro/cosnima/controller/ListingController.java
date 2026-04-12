@@ -6,6 +6,7 @@ import com.shiro.cosnima.dto.request.*;
 import com.shiro.cosnima.dto.response.ImageResponse;
 import com.shiro.cosnima.dto.response.ListingResponse;
 import com.shiro.cosnima.dto.response.StatsResponse;
+import com.shiro.cosnima.dto.response.UserDetailsDto;
 import com.shiro.cosnima.service.ListingService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +71,15 @@ public class ListingController {
         return ResponseEntity.ok(
                 listingServ.updateStatus(id, userId, status)
         );
+    }
+    @GetMapping("/{id}/user-details")
+    public ResponseEntity<UserDetailsDto> getUserDetails(@PathVariable String id) {
+        UserDetailsDto userDetails = listingServ.getUserDetails(id);
+        if(userDetails != null) {
+            return ResponseEntity.ok().body(userDetails);
+        }
+        return ResponseEntity.badRequest().build();
+
     }
 
     @GetMapping("/{id}/user-profile")

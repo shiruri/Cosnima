@@ -54,29 +54,27 @@ const API = (() => {
 
       if (res.status === 401) {
         clearSession();
-        window.location.href =  'login/login.html';
+        window.location.href = '/login/login.html';
         return;
       }
 
       if (res.status === 404) {
         throw { status: 404, message: 'Resource not found.', data: {} };
-        r
       }
 
       const contentType = res.headers.get('content-type');
-      let data = {};
+      let data;
       if (contentType && contentType.includes('application/json')) {
         data = await res.json();
       } else {
-        const text = await res.text();
-        data = text ? { message: text } : {};
+        data = await res.text();   // return raw string for text/plain etc.
       }
 
       if (!res.ok) {
         throw {
           status: res.status,
           data,
-          message: data.message || `Request failed (${res.status})`
+          message: (typeof data === 'object' ? data.message : data) || `Request failed (${res.status})`
         };
       }
 
@@ -94,11 +92,11 @@ const API = (() => {
   return {
     get:       (endpoint, auth = true)              => request('GET',    endpoint, null, auth),
     post:      (endpoint, body, auth = true)        => request('POST',   endpoint, body, auth),
-    put:       (endpoint, body, auth = true)         => request('PUT',    endpoint, body, auth),
-    patch:     (endpoint, body, auth = true)         => request('PATCH',  endpoint, body, auth),
-    patchForm: (endpoint, formData)                  => request('PATCH',  endpoint, formData, true, true),
-    delete:    (endpoint, auth = true)               => request('DELETE', endpoint, null, auth),
-    postForm:  (endpoint, formData)                  => request('POST',   endpoint, formData, true, true),
+    put:       (endpoint, body, auth = true)        => request('PUT',    endpoint, body, auth),
+    patch:     (endpoint, body, auth = true)        => request('PATCH',  endpoint, body, auth),
+    patchForm: (endpoint, formData)                 => request('PATCH',  endpoint, formData, true, true),
+    delete:    (endpoint, auth = true)              => request('DELETE', endpoint, null, auth),
+    postForm:  (endpoint, formData)                 => request('POST',   endpoint, formData, true, true),
     getToken, getUser, setSession, clearSession, isLoggedIn
   };
 })();

@@ -8,6 +8,7 @@ import com.shiro.cosnima.dto.request.UpdateListingRequest;
 import com.shiro.cosnima.dto.response.ImageResponse;
 import com.shiro.cosnima.dto.response.ListingResponse;
 import com.shiro.cosnima.dto.response.StatsResponse;
+import com.shiro.cosnima.dto.response.UserDetailsDto;
 import com.shiro.cosnima.model.*;
 import com.shiro.cosnima.repository.ListingRepository;
 import com.shiro.cosnima.repository.ListingViewRepository;
@@ -373,5 +374,14 @@ public class ListingService {
                 .orElse(null);
     }
 
+    public UserDetailsDto getUserDetails(String id) {
+        User user = listingRepo.findById(id)
+                .map(Listing::getSeller).orElse(null);
 
+        assert user != null;
+        int ratings = userRepo.getAverageRatingByUserId(user.getId());
+        LocalDateTime dateJoined = user.getCreatedAt();
+        return new UserDetailsDto(ratings,dateJoined);
+
+    }
 }
