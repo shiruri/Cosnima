@@ -90,14 +90,38 @@ public class ListingService {
                 sort
         );
 
-        // 1. GET PAGED LISTINGS
+        // Convert string values to enums
+        Listing.Condition condition = null;
+        if (listingRequest.getCondition() != null && !listingRequest.getCondition().isEmpty()) {
+            try {
+                condition = Listing.Condition.valueOf(listingRequest.getCondition().toUpperCase());
+            } catch (IllegalArgumentException e) {}
+        }
+
+        Listing.Type type = null;
+        if (listingRequest.getType() != null && !listingRequest.getType().isEmpty()) {
+            try {
+                type = Listing.Type.valueOf(listingRequest.getType().toUpperCase());
+            } catch (IllegalArgumentException e) {}
+        }
+
+        Listing.Status status = null;
+        if (listingRequest.getStatus() != null && !listingRequest.getStatus().isEmpty()) {
+            try {
+                status = Listing.Status.valueOf(listingRequest.getStatus().toUpperCase());
+            } catch (IllegalArgumentException e) {}
+        }
+
         Page<Listing> listingPage = listingRepo.getListings(
                 listingRequest.getKeyword(),
                 listingRequest.getMinPrice(),
                 listingRequest.getMaxPrice(),
-                listingRequest.getCondition(),
+                condition,
                 listingRequest.getIsActive(),
-                listingRequest.getStatus(),
+                status,
+                type,
+                listingRequest.getSize(),
+                listingRequest.getSeries(),
                 pageable
         );
 
@@ -107,39 +131,28 @@ public class ListingService {
             return List.of();
         }
 
-        // 2. EXTRACT IDS
         List<String> listingIds = listings.stream()
                 .map(Listing::getId)
                 .collect(Collectors.toList());
 
-        // 3. FETCH IMAGES ONLY IF IDS EXIST
         List<ListingImage> images = listingRepo.findImagesByListingIds(listingIds);
 
-        // 4. GROUP IMAGES
         Map<String, List<ListingImage>> imageMap = images.stream()
                 .collect(Collectors.groupingBy(img -> img.getListing().getId()));
 
-        // 5. MAP RESPONSE
         return listings.stream()
                 .map(listing -> {
-
                     ListingResponse dto = ListingMapper.toDto(listing);
-
-                    List<ListingImage> imgs =
-                            imageMap.getOrDefault(listing.getId(), List.of());
-
-                    dto.setImages(
-                            imgs.stream().map(img -> {
-                                ImageResponse ir = new ImageResponse();
-                                ir.setId(img.getId());
-                                ir.setImageUrl(img.getImageUrl());
-                                ir.setPublicId(img.getPublicId());
-                                ir.setIsPrimary(img.getIsPrimary());
-                                ir.setSortOrder(img.getSortOrder());
-                                return ir;
-                            }).toList()
-                    );
-
+                    List<ListingImage> imgs = imageMap.getOrDefault(listing.getId(), List.of());
+                    dto.setImages(imgs.stream().map(img -> {
+                        ImageResponse ir = new ImageResponse();
+                        ir.setId(img.getId());
+                        ir.setImageUrl(img.getImageUrl());
+                        ir.setPublicId(img.getPublicId());
+                        ir.setIsPrimary(img.getIsPrimary());
+                        ir.setSortOrder(img.getSortOrder());
+                        return ir;
+                    }).toList());
                     return dto;
                 })
                 .toList();

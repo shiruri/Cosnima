@@ -1,6 +1,5 @@
 package com.shiro.cosnima.model;
 
-import io.micrometer.core.instrument.Tag;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import org.hibernate.annotations.CreationTimestamp;

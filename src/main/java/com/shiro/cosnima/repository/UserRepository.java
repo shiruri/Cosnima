@@ -4,6 +4,7 @@ import com.shiro.cosnima.model.Listing;
 import com.shiro.cosnima.model.Rating;
 import com.shiro.cosnima.model.User;
 import com.shiro.cosnima.model.Wishlist;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
 
+    @Transactional
     @Modifying
     @Query("UPDATE User u SET u.isActive = :status WHERE u.id = :id")
     int updateIsActive(@Param("id") UUID id, @Param("status") boolean status);

@@ -10,7 +10,7 @@ import java.util.List;
 public class Tags {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.TABLE)
     private Long id;
 
     @Column(unique = true, nullable = false)

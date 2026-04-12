@@ -1,49 +1,25 @@
 package com.shiro.cosnima.dto.request;
 
-import com.shiro.cosnima.model.Listing;
 import java.math.BigDecimal;
 
 public class ListingRequest {
-
-    // ===== PAGINATION =====
     private int page = 0;
-    private int pageSize = 10;
-    private String size; // for XS, S, M
-
-    public String getSize() {
-        return size;
-    }
-
-    public void setSize(String size) {
-        this.size = size;
-    }
-
-    // ===== SORTING =====
+    private int pageSize = 12;
     private String sortBy = "createdAt";
     private String sortDir = "desc";
-
-    // ===== FILTERS =====
     private String keyword;
-
     private BigDecimal minPrice;
     private BigDecimal maxPrice;
+    private String condition;
+    private Boolean isActive = true;
+    private String status = "AVAILABLE";
 
-    private Listing.Condition condition;
-    private Boolean isActive;
-    private Listing.Status status; //
+    // ===== ADD THESE MISSING FIELDS =====
+    private String type;      // "SELL" or "RENT"
+    private String size;      // "XS", "S", "M", "L", "XL", "XXL"
+    private String series;    // series name (maps to seriesName in entity)
 
-    public String getTag() {
-        return tag;
-    }
-
-    public void setTag(String tag) {
-        this.tag = tag;
-    }
-
-    private String tag;
-
-    // ===== GETTERS / SETTERS =====
-
+    // Getters and Setters for all fields
     public int getPage() { return page; }
     public void setPage(int page) { this.page = page; }
 
@@ -65,14 +41,21 @@ public class ListingRequest {
     public BigDecimal getMaxPrice() { return maxPrice; }
     public void setMaxPrice(BigDecimal maxPrice) { this.maxPrice = maxPrice; }
 
-    public Listing.Condition getCondition() { return condition; }
-    public void setCondition(Listing.Condition condition) {
-        this.condition = condition;
-    }
+    public String getCondition() { return condition; }
+    public void setCondition(String condition) { this.condition = condition; }
 
     public Boolean getIsActive() { return isActive; }
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 
-    public Listing.Status getStatus() { return status; }
-    public void setStatus(Listing.Status status) { this.status = status; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+
+    public String getSize() { return size; }
+    public void setSize(String size) { this.size = size; }
+
+    public String getSeries() { return series; }
+    public void setSeries(String series) { this.series = series; }
 }

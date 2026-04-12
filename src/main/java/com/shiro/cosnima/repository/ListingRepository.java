@@ -41,14 +41,17 @@ public interface ListingRepository extends JpaRepository<Listing, String> {
 
     // Removed tag JOIN and :tag condition
     @Query("""
-        SELECT l FROM Listing l
-        WHERE (:keyword IS NULL OR LOWER(l.title) LIKE LOWER(CONCAT('%', :keyword, '%')))
-        AND (:minPrice IS NULL OR l.price >= :minPrice)
-        AND (:maxPrice IS NULL OR l.price <= :maxPrice)
-        AND (:condition IS NULL OR l.condition = :condition)
-        AND (:isActive IS NULL OR l.isActive = :isActive)
-        AND (:status IS NULL OR l.status = :status)
-    """)
+    SELECT l FROM Listing l
+    WHERE (:keyword IS NULL OR LOWER(l.title) LIKE LOWER(CONCAT('%', :keyword, '%')))
+    AND (:minPrice IS NULL OR l.price >= :minPrice)
+    AND (:maxPrice IS NULL OR l.price <= :maxPrice)
+    AND (:condition IS NULL OR l.condition = :condition)
+    AND (:isActive IS NULL OR l.isActive = :isActive)
+    AND (:status IS NULL OR l.status = :status)
+    AND (:type IS NULL OR l.type = :type)
+    AND (:size IS NULL OR l.size = :size)
+    AND (:series IS NULL OR LOWER(l.seriesName) LIKE LOWER(CONCAT('%', :series, '%')))
+""")
     Page<Listing> getListings(
             @Param("keyword") String keyword,
             @Param("minPrice") BigDecimal minPrice,
@@ -56,6 +59,9 @@ public interface ListingRepository extends JpaRepository<Listing, String> {
             @Param("condition") Listing.Condition condition,
             @Param("isActive") Boolean isActive,
             @Param("status") Listing.Status status,
+            @Param("type") Listing.Type type,
+            @Param("size") String size,
+            @Param("series") String series,
             Pageable pageable
     );
 

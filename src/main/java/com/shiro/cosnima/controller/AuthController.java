@@ -54,13 +54,12 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logoutUser(@RequestHeader("Authorization") String authorizationHeader) {
-       if(authorizationHeader != null && authorizationHeader.startsWith(("Bearer "))) {
-           return authServ.logoutUser(authorizationHeader);
-       }
-       return ResponseEntity.badRequest().body("Invalid Request");
-
-
+    public ResponseEntity<?> logoutUser(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7).trim();
+            return authServ.logoutUser(token);
+        }
+        return ResponseEntity.badRequest().body("Missing or invalid token");
     }
 
 }

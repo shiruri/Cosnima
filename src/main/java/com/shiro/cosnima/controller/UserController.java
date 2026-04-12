@@ -48,7 +48,7 @@ public class UserController {
     }
 
     @GetMapping("/me/profile")
-    public ResponseEntity<String> getoggedUserProfile() {
+    public ResponseEntity<String> getLoggedUserProfile() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(auth != null) {
             String userId = (auth.getName());
