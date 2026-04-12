@@ -1,0 +1,293 @@
+
+/* ============================================
+   COSNIMA — Listings Browse Page
+   ============================================ */
+
+.browse-hero {
+  padding-top: calc(var(--nav-h) + var(--space-2xl));
+  padding-bottom: var(--space-xl);
+  background: var(--bg-alt);
+  border-bottom: 1.5px solid var(--border);
+}
+.browse-hero-inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.browse-title { font-size: clamp(2rem, 5vw, 3.2rem); }
+.browse-subtitle { font-size: 0.95rem; color: var(--ink-muted); font-weight: 500; }
+
+/* ── Search + Filters Bar ── */
+.filter-bar {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-xl);
+}
+.filter-row-1 {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  align-items: center;
+}
+.filter-row-2 {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Search input */
+.search-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex: 1;
+  min-width: 200px;
+  background: var(--bg-alt);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 0 var(--space-md);
+  transition: border-color var(--t-base), box-shadow var(--t-base);
+}
+.search-wrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(240,98,146,0.12);
+}
+.search-wrap svg { color: var(--ink-faint); width: 18px; height: 18px; flex-shrink: 0; }
+.search-wrap input {
+  flex: 1;
+  border: none; outline: none;
+  background: transparent;
+  padding: 0.75rem 0;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--ink);
+  min-width: 0;
+}
+.search-wrap input::placeholder { color: var(--ink-faint); }
+
+/* Filter selects */
+.filter-select {
+  padding: 0.65rem 2.2rem 0.65rem 1rem;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--border);
+  background: var(--bg-alt);
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: border-color var(--t-base);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23b89a86' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  white-space: nowrap;
+}
+.filter-select:focus { outline: none; border-color: var(--accent); }
+.filter-select:hover { border-color: var(--border-dark); }
+
+/* Sort */
+.sort-wrap { display: flex; align-items: center; gap: var(--space-sm); margin-left: auto; }
+.sort-label { font-size: 0.8rem; font-weight: 700; color: var(--ink-faint); white-space: nowrap; }
+
+/* Active filters */
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  align-items: center;
+}
+.active-filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.65rem;
+  background: rgba(240,98,146,0.1);
+  border: 1.5px solid rgba(240,98,146,0.3);
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.active-filter-tag button {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  font-size: 0.6rem;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.clear-all-btn {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink-faint);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0.2rem 0;
+  margin-left: var(--space-xs);
+}
+.clear-all-btn:hover { color: var(--error); }
+
+/* Results info */
+.results-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+.results-count {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+.results-count strong { color: var(--ink); }
+
+/* View toggle */
+.view-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-alt);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 3px;
+}
+.view-btn {
+  width: 32px; height: 32px;
+  border-radius: calc(var(--radius) - 3px);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-faint);
+  transition: all var(--t-fast);
+}
+.view-btn:hover { color: var(--ink); }
+.view-btn.active { background: var(--accent); color: white; }
+.view-btn svg { width: 16px; height: 16px; }
+/* List view styling */
+.listings-grid.list-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.listings-grid.list-view .listing-card {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  border-radius: var(--radius);
+  max-width: 100%;
+}
+.listings-grid.list-view .card-thumb {
+  height: 140px;
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+.listings-grid.list-view .listing-card:hover {
+  transform: translateX(4px);
+}
+
+/* Smooth card reveal */
+.listing-card {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: cardReveal 0.3s ease forwards;
+}
+.listing-card.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+@keyframes cardReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* ── Pagination ── */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-2xl);
+  flex-wrap: wrap;
+}
+.page-btn {
+  width: 40px; height: 40px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: all var(--t-base);
+  display: flex; align-items: center; justify-content: center;
+}
+.page-btn:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+.page-btn.active { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 4px 12px rgba(240,98,146,0.3); }
+.page-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.page-btn-ellipsis { background: none; border: none; color: var(--ink-faint); cursor: default; }
+.page-btn-ellipsis:hover { transform: none; border: none; color: var(--ink-faint); }
+
+/* ── No results ── */
+.no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--space-3xl) var(--space-xl);
+  display: flex; flex-direction: column; align-items: center; gap: var(--space-md);
+}
+.no-results-beaver { animation: sadBounce 2s ease-in-out infinite; }
+@keyframes sadBounce {
+  0%,100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-8px) rotate(2deg); }
+}
+.no-results h3 { color: var(--ink); }
+.no-results p  { color: var(--ink-muted); max-width: 320px; font-size: 0.92rem; }
+
+/* ── Loading skeleton ── */
+.skeleton-card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border);
+  overflow: hidden;
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+@keyframes skeletonPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+.skeleton-thumb {
+  height: 220px;
+  background: linear-gradient(90deg, var(--bg-alt) 25%, var(--border) 50%, var(--bg-alt) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton-body { padding: var(--space-md); }
+.skeleton-line {
+  height: 12px; border-radius: 6px;
+  background: linear-gradient(90deg, var(--bg-alt) 25%, var(--border) 50%, var(--bg-alt) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  margin-bottom: var(--space-sm);
+}
+.skeleton-line.short { width: 60%; }
+.skeleton-line.medium { width: 80%; }
+/* Smooth card reveal */
+.listing-card {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: cardReveal 0.3s ease forwards;
+}
+.listing-card.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+@keyframes cardReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
