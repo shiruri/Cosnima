@@ -32,6 +32,21 @@ public class OffersService {
         this.userRepo = userRepo;
         this.listingRepo = listingRepo;
     }
+    public List<OfferResponse> getOffersByStatus(UUID buyerId, OfferStatus status) {
+
+        if (status == null) {
+            return offerRepo.findByBuyerId(buyerId)
+                    .stream()
+                    .map(this::mapToResponse)
+                    .toList();
+        }
+
+        return offerRepo.findByOfferStatus(buyerId, status)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
 
     public List<OfferResponse> getOffers(String id) {
         return offerRepo.findPendingByListingId(id)
@@ -46,7 +61,7 @@ public class OffersService {
     }
 
     public OfferResponse acceptOffer(UUID offerId) {
-        Offer offer = offerRepo.findByOfferId(offerId);
+        Offer offer = offerRepo.findById(offerId).orElseThrow();
         offer.setStatus(OfferStatus.ACCEPTED);
         offer.setUpdatedAt(LocalDateTime.now());
         Offer saved = offerRepo.save(offer);
@@ -54,14 +69,14 @@ public class OffersService {
         }
 
     public OfferResponse rejectOffer(UUID offerId) {
-        Offer offer = offerRepo.findByOfferId(offerId);
+        Offer offer = offerRepo.findById(offerId).orElseThrow();
         offer.setStatus(OfferStatus.REJECTED);
         offer.setUpdatedAt(LocalDateTime.now());
         Offer saved = offerRepo.save(offer);
         return Optional.of(saved).map(this::mapToResponse).get();
     }
     public OfferResponse cancelOffer(UUID offerId) {
-        Offer offer = offerRepo.findByOfferId(offerId);
+        Offer offer = offerRepo.findById(offerId).orElseThrow();
         offer.setStatus(OfferStatus.CANCELLED);
         offer.setUpdatedAt(LocalDateTime.now());
         Offer saved = offerRepo.save(offer);

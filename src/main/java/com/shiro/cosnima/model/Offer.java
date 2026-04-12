@@ -2,6 +2,8 @@ package com.shiro.cosnima.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -10,11 +12,12 @@ import java.util.UUID;
 @Entity
 @Table(name = "offers")
 public class Offer {
-
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(columnDefinition = "CHAR(36)")
     private UUID id;
+
 
     // ===== RELATIONSHIPS =====
 

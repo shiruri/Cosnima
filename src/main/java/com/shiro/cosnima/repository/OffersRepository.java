@@ -2,10 +2,7 @@ package com.shiro.cosnima.repository;
 
 import com.shiro.cosnima.model.Offer;
 import com.shiro.cosnima.model.OfferStatus;
-import com.shiro.cosnima.model.User;
-import com.shiro.cosnima.model.Wishlist;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -14,6 +11,18 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface OffersRepository extends JpaRepository<Offer, UUID> {
+
+    @Query("""
+    SELECT o FROM Offer o
+    WHERE o.buyer.id = :buyerId
+    AND o.status = :status
+""")
+    List<Offer> findByOfferStatus(
+            @Param("buyerId") UUID buyerId,
+            @Param("status") OfferStatus status
+    );
+
+
 
 
     @Query("""
@@ -24,7 +33,7 @@ public interface OffersRepository extends JpaRepository<Offer, UUID> {
     List<Offer> findPendingByListingId(@Param("listingId") String listingId);
 
     List<Offer> findByBuyerId(UUID userId);
-    Offer findByOfferId(UUID id);
+    Optional<Offer> findById(UUID id);
 
 
 

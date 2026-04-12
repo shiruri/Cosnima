@@ -3,6 +3,7 @@ package com.shiro.cosnima.controller;
 import com.shiro.cosnima.dto.request.CreateOfferRequest;
 import com.shiro.cosnima.dto.response.ListingResponse;
 import com.shiro.cosnima.dto.response.OfferResponse;
+import com.shiro.cosnima.model.OfferStatus;
 import com.shiro.cosnima.service.OffersService;
 import jakarta.validation.Valid;
 import org.apache.coyote.Response;
@@ -12,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.naming.Binding;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,7 +60,7 @@ public class OffersController {
     }
 
     @PostMapping("/{id}/accept")
-    public ResponseEntity<OfferResponse> acceptOffer(@PathVariable UUID offerId) {
+    public ResponseEntity<OfferResponse> acceptOffer(@PathVariable("id") UUID offerId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(auth != null) {
             OfferResponse offer = offerServ.acceptOffer(offerId);
@@ -73,7 +75,7 @@ public class OffersController {
     }
 
     @PostMapping("/{id}/reject")
-    public ResponseEntity<OfferResponse> rejectOffer(@PathVariable UUID offerId) {
+    public ResponseEntity<OfferResponse> rejectOffer(@PathVariable("id") UUID offerId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(auth != null) {
             OfferResponse offer = offerServ.rejectOffer(offerId);
@@ -86,8 +88,8 @@ public class OffersController {
         }
         return ResponseEntity.badRequest().build();
     }
-    @PostMapping("/{id}/accept")
-    public ResponseEntity<OfferResponse> cancelOffer(@PathVariable UUID offerId) {
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<OfferResponse> cancelOffer(@PathVariable("id") UUID offerId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(auth != null) {
             OfferResponse offer = offerServ.cancelOffer(offerId);
@@ -101,12 +103,12 @@ public class OffersController {
         return ResponseEntity.badRequest().build();
     }
     @PostMapping("/listing/{id}")
-    public ResponseEntity<OfferResponse> makeOffer(@PathVariable String listingId,
+    public ResponseEntity<OfferResponse> makeOffer(@PathVariable String id,
                                                    @RequestBody @Valid CreateOfferRequest offerRequest, BindingResult result) {
         if(!result.hasErrors()) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if(auth != null) {
-                OfferResponse offer = offerServ.makeOffer(listingId,UUID.fromString(auth.getName()),offerRequest);
+                OfferResponse offer = offerServ.makeOffer(id,UUID.fromString(auth.getName()),offerRequest);
                 if(offer != null) {
                     return ResponseEntity.ok().body(offer);
 
@@ -118,6 +120,24 @@ public class OffersController {
         }
         return ResponseEntity.badRequest().build();
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<List<OfferResponse>> getOffers(
+            @RequestParam(required = false) OfferStatus status){
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        List<OfferResponse> offers =
+                offerServ.getOffersByStatus(UUID.fromString(auth.getName()), status);
+
+        return ResponseEntity.ok(offers);
+    }
+
+
 
 
 }
