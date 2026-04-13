@@ -106,7 +106,7 @@ public class RentalController {
     }
 
 
-    @PostMapping("/{id}/approve")
+    @PostMapping("/{rentalId}/approve")
     public ResponseEntity<RentalResponse> approveRental(@PathVariable("id") long rentalId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
