@@ -1,0 +1,191 @@
+package com.shiro.cosnima.service;
+
+import com.shiro.cosnima.dto.request.RentalRequest;
+import com.shiro.cosnima.dto.response.RentalResponse;
+import com.shiro.cosnima.model.Listing;
+import com.shiro.cosnima.model.Rental;
+import com.shiro.cosnima.model.RentalStatus;
+import com.shiro.cosnima.model.User;
+import com.shiro.cosnima.repository.ListingRepository;
+import com.shiro.cosnima.repository.RentalRepository;
+import com.shiro.cosnima.repository.UserRepository;
+import com.shiro.cosnima.utility.RentalMapper;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+@Service
+@Transactional
+public class RentalService {
+
+    private final RentalRepository rentalRepo;
+    private final ListingRepository listingRepo;
+    private final UserRepository userRepo;
+
+    @Autowired
+    public RentalService(RentalRepository rentalRepo, ListingRepository listingRepo, UserRepository userRepo) {
+        this.rentalRepo = rentalRepo;
+        this.listingRepo = listingRepo;
+        this.userRepo = userRepo;
+    }
+
+    // ─────────────────────────────
+    // RENTER SIDE
+    // ─────────────────────────────
+
+    // GET /api/rentals/mine
+    public List<RentalResponse> getMyRentals(UUID userId) {
+        return rentalRepo.findByRenterId(userId).stream()
+                .map(RentalMapper::toDto)
+                .toList();
+    }
+
+    public List<RentalResponse> getMyRentalsByStatus(UUID userId, RentalStatus status) {
+        return rentalRepo.findByRenterIdAndStatus(userId, status).stream()
+                .map(RentalMapper::toDto)
+                .toList();
+    }
+
+
+    // ─────────────────────────────
+    // SELLER SIDE
+    // ─────────────────────────────
+
+    // GET /api/rentals/my-listings
+    public List<RentalResponse> getRequestsOnMyListings(UUID userId) {
+        return rentalRepo.findRequestsBySellerId(userId).stream()
+                .map(RentalMapper::toDto)
+                .toList();
+    }
+
+    public List<RentalResponse> getRequestsOnMyListingsByStatus(UUID userId, RentalStatus status) {
+        return rentalRepo.findByListingSellerIdAndStatus(userId, status).stream()
+                .map(RentalMapper::toDto)
+                .toList();
+    }
+    public RentalResponse requestRent(UUID userId, RentalRequest rentRequest) {
+
+        // 1. Get listing safely
+        Listing listing = listingRepo.findById(rentRequest.getListingId())
+                .orElseThrow(() -> new RuntimeException("Listing not found"));
+
+        // 2. Get user safely
+        User renter = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 3. Validate dates
+        if (rentRequest.getStartDate().isAfter(rentRequest.getEndDate())) {
+            throw new RuntimeException("Start date cannot be after end date");
+        }
+
+        if (rentRequest.getStartDate().isBefore(LocalDate.now())) {
+            throw new RuntimeException("Start date cannot be in the past");
+        }
+
+        // 4. TODO: check availability (VERY important later)
+        // e.g. overlapping rentals
+
+        // 5. Create rental
+        Rental rent = new Rental();
+        rent.setListing(listing);
+        rent.setRenter(renter);
+        rent.setDeposit(rentRequest.getDeposit());
+        rent.setStartDate(rentRequest.getStartDate());
+        rent.setEndDate(rentRequest.getEndDate());
+        rent.setStatus(RentalStatus.PENDING);
+
+        // 6. calculate total price
+        long days = java.time.temporal.ChronoUnit.DAYS.between(
+                rentRequest.getStartDate(),
+                rentRequest.getEndDate()
+        );
+
+        rent.setTotalPrice(
+                listing.getPrice().multiply(BigDecimal.valueOf(days))
+        );
+
+        // 7. Save + return DTO
+        return RentalMapper.toDto(rentalRepo.save(rent));
+    }
+
+
+    public RentalResponse approveRental(long rentalId, UUID userId) {
+
+        Rental rent = rentalRepo.findById(rentalId)
+                .orElseThrow(() -> new RuntimeException("Rental not found"));
+
+        // ownership check (better way)
+        if (!rent.getListing().getSeller().getId().equals(userId)) {
+            throw new RuntimeException("Not allowed");
+        }
+
+        // status check
+        if (rent.getStatus() != RentalStatus.PENDING) {
+            throw new RuntimeException("Only pending rentals can be approved");
+        }
+
+        List<Rental> conflicts = rentalRepo.findConflictingRentals(
+                rent.getListing().getId(),
+                rent.getStartDate(),
+                rent.getEndDate()
+        );
+
+        if (!conflicts.isEmpty()) {
+            throw new RuntimeException("Listing is already booked for this date range");
+        }
+
+        // approve
+        rent.setStatus(RentalStatus.APPROVED);
+
+        return RentalMapper.toDto(rentalRepo.save(rent));
+    }
+
+
+    public RentalResponse rejectRental(long rentalId,UUID userId) {
+        Rental rent = rentalRepo.findById(rentalId)
+                .orElseThrow(() -> new RuntimeException("Rental not found"));
+        if (!rent.getListing().getSeller().getId().equals(userRepo.findById(userId).get().getId())) {
+            throw new RuntimeException("Not allowed");
+        }
+        if (rent.getStatus() != RentalStatus.PENDING) {
+            throw new RuntimeException("Only pending rentals can be approved");
+        }
+        rent.setStatus(RentalStatus.REJECTED);
+        return RentalMapper.toDto(rentalRepo.save(rent));
+    }
+
+    public RentalResponse completeRental(long rentalId,UUID userId) {
+        Rental rent = rentalRepo.findById(rentalId)
+                .orElseThrow(() -> new RuntimeException("Rental not found"));
+        if (!rent.getListing().getSeller().getId().equals(userRepo.findById(userId).get().getId())) {
+            throw new RuntimeException("Not allowed");
+        }
+        if (rent.getStatus() != RentalStatus.PENDING) {
+            throw new RuntimeException("Only pending rentals can be approved");
+        }
+        rent.setStatus(RentalStatus.COMPLETED);
+        return RentalMapper.toDto(rentalRepo.save(rent));
+    }
+
+    public RentalResponse cancelRental(long rentalId,UUID userId) {
+        Rental rent = rentalRepo.findById(rentalId)
+                .orElseThrow(() -> new RuntimeException("Rental not found"));
+        if (!rent.getListing().getSeller().getId().equals(userRepo.findById(userId).get().getId())) {
+            throw new RuntimeException("Not allowed");
+        }
+        if (rent.getStatus() != RentalStatus.PENDING) {
+            throw new RuntimeException("Only pending rentals can be approved");
+        }
+        rent.setStatus(RentalStatus.CANCELLED);
+        return RentalMapper.toDto(rentalRepo.save(rent));
+    }
+
+
+
+    // TODO REMAKE LISTINGS SO YOU CAN REQUEST RENTS AND DIFF VIEW FOR LISINGS NORMALLy
+}

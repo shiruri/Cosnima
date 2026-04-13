@@ -404,8 +404,8 @@
     }
 
     const params    = new URLSearchParams(window.location.search);
-    const listingId = params.get('listingId');
-    const sellerId  = params.get('sellerId');
+    const listingId = params.get('listing');
+    const sellerId  = params.get('seller');
 
     if (!listingId) { showStatus('No listing specified.', 'error'); return; }
 

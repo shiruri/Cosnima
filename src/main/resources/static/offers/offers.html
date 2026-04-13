@@ -3,18 +3,179 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Offers — Cosnima</title>
+  <title>Offers Dashboard — Cosnima</title>
   <link rel="stylesheet" href="../css/variables.css">
   <link rel="stylesheet" href="../css/global.css">
   <link rel="stylesheet" href="../css/home.css">
   <link rel="stylesheet" href="../css/offers.css">
   <script>(function(){var t=localStorage.getItem('cosnimaTheme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <style>
+    /* Additional dashboard styles */
+    .offers-dashboard-tabs {
+      display: flex;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-xl);
+      border-bottom: 2px solid var(--border);
+    }
+    .dashboard-tab {
+      padding: 0.75rem 1.5rem;
+      font-weight: 800;
+      font-size: 0.9rem;
+      color: var(--ink-muted);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      cursor: pointer;
+      transition: all var(--t-fast);
+      background: none;
+      border-left: none;
+      border-right: none;
+      border-top: none;
+      font-family: var(--font-body);
+    }
+    .dashboard-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .offers-panel-section {
+      display: none;
+    }
+    .offers-panel-section.active {
+      display: block;
+    }
+    /* Incoming offers card – same style as my offers card */
+    .incoming-offers-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    .incoming-offer-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: border-color var(--t-base), box-shadow var(--t-base), transform var(--t-base);
+    }
+    .incoming-offer-card:hover {
+      border-color: var(--accent);
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+    }
+    .incoming-offer-card .offer-card-top {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-lg);
+      border-bottom: 1.5px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .incoming-offer-card .offer-card-listing-thumb {
+      width: 56px; height: 56px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--bg-alt);
+      flex-shrink: 0;
+      border: 1.5px solid var(--border);
+    }
+    .incoming-offer-card .offer-card-listing-thumb img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .incoming-offer-card .offer-card-listing-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .incoming-offer-card .offer-card-listing-title {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      color: var(--ink);
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .incoming-offer-card .offer-card-listing-link {
+      font-size: 0.74rem;
+      color: var(--accent);
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .incoming-offer-card .offer-card-body {
+      padding: var(--space-lg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+    }
+    .incoming-offer-card .offer-card-meta {
+      flex: 1;
+      min-width: 0;
+    }
+    .incoming-offer-card .offer-buyer-info {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: var(--space-xs);
+    }
+    .incoming-offer-card .offer-message-preview {
+      font-size: 0.82rem;
+      color: var(--ink-muted);
+      font-style: italic;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 360px;
+    }
+    .incoming-offer-card .offer-card-time {
+      font-size: 0.72rem;
+      color: var(--ink-faint);
+      font-weight: 600;
+      margin-top: var(--space-xs);
+    }
+    .incoming-offer-card .offer-price-row {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-xs);
+      flex-wrap: wrap;
+    }
+    .incoming-offer-card .offer-my-price {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      color: var(--accent);
+    }
+    .incoming-offer-card .offer-card-actions {
+      display: flex;
+      gap: var(--space-sm);
+      flex-shrink: 0;
+    }
+    .incoming-empty {
+      text-align: center;
+      padding: var(--space-xl);
+      color: var(--ink-faint);
+      font-size: 0.88rem;
+      font-weight: 600;
+      border: 1.5px dashed var(--border);
+      border-radius: var(--radius);
+    }
+    .incoming-empty svg {
+      width: 32px; height: 32px;
+      margin: 0 auto var(--space-sm);
+      display: block;
+      opacity: 0.4;
+    }
+  </style>
 </head>
 <body>
 
 <div id="toast-container" aria-live="polite"></div>
 
-<!-- ── NAVBAR ── -->
+<!-- ── NAVBAR (unchanged) ── -->
 <nav class="navbar" role="navigation" aria-label="Main navigation">
   <div class="nav-inner">
     <a href="../index.html" class="nav-logo" aria-label="Cosnima home">
@@ -37,14 +198,12 @@
       </svg>
       <span class="nav-logo-name">COS<span>NIMA</span></span>
     </a>
-
     <div class="nav-links">
       <a href="../index.html">Home</a>
       <a href="../listing/listings.html">Browse</a>
-      <a href="../offers/offers.html" class="active">My Offers</a>
+      <a href="../offers/offers.html" class="active">Offers</a>
       <a href="../listing/create-listing.html" id="sell-link" style="display:none;">+ Sell / Rent</a>
     </div>
-
     <div class="nav-right">
       <button class="theme-btn" id="theme-btn" aria-label="Toggle dark mode">
         <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
@@ -58,19 +217,18 @@
   </div>
 </nav>
 
-<!-- Mobile drawer -->
 <div class="mobile-nav" id="mobile-nav" role="dialog" aria-label="Mobile menu">
   <nav class="mobile-nav-links">
     <a href="../index.html">Home</a>
     <a href="../listing/listings.html">Browse</a>
-    <a href="../offers/offers.html">My Offers</a>
+    <a href="../offers/offers.html">Offers</a>
     <a href="../listing/create-listing.html" id="mobile-sell-link" style="display:none;">+ Sell / Rent</a>
   </nav>
   <div class="mobile-nav-actions" id="mobile-auth"></div>
 </div>
 <div class="mobile-overlay" id="mobile-overlay"></div>
 
-<!-- ── PAGE CONTENT ── -->
+<!-- ── MAIN OFFERS DASHBOARD ── -->
 <div class="offers-page">
   <div class="container">
 
@@ -84,54 +242,61 @@
             </svg>
             Offers Dashboard
           </p>
-          <h1>My Offers</h1>
-          <p style="margin-top:4px;">Track offers you've sent to sellers.</p>
+          <h1>Manage Offers</h1>
+          <p>Track offers you've made (buyer) and offers you've received (seller).</p>
         </div>
-        <div style="display:flex;align-items:center;gap:var(--space-sm);">
-          <span id="offers-total-count" style="font-size:0.84rem;font-weight:700;color:var(--ink-muted);"></span>
-          <a href="../listing/listings.html" class="btn btn-primary" style="padding:0.6rem 1.2rem;font-size:0.84rem;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            Browse Listings
-          </a>
-        </div>
+        <a href="../listing/listings.html" class="btn btn-primary" style="padding:0.6rem 1.2rem;font-size:0.84rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          Browse Listings
+        </a>
       </div>
     </div>
 
-    <!-- Filter tabs -->
-    <div class="offers-filter-tabs" role="tablist">
-      <button class="offers-filter-tab active" role="tab" data-filter="ALL">All</button>
-      <button class="offers-filter-tab" role="tab" data-filter="PENDING">
-        <span style="display:inline-flex;align-items:center;gap:5px;">
-          <span style="width:6px;height:6px;border-radius:50%;background:#e67e22;display:inline-block;"></span>
-          Pending
-        </span>
-      </button>
-      <button class="offers-filter-tab" role="tab" data-filter="ACCEPTED">
-        <span style="display:inline-flex;align-items:center;gap:5px;">
-          <span style="width:6px;height:6px;border-radius:50%;background:#27ae60;display:inline-block;"></span>
-          Accepted
-        </span>
-      </button>
-      <button class="offers-filter-tab" role="tab" data-filter="REJECTED">
-        <span style="display:inline-flex;align-items:center;gap:5px;">
-          <span style="width:6px;height:6px;border-radius:50%;background:var(--error);display:inline-block;"></span>
-          Declined
-        </span>
-      </button>
-      <button class="offers-filter-tab" role="tab" data-filter="CANCELLED">Cancelled</button>
+    <!-- Dashboard Tabs -->
+    <div class="offers-dashboard-tabs">
+      <button class="dashboard-tab active" data-dashboard-tab="my-offers">My Offers (as buyer)</button>
+      <button class="dashboard-tab" data-dashboard-tab="incoming-offers">Incoming Offers (as seller)</button>
     </div>
 
-    <!-- Offers list -->
-    <div id="my-offers-container">
-      <!-- Populated by offers.js -->
+    <!-- Panel 1: My Offers (sent offers) -->
+    <div id="my-offers-panel" class="offers-panel-section active">
+      <div class="offers-filter-tabs" role="tablist">
+        <button class="offers-filter-tab active" data-filter="ALL">All</button>
+        <button class="offers-filter-tab" data-filter="PENDING">
+          <span style="display:inline-flex;align-items:center;gap:5px;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#e67e22;display:inline-block;"></span>
+            Pending
+          </span>
+        </button>
+        <button class="offers-filter-tab" data-filter="ACCEPTED">
+          <span style="display:inline-flex;align-items:center;gap:5px;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#27ae60;display:inline-block;"></span>
+            Accepted
+          </span>
+        </button>
+        <button class="offers-filter-tab" data-filter="REJECTED">
+          <span style="display:inline-flex;align-items:center;gap:5px;">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--error);display:inline-block;"></span>
+            Declined
+          </span>
+        </button>
+        <button class="offers-filter-tab" data-filter="CANCELLED">Cancelled</button>
+      </div>
+      <div id="my-offers-container"></div>
+    </div>
+
+    <!-- Panel 2: Incoming Offers (received offers) -->
+    <div id="incoming-offers-panel" class="offers-panel-section">
+      <div id="incoming-offers-container" class="incoming-offers-list">
+        <!-- Loaded by JavaScript -->
+      </div>
     </div>
 
   </div>
 </div>
 
-<!-- ── FOOTER ── -->
 <footer class="footer" style="margin-top:var(--space-3xl);">
   <div class="container">
     <div class="footer-bottom">
@@ -147,5 +312,34 @@
 <script src="../js/api.js"></script>
 <script src="../js/nav.js"></script>
 <script src="../js/offers.js"></script>
+<script>
+  // Tab switching logic
+  document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.dashboard-tab');
+    const myPanel = document.getElementById('my-offers-panel');
+    const incomingPanel = document.getElementById('incoming-offers-panel');
+
+    function switchTab(tabId) {
+      tabs.forEach(t => t.classList.remove('active'));
+      document.querySelector(`.dashboard-tab[data-dashboard-tab="${tabId}"]`).classList.add('active');
+      if (tabId === 'my-offers') {
+        myPanel.classList.add('active');
+        incomingPanel.classList.remove('active');
+      } else {
+        myPanel.classList.remove('active');
+        incomingPanel.classList.add('active');
+        if (typeof loadIncomingOffersDashboard === 'function') {
+          loadIncomingOffersDashboard();
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        switchTab(tab.dataset.dashboardTab);
+      });
+    });
+  });
+</script>
 </body>
 </html>

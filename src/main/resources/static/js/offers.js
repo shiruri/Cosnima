@@ -312,8 +312,7 @@ function buildIncomingOfferRow(offer) {
 }
 
 async function handleAcceptOffer(offerId, btn) {
-  const row     = document.getElementById(`offer-row-${offerId}`);
-  const allBtns = row?.querySelectorAll('.offer-action-btn');
+const row = document.getElementById(`offer-row-${offerId}`) || document.getElementById(`incoming-offer-card-${offerId}`);  const allBtns = row?.querySelectorAll('.offer-action-btn');
   allBtns?.forEach(b => { b.disabled = true; b.style.opacity = '0.6'; });
 
   try {
@@ -560,6 +559,7 @@ function buildMyOfferCard(offer) {
               <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
             </svg>
           </a>
+          ${offer.sellerUsername ? `<div class="offer-seller-info">Seller: ${escHtml(offer.sellerUsername)}</div>` : ''}
         </div>
         ${offerStatusChip(offer.status)}
       </div>
@@ -569,7 +569,7 @@ function buildMyOfferCard(offer) {
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px;flex-shrink:0;">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
           </svg>
-          Your offer was accepted! Reach out to the seller to arrange the exchange.
+          Your offer was accepted! ${offer.sellerUsername ? `Contact ${escHtml(offer.sellerUsername)} to arrange the exchange.` : 'Reach out to the seller to arrange the exchange.'}
         </div>` : ''}
 
       <div class="offer-card-body">
@@ -589,6 +589,13 @@ function buildMyOfferCard(offer) {
               </svg>
               Cancel Offer
             </button>` : ''}
+          ${isAccepted && offer.sellerUsername ? `
+            <a href="../listing/message-seller.html?listing=${escHtml(String(offer.listingId))}&seller=${offer.sellerId || ''}" class="btn btn-primary" style="padding:0.45rem 1rem;font-size:0.78rem;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+              Message Seller
+            </a>` : ''}
         </div>
       </div>
     </div>`;
@@ -635,5 +642,121 @@ function showOfferSkeletons() {
             <div class="offer-skeleton-line w-80"></div>
           </div>
         </div>`).join('')}
+    </div>`;
+}/* ──────────────────────────────────────────
+   INCOMING OFFERS DASHBOARD (seller)
+   GET /api/offers/incoming
+   Renders cards similar to "My Offers"
+   ────────────────────────────────────────── */
+async function loadIncomingOffersDashboard() {
+  const container = document.getElementById('incoming-offers-container');
+  if (!container) return;
+
+  // Show skeleton / loading state
+  container.innerHTML = `
+    <div class="incoming-empty">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+      Loading incoming offers...
+    </div>`;
+
+  try {
+    const offers = await API.get('/api/offers/incoming', true);
+    if (!Array.isArray(offers) || offers.length === 0) {
+      container.innerHTML = `
+        <div class="incoming-empty">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+          </svg>
+          No incoming offers yet. Share your listings to attract buyers!
+        </div>`;
+      return;
+    }
+
+    // Build HTML for each incoming offer as a card
+    const cardsHtml = offers.map(offer => buildIncomingOfferCard(offer)).join('');
+    container.innerHTML = `<div class="incoming-offers-list">${cardsHtml}</div>`;
+
+    // Attach accept/reject handlers
+    container.querySelectorAll('[data-accept]').forEach(btn =>
+      btn.addEventListener('click', () => handleAcceptOffer(btn.dataset.accept, btn))
+    );
+    container.querySelectorAll('[data-reject]').forEach(btn =>
+      btn.addEventListener('click', () => handleRejectOffer(btn.dataset.reject, btn))
+    );
+
+  } catch (err) {
+    console.error('Failed to load incoming offers:', err);
+    container.innerHTML = `
+      <div class="incoming-empty">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        Could not load incoming offers.
+        <button onclick="loadIncomingOffersDashboard()" class="btn btn-outline" style="margin-top:var(--space-md);display:inline-block;">Retry</button>
+      </div>`;
+  }
+}
+
+/**
+ * Builds a card for an incoming offer (seller view)
+ * Assumes the offer object contains:
+ *   id, buyerUsername, offeredPrice, message, createdAt, status,
+ *   listingId, listingTitle, listingImageUrl
+ */
+function buildIncomingOfferCard(offer) {
+  const listingThumb = offer.listingImageUrl
+    ? `<img src="${escHtml(offer.listingImageUrl)}" alt="${escHtml(offer.listingTitle || 'Listing')}" onerror="this.style.display='none'">`
+    : `<div class="offer-card-listing-thumb-placeholder">
+         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="width:24px;height:24px;">
+           <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+         </svg>
+       </div>`;
+
+  const isPending = offer.status === 'PENDING';
+  const actionsHtml = isPending
+    ? `<div class="offer-card-actions">
+        <button class="offer-action-btn accept" data-accept="${escHtml(String(offer.id))}">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+          Accept
+        </button>
+        <button class="offer-action-btn reject" data-reject="${escHtml(String(offer.id))}">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          Decline
+        </button>
+      </div>`
+    : `<div class="offer-card-actions">${offerStatusChip(offer.status)}</div>`;
+
+  return `
+    <div class="incoming-offer-card" id="incoming-offer-card-${escHtml(String(offer.id))}">
+      <div class="offer-card-top">
+        <div class="offer-card-listing-thumb">${listingThumb}</div>
+        <div class="offer-card-listing-info">
+          <div class="offer-card-listing-title">${escHtml(offer.listingTitle || 'Listing')}</div>
+          <a class="offer-card-listing-link" href="../listing/view-listing.html?id=${escHtml(String(offer.listingId))}" target="_blank">
+            View Listing
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+          </a>
+        </div>
+        ${offerStatusChip(offer.status)}
+      </div>
+      <div class="offer-card-body">
+        <div class="offer-card-meta">
+          <div class="offer-buyer-info">From: ${escHtml(offer.buyerUsername || 'Buyer')}</div>
+          <div class="offer-price-row">
+            <span class="offer-my-price">${formatPrice(offer.offeredPrice)}</span>
+          </div>
+          ${offer.message ? `<div class="offer-message-preview">"${escHtml(offer.message)}"</div>` : ''}
+          <div class="offer-card-time">Received ${formatRelativeTime(offer.createdAt)}</div>
+        </div>
+        ${actionsHtml}
+      </div>
     </div>`;
 }

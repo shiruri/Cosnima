@@ -32,6 +32,11 @@ public class OffersService {
         this.listingRepo = listingRepo;
     }
 
+    public List<OfferResponse> getIncomingOffers(UUID userId) {
+        return offerRepo.findAllIncomingOffers(userId).stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
 
     public List<OfferResponse> getOffersByStatus(UUID buyerId, OfferStatus status) {
         if (status == null) {
@@ -63,10 +68,22 @@ public class OffersService {
     }
 
     public OfferResponse acceptOffer(UUID offerId) {
-        Offer offer = offerRepo.findById(offerId).orElseThrow();
-        offer.setStatus(OfferStatus.ACCEPTED);
-        offer.setUpdatedAt(LocalDateTime.now());
-        return mapToResponse(offerRepo.save(offer));
+        Offer accepted = offerRepo.findById(offerId).orElseThrow();
+
+        List<Offer> others = offerRepo.findAllByListingId(accepted.getListing().getId());
+        for (Offer o : others) {
+            if (!o.getId().equals(offerId) && o.getStatus() == OfferStatus.PENDING) {
+                o.setStatus(OfferStatus.REJECTED);
+                o.setUpdatedAt(LocalDateTime.now());
+            }
+        }
+
+        accepted.setStatus(OfferStatus.ACCEPTED);
+        accepted.setUpdatedAt(LocalDateTime.now());
+
+        offerRepo.saveAll(others);
+
+        return mapToResponse(accepted);
     }
 
     public OfferResponse rejectOffer(UUID offerId) {
@@ -92,18 +109,29 @@ public class OffersService {
         offer.setMessage(offerRequest.getMessage());
         offer.setCreatedAt(LocalDateTime.now());
         offer.setUpdatedAt(LocalDateTime.now());
+        offer.setStatus(OfferStatus.PENDING);
         return mapToResponse(offerRepo.save(offer));
     }
 
 
     private OfferResponse mapToResponse(Offer offer) {
         OfferResponse dto = new OfferResponse();
+        Listing listing = offer.getListing();
 
         dto.setId(offer.getId());
 
-        dto.setListingId(offer.getListing().getId());
-        dto.setListingTitle(offer.getListing().getTitle());
-        dto.setListedPrice(offer.getListing().getPrice());  // ← was missing
+        dto.setListingId(listing.getId());
+        dto.setListingTitle(listing.getTitle());
+        dto.setListedPrice(listing.getPrice());
+
+        if (listing.getImages() != null && !listing.getImages().isEmpty()) {
+            dto.setListingImageUrl(listing.getImages().get(0).getImageUrl());
+        }
+
+        if (listing.getSeller() != null) {
+            dto.setSellerId(listing.getSeller().getId());
+            dto.setSellerUsername(listing.getSeller().getUsername());
+        }
 
         dto.setBuyerId(offer.getBuyer().getId());
         dto.setBuyerUsername(offer.getBuyer().getUsername());

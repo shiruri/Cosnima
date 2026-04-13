@@ -12,11 +12,17 @@ import java.util.UUID;
 
 public interface OffersRepository extends JpaRepository<Offer, UUID> {
 
+
+
     // Buyer: get own offers filtered by status
     @Query("""
         SELECT o FROM Offer o
+        JOIN FETCH o.listing l
+        LEFT JOIN FETCH l.images
+        LEFT JOIN FETCH l.seller
         WHERE o.buyer.id = :buyerId
         AND o.status = :status
+        ORDER BY o.createdAt DESC
     """)
     List<Offer> findByOfferStatus(
             @Param("buyerId") UUID buyerId,
@@ -28,6 +34,9 @@ public interface OffersRepository extends JpaRepository<Offer, UUID> {
     // causing accepted/rejected offers to vanish from the seller's panel.
     @Query("""
         SELECT o FROM Offer o
+        JOIN FETCH o.listing l
+        LEFT JOIN FETCH l.images
+        LEFT JOIN FETCH l.seller
         WHERE o.listing.id = :listingId
         ORDER BY
             CASE o.status
@@ -40,6 +49,26 @@ public interface OffersRepository extends JpaRepository<Offer, UUID> {
             o.createdAt DESC
     """)
     List<Offer> findAllByListingId(@Param("listingId") String listingId);
+
+    @Query("""
+    SELECT o FROM Offer o
+    JOIN FETCH o.listing l
+    LEFT JOIN FETCH l.images
+    LEFT JOIN FETCH l.seller
+    LEFT JOIN FETCH o.buyer
+    WHERE l.seller.id = :sellerId
+    ORDER BY
+        CASE o.status
+            WHEN com.shiro.cosnima.model.OfferStatus.PENDING   THEN 0
+            WHEN com.shiro.cosnima.model.OfferStatus.ACCEPTED  THEN 1
+            WHEN com.shiro.cosnima.model.OfferStatus.REJECTED  THEN 2
+            WHEN com.shiro.cosnima.model.OfferStatus.CANCELLED THEN 3
+            ELSE 4
+        END,
+        o.createdAt DESC
+""")
+    List<Offer> findAllIncomingOffers(@Param("sellerId") UUID sellerId);
+
 
     // Keep the old PENDING-only query in case it is used elsewhere
     @Query("""
@@ -54,7 +83,15 @@ public interface OffersRepository extends JpaRepository<Offer, UUID> {
 
 
     // Buyer: get all own offers (all statuses)
-    List<Offer> findByBuyerId(UUID userId);
+    @Query("""
+        SELECT o FROM Offer o
+        JOIN FETCH o.listing l
+        LEFT JOIN FETCH l.images
+        LEFT JOIN FETCH l.seller
+        WHERE o.buyer.id = :buyerId
+        ORDER BY o.createdAt DESC
+    """)
+    List<Offer> findByBuyerId(@Param("buyerId") UUID userId);
 
     Optional<Offer> findById(UUID id);
 }

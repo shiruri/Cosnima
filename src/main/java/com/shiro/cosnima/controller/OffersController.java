@@ -28,41 +28,45 @@ public class OffersController {
         this.offerServ = offerServ;
     }
 
+    @GetMapping("/incoming")
+    public ResponseEntity<List<OfferResponse>> getIncomingOffers() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+            List<OfferResponse> offers = offerServ.getIncomingOffers(UUID.fromString(auth.getName()));
+            return ResponseEntity.ok(offers != null ? offers : List.of());
+        }
+        return ResponseEntity.status(401).build();
+    }
 
     @GetMapping("listing/{id}")
     public ResponseEntity<List<OfferResponse>> getOffers(@PathVariable String id) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(auth != null) {
+        if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
             List<OfferResponse> offers = offerServ.getOffers(id);
-            if(offers != null) {
-                return ResponseEntity.ok().body(offers);
-
-            }
-            return ResponseEntity.badRequest().build();
-
+            return ResponseEntity.ok(offers != null ? offers : List.of());
         }
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.status(401).build();
     }
 
     @GetMapping("/mine")
     public ResponseEntity<List<OfferResponse>> getUserOffers() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(auth != null) {
-            List<OfferResponse> offers = offerServ.getUserOffers(UUID.fromString(auth.getName()));
-            if(offers != null) {
-                return ResponseEntity.ok().body(offers);
-
+        if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+            try {
+                UUID userId = UUID.fromString(auth.getName());
+                List<OfferResponse> offers = offerServ.getUserOffers(userId);
+                return ResponseEntity.ok(offers != null ? offers : List.of());
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.status(401).build();
             }
-            return ResponseEntity.badRequest().build();
-
         }
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.status(401).build();
     }
 
     @PostMapping("/{id}/accept")
     public ResponseEntity<OfferResponse> acceptOffer(@PathVariable("id") UUID offerId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(auth != null) {
+        if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
             OfferResponse offer = offerServ.acceptOffer(offerId);
             if(offer != null) {
                 return ResponseEntity.ok().body(offer);
@@ -71,13 +75,13 @@ public class OffersController {
             return ResponseEntity.badRequest().build();
 
         }
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.status(401).build();
     }
 
     @PostMapping("/{id}/reject")
     public ResponseEntity<OfferResponse> rejectOffer(@PathVariable("id") UUID offerId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(auth != null) {
+        if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
             OfferResponse offer = offerServ.rejectOffer(offerId);
             if(offer != null) {
                 return ResponseEntity.ok().body(offer);
@@ -86,12 +90,12 @@ public class OffersController {
             return ResponseEntity.badRequest().build();
 
         }
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.status(401).build();
     }
     @PostMapping("/{id}/cancel")
     public ResponseEntity<OfferResponse> cancelOffer(@PathVariable("id") UUID offerId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(auth != null) {
+        if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
             OfferResponse offer = offerServ.cancelOffer(offerId);
             if(offer != null) {
                 return ResponseEntity.ok().body(offer);
@@ -100,23 +104,26 @@ public class OffersController {
             return ResponseEntity.badRequest().build();
 
         }
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.status(401).build();
     }
     @PostMapping("/listing/{id}")
     public ResponseEntity<OfferResponse> makeOffer(@PathVariable String id,
                                                    @RequestBody @Valid CreateOfferRequest offerRequest, BindingResult result) {
         if(!result.hasErrors()) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            if(auth != null) {
-                OfferResponse offer = offerServ.makeOffer(id,UUID.fromString(auth.getName()),offerRequest);
-                if(offer != null) {
-                    return ResponseEntity.ok().body(offer);
-
+            if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+                try {
+                    UUID userId = UUID.fromString(auth.getName());
+                    OfferResponse offer = offerServ.makeOffer(id, userId, offerRequest);
+                    if(offer != null) {
+                        return ResponseEntity.ok().body(offer);
+                    }
+                    return ResponseEntity.badRequest().build();
+                } catch (IllegalArgumentException e) {
+                    return ResponseEntity.status(401).build();
                 }
-                return ResponseEntity.badRequest().build();
-
             }
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(401).build();
         }
         return ResponseEntity.badRequest().build();
     }
@@ -127,14 +134,17 @@ public class OffersController {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (auth == null) {
-            return ResponseEntity.badRequest().build();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+            return ResponseEntity.status(401).build();
         }
 
-        List<OfferResponse> offers =
-                offerServ.getOffersByStatus(UUID.fromString(auth.getName()), status);
-
-        return ResponseEntity.ok(offers);
+        try {
+            UUID userId = UUID.fromString(auth.getName());
+            List<OfferResponse> offers = offerServ.getOffersByStatus(userId, status);
+            return ResponseEntity.ok(offers);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(401).build();
+        }
     }
 
 

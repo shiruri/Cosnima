@@ -597,6 +597,29 @@
   flex-shrink: 0;
 }
 
+.offer-seller-info {
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.offer-card-accepted {
+  border-color: rgba(39, 174, 96, 0.4);
+}
+
+.offer-card-accepted-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  background: rgba(39, 174, 96, 0.08);
+  border-top: 1.5px solid rgba(39, 174, 96, 0.2);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #1a7a40;
+}
+
 /* Cancel offer btn */
 .offer-cancel-btn {
   display: inline-flex;

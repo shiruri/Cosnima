@@ -1,24 +1,18 @@
-package com.shiro.cosnima.model;
+package com.shiro.cosnima.dto.response;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
-@Entity
-@Table(name = "rentals")
-public class Rental {
+public class RentalResponse {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "listing_id", nullable = false)
-    private Listing listing;
+    private String listingId;
+    private String listingTitle;
 
-    @ManyToOne
-    @JoinColumn(name = "renter_id", nullable = false)
-    private User renter;
+    private UUID renterId;
+    private String renterUsername;
 
     private LocalDate startDate;
     private LocalDate endDate;
@@ -26,12 +20,10 @@ public class Rental {
     private BigDecimal totalPrice;
     private BigDecimal deposit;
 
-    @Enumerated(EnumType.STRING)
-    private RentalStatus status = RentalStatus.PENDING;
-
+    private String status;
 
     // ─────────────────────────────
-    // Getters and Setters
+    // Getters & Setters
     // ─────────────────────────────
 
     public Long getId() {
@@ -42,20 +34,36 @@ public class Rental {
         this.id = id;
     }
 
-    public Listing getListing() {
-        return listing;
+    public String getListingId() {
+        return listingId;
     }
 
-    public void setListing(Listing listing) {
-        this.listing = listing;
+    public void setListingId(String listingId) {
+        this.listingId = listingId;
     }
 
-    public User getRenter() {
-        return renter;
+    public String getListingTitle() {
+        return listingTitle;
     }
 
-    public void setRenter(User renter) {
-        this.renter = renter;
+    public void setListingTitle(String listingTitle) {
+        this.listingTitle = listingTitle;
+    }
+
+    public UUID getRenterId() {
+        return renterId;
+    }
+
+    public void setRenterId(UUID renterId) {
+        this.renterId = renterId;
+    }
+
+    public String getRenterUsername() {
+        return renterUsername;
+    }
+
+    public void setRenterUsername(String renterUsername) {
+        this.renterUsername = renterUsername;
     }
 
     public LocalDate getStartDate() {
@@ -90,11 +98,11 @@ public class Rental {
         this.deposit = deposit;
     }
 
-    public RentalStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(RentalStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 }
