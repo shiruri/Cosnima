@@ -10,18 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  // --- Password toggle ---
+  // --- Password toggle — single icon via CSS class ---
   document.querySelectorAll('.pw-toggle').forEach(btn => {
     btn.addEventListener('click', () => {
       const input = btn.closest('.pw-field').querySelector('input');
-      const isText = input.type === 'text';
-      input.type = isText ? 'password' : 'text';
-      const eyeOpen  = btn.querySelector('.eye-open');
-      const eyeClose = btn.querySelector('.eye-close');
-      if (eyeOpen && eyeClose) {
-        eyeOpen.style.display  = isText ? 'block' : 'none';
-        eyeClose.style.display = isText ? 'none'  : 'block';
-      }
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      // Toggle class on button — CSS handles which SVG is visible
+      btn.classList.toggle('showing', isPassword);
+      btn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
     });
   });
 
@@ -62,15 +59,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         API.setSession(result.token, result.user);
-        showBanner('Signed in! Redirecting...', 'success');
-        setTimeout(() => redirectTo('../index.html'), 800);
+        showBanner('Signed in! Redirecting…', 'success');
+        setTimeout(() => redirectTo('../index.html'), 900);
 
       } catch (err) {
         const status = err?.status;
         let msg = err?.data?.message || err?.message || 'Login failed. Please try again.';
         if (status === 401 || status === 403) msg = 'Incorrect email or password.';
         if (status === 0) msg = 'Cannot reach the server. Check your connection.';
-        showBanner(msg);
+        showBanner(msg, 'error');
         shakeForm(loginForm);
       } finally {
         setLoading(btn, false);
@@ -96,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setFieldError('username', 'Username is required');
         valid = false;
       } else if (!usernameRegex.test(username)) {
-        setFieldError('username', '3-20 characters: letters, numbers, underscores only');
+        setFieldError('username', '3–20 characters: letters, numbers, underscores only');
         valid = false;
       }
 
@@ -135,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
           passwordHash: password
         });
 
-        showBanner('Account created! Redirecting to login...', 'success');
+        showBanner('Account created! Redirecting to login…', 'success');
         setTimeout(() => redirectTo('../login/login.html'), 1500);
 
       } catch (err) {
@@ -143,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let msg = err?.data?.message || err?.message || 'Registration failed. Username or email may already be taken.';
         if (status === 409) msg = 'Username or email is already taken. Please try another.';
         if (status === 0)   msg = 'Cannot reach the server. Check your connection.';
-        showBanner(msg);
+        showBanner(msg, 'error');
         shakeForm(registerForm);
       } finally {
         setLoading(btn, false);
@@ -183,21 +180,16 @@ function setLoading(btn, loading) {
   if (loader) loader.style.display = loading ? 'flex'  : 'none';
 }
 
+/**
+ * showBanner('message', 'error'|'success'|'info')
+ * Uses CSS classes instead of inline styles — no overlap with toast.
+ */
 function showBanner(msg, type = 'error') {
   const el = document.getElementById('error-msg');
   if (!el) return;
-  el.textContent = msg;
-  el.style.display = 'block';
 
-  if (type === 'success') {
-    el.style.background   = '#f0fff6';
-    el.style.borderColor  = '#a8e6c0';
-    el.style.color        = '#2e7d52';
-  } else {
-    el.style.background   = '';
-    el.style.borderColor  = '';
-    el.style.color        = '';
-  }
+  el.textContent = msg;
+  el.className = `show type-${type}`;
 }
 
 function setFieldError(fieldId, msg) {
@@ -212,7 +204,7 @@ function setFieldError(fieldId, msg) {
 
 function clearErrors() {
   const banner = document.getElementById('error-msg');
-  if (banner) banner.style.display = 'none';
+  if (banner) { banner.className = ''; }
   document.querySelectorAll('.field-group.has-error').forEach(g => {
     g.classList.remove('has-error');
     const errEl = g.querySelector('.field-error');
@@ -223,7 +215,7 @@ function clearErrors() {
 function shakeForm(form) {
   if (!form) return;
   form.classList.remove('shake');
-  void form.offsetWidth; // reflow
+  void form.offsetWidth;
   form.classList.add('shake');
   form.addEventListener('animationend', () => form.classList.remove('shake'), { once: true });
 }
@@ -231,4 +223,4 @@ function shakeForm(form) {
 function redirectTo(url) {
   document.body.classList.add('fade-out');
   setTimeout(() => { window.location.href = url; }, 280);
-}
+} 

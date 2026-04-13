@@ -1,6 +1,5 @@
 package com.shiro.cosnima.service;
 
-
 import com.shiro.cosnima.dto.request.CreateOfferRequest;
 import com.shiro.cosnima.dto.response.OfferResponse;
 import com.shiro.cosnima.model.Listing;
@@ -28,19 +27,19 @@ public class OffersService {
 
     @Autowired
     public OffersService(OffersRepository offerRepo, UserRepository userRepo, ListingRepository listingRepo) {
-        this.offerRepo = offerRepo;
-        this.userRepo = userRepo;
+        this.offerRepo   = offerRepo;
+        this.userRepo    = userRepo;
         this.listingRepo = listingRepo;
     }
-    public List<OfferResponse> getOffersByStatus(UUID buyerId, OfferStatus status) {
 
+
+    public List<OfferResponse> getOffersByStatus(UUID buyerId, OfferStatus status) {
         if (status == null) {
             return offerRepo.findByBuyerId(buyerId)
                     .stream()
                     .map(this::mapToResponse)
                     .toList();
         }
-
         return offerRepo.findByOfferStatus(buyerId, status)
                 .stream()
                 .map(this::mapToResponse)
@@ -48,54 +47,54 @@ public class OffersService {
     }
 
 
-    public List<OfferResponse> getOffers(String id) {
-        return offerRepo.findPendingByListingId(id)
+    public List<OfferResponse> getOffers(String listingId) {
+        return offerRepo.findAllByListingId(listingId)
                 .stream()
-                .map(this::mapToResponse).toList();
+                .map(this::mapToResponse)
+                .toList();
     }
+
 
     public List<OfferResponse> getUserOffers(UUID userId) {
         return offerRepo.findByBuyerId(userId)
                 .stream()
-                .map(this::mapToResponse).toList();
+                .map(this::mapToResponse)
+                .toList();
     }
 
     public OfferResponse acceptOffer(UUID offerId) {
         Offer offer = offerRepo.findById(offerId).orElseThrow();
         offer.setStatus(OfferStatus.ACCEPTED);
         offer.setUpdatedAt(LocalDateTime.now());
-        Offer saved = offerRepo.save(offer);
-        return Optional.of(saved).map(this::mapToResponse).get();
-        }
+        return mapToResponse(offerRepo.save(offer));
+    }
 
     public OfferResponse rejectOffer(UUID offerId) {
         Offer offer = offerRepo.findById(offerId).orElseThrow();
         offer.setStatus(OfferStatus.REJECTED);
         offer.setUpdatedAt(LocalDateTime.now());
-        Offer saved = offerRepo.save(offer);
-        return Optional.of(saved).map(this::mapToResponse).get();
+        return mapToResponse(offerRepo.save(offer));
     }
+
     public OfferResponse cancelOffer(UUID offerId) {
         Offer offer = offerRepo.findById(offerId).orElseThrow();
         offer.setStatus(OfferStatus.CANCELLED);
         offer.setUpdatedAt(LocalDateTime.now());
-        Offer saved = offerRepo.save(offer);
-        return Optional.of(saved).map(this::mapToResponse).get();
+        return mapToResponse(offerRepo.save(offer));
     }
 
-    public OfferResponse makeOffer(String listingId,
-                                   UUID userId, CreateOfferRequest offerRequest) {
+    public OfferResponse makeOffer(String listingId, UUID userId, CreateOfferRequest offerRequest) {
+        Listing listing = listingRepo.findById(listingId).orElseThrow();
         Offer offer = new Offer();
-        offer.setListing(listingRepo.findById(listingId).get());
-        offer.setBuyer(userRepo.findUserById(userId).get());
+        offer.setListing(listing);
+        offer.setBuyer(userRepo.findUserById(userId).orElseThrow());
         offer.setOfferedPrice(offerRequest.getOfferedPrice());
         offer.setMessage(offerRequest.getMessage());
         offer.setCreatedAt(LocalDateTime.now());
         offer.setUpdatedAt(LocalDateTime.now());
-        return Optional.of(offerRepo.save(offer)).map(this::mapToResponse).get();
-
-
+        return mapToResponse(offerRepo.save(offer));
     }
+
 
     private OfferResponse mapToResponse(Offer offer) {
         OfferResponse dto = new OfferResponse();
@@ -104,6 +103,7 @@ public class OffersService {
 
         dto.setListingId(offer.getListing().getId());
         dto.setListingTitle(offer.getListing().getTitle());
+        dto.setListedPrice(offer.getListing().getPrice());  // ← was missing
 
         dto.setBuyerId(offer.getBuyer().getId());
         dto.setBuyerUsername(offer.getBuyer().getUsername());
@@ -116,5 +116,4 @@ public class OffersService {
 
         return dto;
     }
-
 }

@@ -11,554 +11,111 @@
   <script>(function(){var t=localStorage.getItem('cosnimaTheme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
 
   <style>
-    /* ── View listing page ── */
-    .view-listing-page {
-      padding-top: calc(var(--nav-h) + var(--space-xl));
-      padding-bottom: var(--space-3xl);
-    }
-
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--space-sm);
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--ink-muted);
-      margin-bottom: var(--space-xl);
-      transition: color var(--t-base);
-    }
-    .back-link:hover { color: var(--accent); }
-
-    .listing-layout {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: var(--space-2xl);
-    }
-    @media (min-width: 900px) {
-      .listing-layout { grid-template-columns: 1fr 380px; }
-    }
-
-    /* ── Gallery ── */
-    .gallery-main {
-      position: relative;
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      background: var(--bg-alt);
-      aspect-ratio: 4/3;
-      border: 2px solid var(--border);
-    }
-    .gallery-main img {
-      width: 100%; height: 100%;
-      object-fit: cover;
-      transition: opacity 0.3s ease;
-    }
-    .gallery-placeholder {
-      width: 100%; height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 6rem;
-      background: linear-gradient(135deg, var(--bg-alt), var(--beaver-cream));
-    }
-    .gallery-nav {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: var(--space-sm);
-      pointer-events: none;
-    }
-    .gallery-btn {
-      width: 42px; height: 42px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.9);
-      backdrop-filter: blur(8px);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--ink);
-      box-shadow: var(--shadow-sm);
-      pointer-events: all;
-      transition: all var(--t-fast);
-      border: 1.5px solid rgba(255,255,255,0.5);
-    }
-    .gallery-btn:hover { transform: scale(1.1); box-shadow: var(--shadow); }
-    .gallery-btn svg { width: 18px; height: 18px; }
-    .gallery-counter {
-      position: absolute;
-      bottom: var(--space-sm);
-      right: var(--space-sm);
-      background: rgba(42,26,14,0.6);
-      color: white;
-      font-size: 0.72rem;
-      font-weight: 800;
-      padding: 0.25rem 0.65rem;
-      border-radius: var(--radius-pill);
-      backdrop-filter: blur(4px);
-    }
-    .gallery-thumbs {
-      display: flex;
-      gap: var(--space-sm);
-      margin-top: var(--space-sm);
-      overflow-x: auto;
-      padding-bottom: 2px;
-      scrollbar-width: none;
-    }
-    .gallery-thumbs::-webkit-scrollbar { display: none; }
-    .gallery-thumb {
-      width: 72px; height: 72px;
-      border-radius: var(--radius);
-      overflow: hidden;
-      flex-shrink: 0;
-      border: 2.5px solid transparent;
-      cursor: pointer;
-      transition: all var(--t-fast);
-      background: var(--bg-alt);
-    }
-    .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .gallery-thumb.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(240,98,146,0.2); }
-    .gallery-thumb:hover:not(.active) { border-color: var(--border-dark); }
-
-    /* ── Details panel ── */
-    .listing-details {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-lg);
-    }
-    .listing-meta-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: var(--space-md);
-    }
-    .listing-badges {
-      display: flex;
-      gap: var(--space-xs);
-      flex-wrap: wrap;
-    }
-    .listing-title {
-      font-size: clamp(1.4rem, 3vw, 2rem);
-      color: var(--ink);
-      margin-top: var(--space-xs);
-      line-height: 1.2;
-    }
-    .listing-price-row {
-      display: flex;
-      align-items: baseline;
-      gap: var(--space-sm);
-    }
-    .listing-price {
-      font-family: var(--font-display);
-      font-size: 2rem;
-      color: var(--accent);
-    }
-    .listing-price-note {
-      font-size: 0.82rem;
-      color: var(--ink-muted);
-      font-weight: 600;
-    }
-
-    /* Info chips */
-    .info-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-sm);
-    }
-    .info-chip {
-      display: flex;
-      align-items: center;
-      gap: var(--space-xs);
-      padding: 0.4rem 0.85rem;
-      background: var(--bg-alt);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-pill);
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--ink-muted);
-    }
-
-    /* Description */
-    .listing-desc-section {
-      padding: var(--space-lg);
-      background: var(--bg-alt);
-      border-radius: var(--radius-lg);
-      border: 1.5px solid var(--border);
-    }
-    .listing-desc-label {
-      font-size: 0.68rem;
-      font-weight: 900;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--ink-faint);
-      margin-bottom: var(--space-sm);
-    }
-    .listing-desc-text {
-      font-size: 0.92rem;
-      line-height: 1.75;
-      color: var(--ink-muted);
-      font-weight: 500;
-      white-space: pre-wrap;
-    }
-
-    /* Tags */
-    .listing-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-xs);
-    }
-    .listing-tag {
-      padding: 0.3rem 0.8rem;
-      background: rgba(240,98,146,0.08);
-      border: 1.5px solid rgba(240,98,146,0.2);
-      border-radius: var(--radius-pill);
-      font-size: 0.74rem;
-      font-weight: 800;
-      color: var(--accent);
-    }
-
-    /* ── Seller card ── */
-    .seller-card {
-      background: var(--card);
-      border: 2px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: var(--space-lg);
-    }
-    .seller-card-label {
-      font-size: 0.68rem;
-      font-weight: 900;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--ink-faint);
-      margin-bottom: var(--space-md);
-    }
-    .seller-card-inner {
-      display: flex;
-      align-items: center;
-      gap: var(--space-md);
-      margin-bottom: var(--space-lg);
-    }
-    .seller-card-avatar {
-      width: 54px; height: 54px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--beaver), var(--accent));
-      color: white;
-      font-size: 1.3rem;
-      font-weight: 800;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      border: 3px solid var(--card);
-      box-shadow: 0 0 0 2.5px var(--accent);
-    }
-    .seller-card-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-    .seller-card-name { font-size: 1rem; font-weight: 800; color: var(--ink); }
-    .seller-card-stats { font-size: 0.78rem; color: var(--ink-muted); font-weight: 600; margin-top: 2px; }
-    .seller-card-rating {
-      display: flex;
-      align-items: center;
-      gap: var(--space-xs);
-      font-size: 0.78rem;
-      color: var(--ink-muted);
-      margin-top: 3px;
-    }
-    .stars { color: #f5a623; letter-spacing: -1px; }
-    .seller-actions {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-sm);
-    }
-
-    /* ── Owner panel ── */
-    .owner-panel {
-      background: linear-gradient(135deg, rgba(240,98,146,0.05), rgba(200,122,80,0.05));
-      border: 2px solid rgba(240,98,146,0.2);
-      border-radius: var(--radius-lg);
-      padding: var(--space-lg);
-    }
-    .owner-panel-label {
-      font-size: 0.68rem;
-      font-weight: 900;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: var(--space-md);
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
-    }
-    .owner-panel-label::before { content: '✦'; color: var(--accent); }
-
-    /* Status selector */
-    .status-selector { margin-bottom: var(--space-md); }
-    .status-selector-label {
-      font-size: 0.78rem;
-      font-weight: 800;
-      color: var(--ink-muted);
-      margin-bottom: var(--space-sm);
-    }
-    .status-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--space-xs);
-    }
-    .status-opt {
-      padding: 0.6rem 0.8rem;
-      border-radius: var(--radius);
-      border: 2px solid var(--border);
-      font-size: 0.78rem;
-      font-weight: 800;
-      color: var(--ink-muted);
-      background: var(--card);
-      text-align: center;
-      cursor: pointer;
-      transition: all var(--t-fast);
-    }
-    .status-opt:hover { border-color: var(--accent); color: var(--accent); }
-    .status-opt.active { color: white; border-color: transparent; }
-    .status-opt.active.available { background: var(--success); }
-    .status-opt.active.sold { background: var(--ink); }
-    .status-opt.active.rented { background: var(--beaver); }
-    .status-opt.active.archived { background: var(--ink-faint); }
-    .owner-actions { display: flex; flex-direction: column; gap: var(--space-sm); }
-
-    /* ── Update listing modal ── */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(42,26,14,0.6);
-      z-index: 800;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-      backdrop-filter: blur(4px);
-    }
-    .modal-backdrop.open { opacity: 1; pointer-events: all; }
-    .modal {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -48%) scale(0.96);
-      width: min(680px, 95vw);
-      max-height: 90vh;
-      background: var(--card);
-      border-radius: var(--radius-xl);
-      z-index: 801;
-      overflow: hidden;
-      box-shadow: 0 24px 80px rgba(42,26,14,0.25);
-      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
-      opacity: 0;
-      pointer-events: none;
-      display: flex;
-      flex-direction: column;
-    }
-    .modal.open {
-      transform: translate(-50%, -50%) scale(1);
-      opacity: 1;
-      pointer-events: all;
-    }
-    .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: var(--space-xl);
-      border-bottom: 1.5px solid var(--border);
-      background: linear-gradient(135deg, var(--bg-alt), var(--card));
-      flex-shrink: 0;
-    }
-    .modal-header h2 { font-size: 1.3rem; color: var(--ink); }
-    .modal-close {
-      width: 36px; height: 36px;
-      border-radius: var(--radius);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--ink-muted);
-      border: 1.5px solid var(--border);
-      transition: all var(--t-fast);
-    }
-    .modal-close:hover { background: var(--accent); color: white; border-color: var(--accent); }
-    .modal-body {
-      overflow-y: auto;
-      padding: var(--space-xl);
-      flex: 1;
-    }
-    .modal-body::-webkit-scrollbar { width: 4px; }
-    .modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-    .modal-footer {
-      padding: var(--space-lg) var(--space-xl);
-      border-top: 1.5px solid var(--border);
-      display: flex;
-      gap: var(--space-sm);
-      justify-content: flex-end;
-      flex-shrink: 0;
-    }
-
-    /* Form fields */
-    .form-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-lg); }
-    @media (min-width: 520px) { .form-grid { grid-template-columns: 1fr 1fr; } }
-    .form-field { display: flex; flex-direction: column; gap: var(--space-xs); }
-    .form-field.full { grid-column: 1 / -1; }
-    .form-field label {
-      font-size: 0.75rem;
-      font-weight: 900;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--ink-faint);
-    }
-    .form-field input,
-    .form-field textarea,
-    .form-field select {
-      padding: 0.75rem 1rem;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      font-size: 0.9rem;
-      font-family: var(--font-body);
-      font-weight: 600;
-      color: var(--ink);
-      background: var(--bg);
-      outline: none;
-      transition: border-color var(--t-base);
-    }
-    .form-field input:focus,
-    .form-field textarea:focus,
-    .form-field select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(240,98,146,0.1);
-    }
-    .form-field textarea { resize: vertical; min-height: 100px; }
-    .form-field select {
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23b89a86' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 0.8rem center;
-      background-size: 16px;
-      padding-right: 2.5rem;
-    }
-    .price-field-wrap { position: relative; }
-    .price-field-wrap span {
-      position: absolute;
-      left: 0.9rem;
-      top: 50%;
-      transform: translateY(-50%);
-      font-weight: 800;
-      color: var(--ink-faint);
-      font-size: 0.9rem;
-      pointer-events: none;
-    }
-    .price-field-wrap input { padding-left: 1.9rem; }
-
-    /* Image upload */
-    .img-upload-zone {
-      border: 2px dashed var(--border-dark);
-      border-radius: var(--radius-lg);
-      padding: var(--space-xl);
-      text-align: center;
-      cursor: pointer;
-      transition: all var(--t-base);
-      background: var(--bg);
-    }
-    .img-upload-zone:hover { border-color: var(--accent); background: rgba(240,98,146,0.03); }
-    .img-upload-zone.dragover { border-color: var(--accent); background: rgba(240,98,146,0.07); }
-    .img-upload-zone input { display: none; }
-    .img-upload-icon { font-size: 2.5rem; margin-bottom: var(--space-sm); }
-    .img-upload-text { font-size: 0.85rem; font-weight: 700; color: var(--ink-muted); }
-    .img-upload-text strong { color: var(--accent); }
-    .img-upload-hint { font-size: 0.72rem; color: var(--ink-faint); margin-top: 4px; }
-    .img-mode-toggle { display: flex; gap: var(--space-xs); margin-bottom: var(--space-md); }
-    .img-mode-btn {
-      flex: 1;
-      padding: 0.55rem;
-      border-radius: var(--radius);
-      border: 2px solid var(--border);
-      font-size: 0.78rem;
-      font-weight: 800;
-      color: var(--ink-muted);
-      text-align: center;
-      cursor: pointer;
-      transition: all var(--t-fast);
-    }
-    .img-mode-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
-    .img-previews {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-      gap: var(--space-sm);
-      margin-top: var(--space-md);
-    }
-    .img-preview-item {
-      position: relative;
-      aspect-ratio: 1;
-      border-radius: var(--radius);
-      overflow: hidden;
-      border: 2px solid var(--border);
-    }
-    .img-preview-item img { width: 100%; height: 100%; object-fit: cover; }
-    .img-preview-remove {
-      position: absolute;
-      top: 4px; right: 4px;
-      width: 20px; height: 20px;
-      border-radius: 50%;
-      background: rgba(192,57,43,0.9);
-      color: white;
-      font-size: 0.65rem;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      transition: transform var(--t-fast);
-    }
-    .img-preview-remove:hover { transform: scale(1.2); }
-
-    /* Convention toggle */
-    .convention-toggle-wrap {
-      display: flex;
-      align-items: center;
-      gap: var(--space-md);
-      padding: var(--space-md) var(--space-lg);
-      background: linear-gradient(135deg, rgba(200,122,80,0.08), rgba(240,98,146,0.05));
-      border: 2px solid rgba(200,122,80,0.2);
-      border-radius: var(--radius-lg);
-      cursor: pointer;
-      transition: all var(--t-fast);
-    }
-    .convention-toggle-wrap:hover { border-color: var(--beaver); }
-    .convention-toggle-wrap.on { border-color: var(--beaver); background: rgba(200,122,80,0.12); }
-    .convention-icon { font-size: 1.6rem; flex-shrink: 0; }
-    .convention-text { flex: 1; }
-    .convention-text strong { font-size: 0.88rem; color: var(--ink); display: block; }
-    .convention-text small { font-size: 0.75rem; color: var(--ink-muted); }
-    .toggle-switch {
-      width: 44px; height: 24px;
-      border-radius: var(--radius-pill);
-      background: var(--border-dark);
-      position: relative;
-      transition: background var(--t-base);
-      flex-shrink: 0;
-    }
-    .toggle-switch::after {
-      content: '';
-      position: absolute;
-      left: 3px; top: 3px;
-      width: 18px; height: 18px;
-      border-radius: 50%;
-      background: white;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-      transition: transform var(--t-base);
-    }
-    .convention-toggle-wrap.on .toggle-switch { background: var(--beaver); }
-    .convention-toggle-wrap.on .toggle-switch::after { transform: translateX(20px); }
-
-    /* View count */
-    .view-count-badge {
-      display: flex;
-      align-items: center;
-      gap: var(--space-xs);
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--ink-faint);
-    }
-
+    .view-listing-page{padding-top:calc(var(--nav-h) + var(--space-xl));padding-bottom:var(--space-3xl);}
+    .back-link{display:inline-flex;align-items:center;gap:var(--space-sm);font-size:0.85rem;font-weight:700;color:var(--ink-muted);margin-bottom:var(--space-xl);transition:color var(--t-base);}
+    .back-link:hover{color:var(--accent);}
+    .listing-layout{display:grid;grid-template-columns:1fr;gap:var(--space-2xl);}
+    @media(min-width:900px){.listing-layout{grid-template-columns:1fr 380px;}}
+    .gallery-main{position:relative;border-radius:var(--radius-lg);overflow:hidden;background:var(--bg-alt);aspect-ratio:4/3;border:2px solid var(--border);}
+    .gallery-main img{width:100%;height:100%;object-fit:cover;transition:opacity 0.3s;}
+    .gallery-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:6rem;background:linear-gradient(135deg,var(--bg-alt),var(--beaver-cream));}
+    .gallery-nav{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:var(--space-sm);pointer-events:none;}
+    .gallery-btn{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.9);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;color:var(--ink);box-shadow:var(--shadow-sm);pointer-events:all;transition:all var(--t-fast);border:1.5px solid rgba(255,255,255,0.5);}
+    .gallery-btn:hover{transform:scale(1.1);box-shadow:var(--shadow);}
+    .gallery-btn svg{width:18px;height:18px;}
+    .gallery-counter{position:absolute;bottom:var(--space-sm);right:var(--space-sm);background:rgba(42,26,14,0.6);color:white;font-size:0.72rem;font-weight:800;padding:0.25rem 0.65rem;border-radius:var(--radius-pill);backdrop-filter:blur(4px);}
+    .gallery-thumbs{display:flex;gap:var(--space-sm);margin-top:var(--space-sm);overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+    .gallery-thumbs::-webkit-scrollbar{display:none;}
+    .gallery-thumb{width:72px;height:72px;border-radius:var(--radius);overflow:hidden;flex-shrink:0;border:2.5px solid transparent;cursor:pointer;transition:all var(--t-fast);background:var(--bg-alt);}
+    .gallery-thumb img{width:100%;height:100%;object-fit:cover;}
+    .gallery-thumb.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(240,98,146,0.2);}
+    .gallery-thumb:hover:not(.active){border-color:var(--border-dark);}
+    .listing-details{display:flex;flex-direction:column;gap:var(--space-lg);}
+    .listing-meta-top{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-md);}
+    .listing-badges{display:flex;gap:var(--space-xs);flex-wrap:wrap;}
+    .listing-title{font-size:clamp(1.4rem,3vw,2rem);color:var(--ink);margin-top:var(--space-xs);line-height:1.2;}
+    .listing-price-row{display:flex;align-items:baseline;gap:var(--space-sm);}
+    .listing-price{font-family:var(--font-display);font-size:2rem;color:var(--accent);}
+    .listing-price-note{font-size:0.82rem;color:var(--ink-muted);font-weight:600;}
+    .info-chips{display:flex;flex-wrap:wrap;gap:var(--space-sm);}
+    .info-chip{display:flex;align-items:center;gap:var(--space-xs);padding:0.4rem 0.85rem;background:var(--bg-alt);border:1.5px solid var(--border);border-radius:var(--radius-pill);font-size:0.78rem;font-weight:700;color:var(--ink-muted);}
+    .listing-desc-section{padding:var(--space-lg);background:var(--bg-alt);border-radius:var(--radius-lg);border:1.5px solid var(--border);}
+    .listing-desc-label{font-size:0.68rem;font-weight:900;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:var(--space-sm);}
+    .listing-desc-text{font-size:0.92rem;line-height:1.75;color:var(--ink-muted);font-weight:500;white-space:pre-wrap;}
+    .listing-tags{display:flex;flex-wrap:wrap;gap:var(--space-xs);}
+    .listing-tag{padding:0.3rem 0.8rem;background:rgba(240,98,146,0.08);border:1.5px solid rgba(240,98,146,0.2);border-radius:var(--radius-pill);font-size:0.74rem;font-weight:800;color:var(--accent);}
+    .seller-card{background:var(--card);border:2px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-lg);}
+    .seller-card-label{font-size:0.68rem;font-weight:900;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:var(--space-md);}
+    .seller-card-inner{display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-lg);}
+    .seller-card-avatar{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--beaver),var(--accent));color:white;font-size:1.3rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:3px solid var(--card);box-shadow:0 0 0 2.5px var(--accent);}
+    .seller-card-avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;}
+    .seller-card-name{font-size:1rem;font-weight:800;color:var(--ink);}
+    .seller-card-stats{font-size:0.78rem;color:var(--ink-muted);font-weight:600;margin-top:2px;}
+    .seller-card-rating{display:flex;align-items:center;gap:var(--space-xs);font-size:0.78rem;color:var(--ink-muted);margin-top:3px;}
+    .stars{color:#f5a623;letter-spacing:-1px;}
+    .seller-actions{display:flex;flex-direction:column;gap:var(--space-sm);}
+    .owner-panel{background:linear-gradient(135deg,rgba(240,98,146,0.05),rgba(200,122,80,0.05));border:2px solid rgba(240,98,146,0.2);border-radius:var(--radius-lg);padding:var(--space-lg);}
+    .owner-panel-label{font-size:0.68rem;font-weight:900;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-bottom:var(--space-md);display:flex;align-items:center;gap:var(--space-sm);}
+    .owner-panel-label::before{content:'✦';color:var(--accent);}
+    .status-selector{margin-bottom:var(--space-md);}
+    .status-selector-label{font-size:0.78rem;font-weight:800;color:var(--ink-muted);margin-bottom:var(--space-sm);}
+    .status-options{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-xs);}
+    .status-opt{padding:0.6rem 0.8rem;border-radius:var(--radius);border:2px solid var(--border);font-size:0.78rem;font-weight:800;color:var(--ink-muted);background:var(--card);text-align:center;cursor:pointer;transition:all var(--t-fast);}
+    .status-opt:hover{border-color:var(--accent);color:var(--accent);}
+    .status-opt.active{color:white;border-color:transparent;}
+    .status-opt.active.available{background:var(--success);}
+    .status-opt.active.sold{background:var(--ink);}
+    .status-opt.active.rented{background:var(--beaver);}
+    .status-opt.active.archived{background:var(--ink-faint);}
+    .owner-actions{display:flex;flex-direction:column;gap:var(--space-sm);}
+    .view-count-badge{display:flex;align-items:center;gap:var(--space-xs);font-size:0.78rem;font-weight:700;color:var(--ink-faint);}
     /* Skeletons */
-    .skeleton-line { height:14px; border-radius:6px; background:linear-gradient(90deg,var(--bg-alt) 25%,var(--border) 50%,var(--bg-alt) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; margin-bottom:var(--space-sm); }
-    .skeleton-line.medium{width:70%;} .skeleton-line.short{width:40%;} .skeleton-line.tall{height:260px;}
+    .skeleton-line{height:14px;border-radius:6px;background:linear-gradient(90deg,var(--bg-alt) 25%,var(--border) 50%,var(--bg-alt) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;margin-bottom:var(--space-sm);}
+    .skeleton-line.medium{width:70%;}.skeleton-line.short{width:40%;}.skeleton-line.tall{height:260px;}
     @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-
-    /* Incoming offers section anchor */
-    #incoming-offers-container { margin-top: 0; }
-    #make-offer-container { margin-top: 0; }
+    /* Update modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(42,26,14,0.6);z-index:800;opacity:0;pointer-events:none;transition:opacity 0.3s;backdrop-filter:blur(4px);}
+    .modal-backdrop.open{opacity:1;pointer-events:all;}
+    .modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-48%) scale(0.96);width:min(680px,95vw);max-height:90vh;background:var(--card);border-radius:var(--radius-xl);z-index:801;overflow:hidden;box-shadow:0 24px 80px rgba(42,26,14,0.25);transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s;opacity:0;pointer-events:none;display:flex;flex-direction:column;}
+    .modal.open{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:all;}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;padding:var(--space-xl);border-bottom:1.5px solid var(--border);background:linear-gradient(135deg,var(--bg-alt),var(--card));flex-shrink:0;}
+    .modal-header h2{font-size:1.3rem;color:var(--ink);}
+    .modal-close{width:36px;height:36px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;color:var(--ink-muted);border:1.5px solid var(--border);transition:all var(--t-fast);}
+    .modal-close:hover{background:var(--accent);color:white;border-color:var(--accent);}
+    .modal-body{overflow-y:auto;padding:var(--space-xl);flex:1;}
+    .modal-footer{padding:var(--space-lg) var(--space-xl);border-top:1.5px solid var(--border);display:flex;gap:var(--space-sm);justify-content:flex-end;flex-shrink:0;}
+    .form-grid{display:grid;grid-template-columns:1fr;gap:var(--space-lg);}
+    @media(min-width:520px){.form-grid{grid-template-columns:1fr 1fr;}}
+    .form-field{display:flex;flex-direction:column;gap:var(--space-xs);}
+    .form-field.full{grid-column:1/-1;}
+    .form-field label{font-size:0.75rem;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-faint);}
+    .form-field input,.form-field textarea,.form-field select{padding:0.75rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius);font-size:0.9rem;font-family:var(--font-body);font-weight:600;color:var(--ink);background:var(--bg);outline:none;transition:border-color var(--t-base);}
+    .form-field input:focus,.form-field textarea:focus,.form-field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(240,98,146,0.1);}
+    .form-field textarea{resize:vertical;min-height:100px;}
+    .form-field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23b89a86' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 0.8rem center;background-size:16px;padding-right:2.5rem;}
+    .price-field-wrap{position:relative;}
+    .price-field-wrap span{position:absolute;left:0.9rem;top:50%;transform:translateY(-50%);font-weight:800;color:var(--ink-faint);font-size:0.9rem;pointer-events:none;}
+    .price-field-wrap input{padding-left:1.9rem;}
+    .img-upload-zone{border:2px dashed var(--border-dark);border-radius:var(--radius-lg);padding:var(--space-xl);text-align:center;cursor:pointer;transition:all var(--t-base);background:var(--bg);}
+    .img-upload-zone:hover{border-color:var(--accent);background:rgba(240,98,146,0.03);}
+    .img-upload-zone.dragover{border-color:var(--accent);background:rgba(240,98,146,0.07);}
+    .img-upload-zone input{display:none;}
+    .img-upload-icon{font-size:2.5rem;margin-bottom:var(--space-sm);}
+    .img-upload-text{font-size:0.85rem;font-weight:700;color:var(--ink-muted);}
+    .img-upload-text strong{color:var(--accent);}
+    .img-upload-hint{font-size:0.72rem;color:var(--ink-faint);margin-top:4px;}
+    .img-mode-toggle{display:flex;gap:var(--space-xs);margin-bottom:var(--space-md);}
+    .img-mode-btn{flex:1;padding:0.55rem;border-radius:var(--radius);border:2px solid var(--border);font-size:0.78rem;font-weight:800;color:var(--ink-muted);text-align:center;cursor:pointer;transition:all var(--t-fast);}
+    .img-mode-btn.active{background:var(--accent);border-color:var(--accent);color:white;}
+    .img-previews{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:var(--space-sm);margin-top:var(--space-md);}
+    .img-preview-item{position:relative;aspect-ratio:1;border-radius:var(--radius);overflow:hidden;border:2px solid var(--border);}
+    .img-preview-item img{width:100%;height:100%;object-fit:cover;}
+    .img-preview-remove{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(192,57,43,0.9);color:white;font-size:0.65rem;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform var(--t-fast);}
+    .img-preview-remove:hover{transform:scale(1.2);}
+    /* Delete confirm modal */
+    #delete-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;}
+    #delete-modal.open{display:flex;}
+    .delete-modal-inner{background:var(--bg);border-radius:var(--radius-xl);padding:2rem;max-width:400px;width:90%;border:2px solid var(--border);box-shadow:var(--shadow-lg);}
   </style>
 </head>
 <body>
@@ -591,7 +148,6 @@
     <div class="nav-links">
       <a href="../index.html">Home</a>
       <a href="listings.html">Browse</a>
-      <a href="../index.html#how">How it works</a>
       <a href="../offers/offers.html" id="offers-link" style="display:none;">My Offers</a>
       <a href="create-listing.html" id="sell-link" style="display:none;">+ Sell / Rent</a>
     </div>
@@ -608,11 +164,10 @@
   </div>
 </nav>
 
-<div class="mobile-nav" id="mobile-nav" role="dialog" aria-label="Mobile menu">
+<div class="mobile-nav" id="mobile-nav" role="dialog" aria-label="Mobile menu" aria-modal="true">
   <nav class="mobile-nav-links">
     <a href="../index.html">Home</a>
     <a href="listings.html">Browse</a>
-    <a href="../index.html#how">How it works</a>
     <a href="../offers/offers.html" id="mobile-offers-link" style="display:none;">My Offers</a>
     <a href="create-listing.html" id="mobile-sell-link" style="display:none;">+ Sell / Rent</a>
   </nav>
@@ -620,7 +175,7 @@
 </div>
 <div class="mobile-overlay" id="mobile-overlay"></div>
 
-<!-- ── UPDATE LISTING MODAL ── -->
+<!-- ── UPDATE MODAL ── -->
 <div class="modal-backdrop" id="modal-backdrop" onclick="closeModal()"></div>
 <div class="modal" id="update-modal" role="dialog" aria-label="Update Listing" aria-modal="true">
   <div class="modal-header">
@@ -693,13 +248,15 @@
         </div>
         <div class="form-field full">
           <label>Convention Pickup</label>
-          <div class="convention-toggle-wrap" id="conv-toggle" onclick="toggleConvention()">
-            <div class="convention-icon">🎪</div>
-            <div class="convention-text">
-              <strong>Available for convention pickup</strong>
-              <small>Buyers can pick this up at a cosplay convention or event</small>
+          <div id="conv-toggle" onclick="toggleConvention()" style="display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md) var(--space-lg);background:linear-gradient(135deg,rgba(200,122,80,0.08),rgba(240,98,146,0.05));border:2px solid rgba(200,122,80,0.2);border-radius:var(--radius-lg);cursor:pointer;transition:all var(--t-fast);" role="checkbox" aria-checked="false">
+            <div style="font-size:1.6rem;flex-shrink:0;" aria-hidden="true">🎪</div>
+            <div style="flex:1;">
+              <strong style="font-size:0.88rem;color:var(--ink);display:block;">Available for convention pickup</strong>
+              <small style="font-size:0.75rem;color:var(--ink-muted);">Buyers can pick this up at a cosplay convention or event</small>
             </div>
-            <div class="toggle-switch" id="conv-switch"></div>
+            <div id="conv-switch" style="width:44px;height:24px;border-radius:var(--radius-pill);background:var(--border-dark);position:relative;transition:background var(--t-base);flex-shrink:0;" aria-hidden="true">
+              <span style="position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,0.2);transition:transform var(--t-base);display:block;" id="conv-knob"></span>
+            </div>
           </div>
         </div>
         <div class="form-field full">
@@ -712,7 +269,7 @@
             <input type="file" id="u-images" multiple accept="image/*" onchange="handleImageFiles(this.files)">
             <div class="img-upload-icon">📸</div>
             <p class="img-upload-text">Drop images here or <strong>browse</strong></p>
-            <p class="img-upload-hint">JPEG, PNG, WebP — max 10MB per image</p>
+            <p class="img-upload-hint">JPEG, PNG, WebP — max 10MB each</p>
           </div>
           <div class="img-previews" id="img-preview-grid"></div>
         </div>
@@ -729,6 +286,21 @@
   </div>
 </div>
 
+<!-- ── DELETE CONFIRM ── -->
+<div id="delete-modal" role="dialog" aria-modal="true" aria-label="Confirm delete">
+  <div class="delete-modal-inner">
+    <h3 style="margin-bottom:0.75rem;color:var(--error);">Delete Listing?</h3>
+    <p style="color:var(--ink-muted);margin-bottom:1.5rem;">This action cannot be undone. All images and offers will be permanently removed.</p>
+    <div style="display:flex;gap:1rem;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn" style="background:var(--error);color:white;border-color:var(--error);" onclick="executeDelete()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        Delete
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ── MAIN ── -->
 <main class="view-listing-page">
   <div class="container">
@@ -738,6 +310,7 @@
       Back to listings
     </a>
 
+    <!-- Loading skeleton -->
     <div id="loading-state">
       <div class="listing-layout">
         <div>
@@ -753,17 +326,19 @@
           <div class="skeleton-line" style="height:36px;margin:var(--space-sm) 0;width:60%;"></div>
           <div class="skeleton-line short"></div>
           <div class="skeleton-line medium"></div>
+          <div class="skeleton-line short"></div>
         </div>
       </div>
     </div>
 
+    <!-- Listing content -->
     <div id="listing-content" style="display:none;">
       <div class="listing-layout">
 
         <!-- Left: Gallery -->
         <div>
           <div class="gallery-main" id="gallery-main">
-            <div class="gallery-placeholder" id="gallery-placeholder">🌸</div>
+            <div class="gallery-placeholder" id="gallery-placeholder" aria-hidden="true">🌸</div>
             <div class="gallery-nav" id="gallery-nav" style="display:none;">
               <button class="gallery-btn" onclick="changeImg(-1)" aria-label="Previous image">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
@@ -772,14 +347,13 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
               </button>
             </div>
-            <div class="gallery-counter" id="gallery-counter" style="display:none;">1 / 1</div>
+            <div class="gallery-counter" id="gallery-counter" style="display:none;" aria-live="polite">1 / 1</div>
           </div>
-          <div class="gallery-thumbs" id="gallery-thumbs"></div>
+          <div class="gallery-thumbs" id="gallery-thumbs" aria-label="Image thumbnails"></div>
         </div>
 
         <!-- Right: Details -->
         <div class="listing-details">
-
           <div>
             <div class="listing-meta-top">
               <div class="listing-badges" id="listing-badges"></div>
@@ -806,14 +380,14 @@
           <div class="listing-tags" id="listing-tags"></div>
 
           <!-- Seller Card -->
-          <div class="seller-card" id="seller-card">
+          <div class="seller-card" id="seller-card" role="region" aria-label="Seller information">
             <div class="seller-card-label">Seller</div>
             <div class="seller-card-inner">
               <div class="seller-card-avatar" id="seller-avatar">?</div>
               <div>
                 <div class="seller-card-name" id="seller-name">Loading…</div>
                 <div class="seller-card-rating" id="seller-rating">
-                  <span class="stars">no ratings</span>
+                  <span class="stars">☆☆☆☆☆</span>
                   <span>New seller</span>
                 </div>
               </div>
@@ -821,8 +395,8 @@
             <div class="seller-actions" id="seller-actions"></div>
           </div>
 
-          <!-- Owner Panel (only shown if isOwner) -->
-          <div class="owner-panel" id="owner-panel" style="display:none;">
+          <!-- Owner Panel (shown if isOwner) -->
+          <div class="owner-panel" id="owner-panel" style="display:none;" role="region" aria-label="Owner controls">
             <div class="owner-panel-label">Your Listing</div>
             <div class="status-selector">
               <div class="status-selector-label">Listing Status</div>
@@ -835,7 +409,7 @@
             </div>
             <div class="owner-actions">
               <button class="btn btn-primary" onclick="openModal()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 Edit / Update Listing
               </button>
               <button class="btn btn-outline" onclick="confirmDelete()" style="border-color:var(--error);color:var(--error);">
@@ -845,22 +419,23 @@
             </div>
           </div>
 
-          <!-- Incoming Offers Panel (owner only, loaded after render) -->
-          <div id="incoming-offers-container"></div>
+          <!-- Incoming Offers (seller) -->
+          <div id="incoming-offers-container" aria-live="polite"></div>
 
-          <!-- Make Offer Form (buyer only, loaded after render) -->
-          <div id="make-offer-container"></div>
+          <!-- Make Offer (buyer) -->
+          <div id="make-offer-container" aria-live="polite"></div>
 
         </div>
       </div>
     </div>
 
-    <div id="error-state" style="display:none;" class="empty-state">
+    <!-- Error state -->
+    <div id="error-state" style="display:none;" class="empty-state" role="alert">
       <div class="empty-state-icon">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       </div>
       <h3>Listing not found</h3>
-      <p>This listing may have been removed or does not exist.</p>
+      <p id="error-msg">This listing may have been removed or does not exist.</p>
       <a href="listings.html" class="btn btn-primary" style="margin-top:var(--space-md)">Browse Listings</a>
     </div>
 
@@ -872,70 +447,148 @@
 <script src="../js/offers.js"></script>
 <script>
 /* ─── View Listing Logic ─── */
-
-let listing = null;
+let listing       = null;
 let currentImgIdx = 0;
-let images = [];
-let conventionOn = false;
-let imgMode = 'ADD';
-let newFiles = [];
+let images        = [];
+let conventionOn  = false;
+let imgMode       = 'ADD';
+let newFiles      = [];
 let currentStatus = 'AVAILABLE';
 
-const params = new URLSearchParams(window.location.search);
+const params    = new URLSearchParams(window.location.search);
 const listingId = params.get('id');
 
 document.addEventListener('DOMContentLoaded', () => {
-  if (!listingId) { showError(); return; }
+  if (!listingId) { showError('No listing ID specified.'); return; }
 
-  // Show nav links for logged-in users
+  // Show nav links
   if (API.isLoggedIn()) {
-    const offersLink = document.getElementById('offers-link');
-    const mobileOffersLink = document.getElementById('mobile-offers-link');
-    const sellLink = document.getElementById('sell-link');
-    const mobileSellLink = document.getElementById('mobile-sell-link');
-    if (offersLink) offersLink.style.display = '';
-    if (mobileOffersLink) mobileOffersLink.style.display = '';
-    if (sellLink) sellLink.style.display = '';
-    if (mobileSellLink) mobileSellLink.style.display = '';
+    ['offers-link','mobile-offers-link','sell-link','mobile-sell-link'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = '';
+    });
   }
 
   loadListing();
   setupDropZone();
-  injectDeleteModal();
 });
 
-/* ─── Status handlers ─── */
-function attachStatusHandlers() {
-  document.querySelectorAll('.status-opt').forEach(btn => {
-    btn.addEventListener('click', handleStatusClick);
-  });
+/* ─── Load listing ─── */
+async function loadListing() {
+  try {
+    listing = await API.get(`/api/listings/${listingId}`, API.isLoggedIn());
+    if (!listing) { showError('Listing not found.'); return; }
+    renderListing(listing);
+  } catch (err) {
+    const msg = err?.status === 404
+      ? 'This listing does not exist or has been removed.'
+      : (err?.message || 'Could not load listing.');
+    showError(msg);
+  }
 }
 
-async function handleStatusClick(e) {
-  const btn = e.currentTarget;
-  const newStatus = btn.getAttribute('data-status');
-  if (!listingId || !newStatus || newStatus === currentStatus) return;
+function renderListing(l) {
+  document.title = `${l.title || 'Listing'} — Cosnima`;
+  images = l.images || [];
+  if (images.length) renderGallery(images);
 
-  const allBtns = document.querySelectorAll('.status-opt');
-  allBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.6'; });
+  currentStatus = l.status || 'AVAILABLE';
+  listing = l;
+  rebuildBadges();
 
-  try {
-    await API.patch(`/api/listings/${listingId}/status?status=${newStatus}`, null, true);
-    allBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentStatus = newStatus;
-    rebuildBadges();
-    showToast(`Status updated to ${newStatus}`, 'success');
-  } catch (err) {
-    console.error('Status update failed:', err);
-    showToast('Failed to update status. Please try again.', 'error');
-    // Revert selection
-    allBtns.forEach(b => b.classList.remove('active'));
-    const currentBtn = Array.from(allBtns).find(b => b.getAttribute('data-status') === currentStatus);
-    if (currentBtn) currentBtn.classList.add('active');
-  } finally {
-    allBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+  document.getElementById('listing-title').textContent = l.title || 'Untitled';
+  document.getElementById('listing-price').textContent = l.price ? `₱${Number(l.price).toLocaleString('en-PH')}` : '—';
+  document.getElementById('listing-price-note').textContent = l.type === 'RENT' ? '/ event' : '';
+
+  const chips = [];
+  if (l.size)             chips.push(`<div class="info-chip">Size ${l.size}</div>`);
+  if (l.characterName)    chips.push(`<div class="info-chip">${escapeHtml(l.characterName)}</div>`);
+  if (l.seriesName)       chips.push(`<div class="info-chip">${escapeHtml(l.seriesName)}</div>`);
+  if (l.location)         chips.push(`<div class="info-chip">📍 ${escapeHtml(l.location)}</div>`);
+  if (l.conventionPickup) chips.push(`<div class="info-chip">🎪 Convention Pickup</div>`);
+  document.getElementById('info-chips').innerHTML = chips.join('');
+
+  document.getElementById('listing-desc').textContent = l.description || 'No description provided.';
+
+  if (l.tags && l.tags.length) {
+    document.getElementById('listing-tags').innerHTML = l.tags.map(t =>
+      `<span class="listing-tag">#${escapeHtml(t)}</span>`).join('');
   }
+
+  document.getElementById('view-count-badge').innerHTML = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    <span>${l.viewCount || 0} view${l.viewCount !== 1 ? 's' : ''}</span>`;
+
+  // Seller info
+  const sellerName  = l.sellerUsername || 'Unknown';
+  const initial     = sellerName.charAt(0).toUpperCase();
+  const sellerId    = l.sellerId || l.seller?.id;
+  const isOwner     = !!l.isOwner;
+
+  document.getElementById('seller-name').textContent   = sellerName;
+  document.getElementById('seller-avatar').textContent = initial;
+
+  if (sellerId) {
+    const sellerCard = document.getElementById('seller-card');
+    sellerCard.style.cursor = 'pointer';
+    sellerCard.setAttribute('role', 'button');
+    sellerCard.setAttribute('tabindex', '0');
+    sellerCard.addEventListener('click', (e) => {
+      if (e.target.closest('button') || e.target.closest('a')) return;
+      window.location.href = isOwner
+        ? '../profile/profile.html'
+        : `../profile/public-profile.html?id=${sellerId}`;
+    });
+
+    // Load avatar
+    API.get(`/api/listings/${listingId}/user-profile`, true)
+      .then(avatarUrl => {
+        if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.trim()) {
+          document.getElementById('seller-avatar').innerHTML =
+            `<img src="${avatarUrl.trim()}" alt="${escapeHtml(sellerName)}">`;
+        }
+      }).catch(() => {});
+
+    // Load seller details
+    API.get(`/api/listings/${listingId}/user-details`, true)
+      .then(details => {
+        if (!details) return;
+        const avg = details.averageRating != null ? Number(details.averageRating) : null;
+        const ratingEl = document.getElementById('seller-rating');
+        if (avg !== null && ratingEl) {
+          const full = Math.round(avg);
+          ratingEl.innerHTML = `<span class="stars">${'★'.repeat(full)}${'☆'.repeat(5-full)}</span><span>${avg.toFixed(1)}</span>`;
+        }
+      }).catch(() => {});
+  }
+
+  if (isOwner) {
+    document.getElementById('owner-panel').style.display = 'block';
+    document.getElementById('seller-actions').innerHTML = '';
+
+    document.querySelectorAll('.status-opt').forEach(o => {
+      o.classList.toggle('active', o.getAttribute('data-status') === currentStatus);
+    });
+
+    prefillUpdateForm(l);
+    attachStatusHandlers();
+    renderIncomingOffers(listingId, document.getElementById('incoming-offers-container'));
+  } else {
+    document.getElementById('seller-actions').innerHTML = `
+      <a href="message-seller.html?listing=${l.id}&seller=${l.sellerId || ''}" class="btn btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Message Seller
+      </a>
+      <button class="btn btn-outline" id="wish-btn" onclick="toggleWish('${escapeHtml(String(l.id))}')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+        Save to Wishlist
+      </button>`;
+
+    renderMakeOfferForm(listingId, l.price, document.getElementById('make-offer-container'), false);
+  }
+
+  document.getElementById('loading-state').style.display = 'none';
+  document.getElementById('listing-content').style.display = 'block';
 }
 
 function rebuildBadges() {
@@ -947,234 +600,99 @@ function rebuildBadges() {
   const condBadge = listing.condition
     ? `<span class="badge" style="background:var(--bg-alt);color:var(--ink);border:1.5px solid var(--border);">${condLabels[listing.condition] || listing.condition}</span>`
     : '';
-  const statusColors = { AVAILABLE: 'var(--success)', SOLD: 'var(--ink)', RENTED: 'var(--beaver)', ARCHIVED: 'var(--ink-faint)' };
-  const statusBadge = `<span class="badge" style="background:${statusColors[currentStatus] || 'var(--ink)'};color:white;">${currentStatus}</span>`;
+  const statusColors = { AVAILABLE:'var(--success)', SOLD:'var(--ink)', RENTED:'var(--beaver)', ARCHIVED:'var(--ink-faint)' };
+  const statusBadge = `<span class="badge" style="background:${statusColors[currentStatus]||'var(--ink)'};color:white;">${currentStatus.charAt(0)+currentStatus.slice(1).toLowerCase()}</span>`;
   const convBadge = listing.conventionPickup
-    ? `<span class="badge" style="background:var(--beaver);color:white;">Conv. Pickup</span>`
-    : '';
+    ? `<span class="badge" style="background:var(--beaver);color:white;">🎪 Conv. Pickup</span>` : '';
   document.getElementById('listing-badges').innerHTML = typeBadge + condBadge + statusBadge + convBadge;
-}
-
-/* ─── Delete modal ─── */
-function injectDeleteModal() {
-  if (document.getElementById('delete-modal')) return;
-  document.body.insertAdjacentHTML('beforeend', `
-    <div id="delete-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;">
-      <div style="background:var(--bg);border-radius:var(--radius-xl);padding:2rem;max-width:400px;width:90%;border:2px solid var(--border);box-shadow:var(--shadow-lg);">
-        <h3 style="margin-bottom:0.75rem;color:var(--error);">Delete Listing</h3>
-        <p style="color:var(--ink-muted);margin-bottom:1.5rem;">Are you sure you want to delete this listing? This action cannot be undone.</p>
-        <div style="display:flex;gap:1rem;justify-content:flex-end;">
-          <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
-          <button class="btn" style="background:var(--error);color:white;border-color:var(--error);" onclick="executeDelete()">Delete</button>
-        </div>
-      </div>
-    </div>`);
-}
-
-function openDeleteModal() { document.getElementById('delete-modal').style.display = 'flex'; }
-function closeDeleteModal() { document.getElementById('delete-modal').style.display = 'none'; }
-
-async function executeDelete() {
-  if (!listingId) return;
-  closeDeleteModal();
-  try {
-    await API.delete(`/api/listings/${listingId}`, true);
-    showToast('Listing deleted successfully.', 'success');
-    setTimeout(() => { window.location.href = '../profile/profile.html'; }, 1500);
-  } catch (err) {
-    showToast('Failed to delete listing.', 'error');
-  }
-}
-
-/* ─── Load & render listing ─── */
-async function loadListing() {
-  try {
-    const auth = API.isLoggedIn();
-    listing = await API.get(`/api/listings/${listingId}`, auth);
-    renderListing(listing);
-  } catch (err) {
-    showError();
-  }
-}
-
-function renderListing(l) {
-  document.title = `${l.title || 'Listing'} — Cosnima`;
-  images = l.images || [];
-  if (images.length) renderGallery(images);
-
-  // Badges
-  currentStatus = l.status || 'AVAILABLE';
-  listing = l; // ensure global is set before rebuildBadges
-  rebuildBadges();
-
-  document.getElementById('listing-title').textContent = l.title || 'Untitled';
-  document.getElementById('listing-price').textContent = l.price ? `₱${Number(l.price).toLocaleString('en-PH')}` : '—';
-  document.getElementById('listing-price-note').textContent = l.type === 'RENT' ? '/ event' : '';
-
-  const chips = [];
-  if (l.size) chips.push(`<div class="info-chip">Size ${l.size}</div>`);
-  if (l.characterName) chips.push(`<div class="info-chip">${escapeHtml(l.characterName)}</div>`);
-  if (l.seriesName) chips.push(`<div class="info-chip">${escapeHtml(l.seriesName)}</div>`);
-  if (l.location) chips.push(`<div class="info-chip">${escapeHtml(l.location)}</div>`);
-  if (l.conventionPickup) chips.push(`<div class="info-chip">🎪 Convention Pickup</div>`);
-  document.getElementById('info-chips').innerHTML = chips.join('');
-
-  document.getElementById('listing-desc').textContent = l.description || 'No description provided.';
-
-  if (l.tags && l.tags.length) {
-    document.getElementById('listing-tags').innerHTML = l.tags.map(t => `<span class="listing-tag">#${escapeHtml(t)}</span>`).join('');
-  }
-
-  document.getElementById('view-count-badge').innerHTML = `
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-    <span>${l.viewCount || 0} view${l.viewCount !== 1 ? 's' : ''}</span>`;
-
-  // Seller card
-  const sellerName = l.sellerUsername || 'Unknown';
-  const initial = sellerName.charAt(0).toUpperCase();
-  const sellerAvatarDiv = document.getElementById('seller-avatar');
-  const sellerNameEl = document.getElementById('seller-name');
-  const sellerRatingEl = document.getElementById('seller-rating');
-  const sellerCard = document.getElementById('seller-card');
-
-  sellerNameEl.textContent = sellerName;
-  sellerAvatarDiv.textContent = initial;
-  sellerRatingEl.innerHTML = `<span class="stars">No ratings</span><span>New seller</span>`;
-
-  const sellerId = l.sellerId || l.seller?.id;
-  const isOwner = !!l.isOwner;
-
-  if (sellerId) {
-    sellerCard.style.cursor = 'pointer';
-    sellerCard.addEventListener('click', (e) => {
-      if (e.target.closest('button') || e.target.closest('a')) return;
-      if (isOwner) window.location.href = '../profile/profile.html';
-      else window.location.href = `../profile/public-profile.html?id=${sellerId}`;
-    });
-
-    // Load avatar
-    API.get(`/api/listings/${listingId}/user-profile`, true)
-      .then(avatarUrl => {
-        if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.trim()) {
-          sellerAvatarDiv.innerHTML = `<img src="${avatarUrl.trim()}" alt="${sellerName}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
-        }
-      }).catch(() => {});
-
-    // Load seller details
-    API.get(`/api/listings/${listingId}/user-details`, true)
-      .then(details => {
-        if (!details) return;
-        const avgRating = details.averageRating != null ? Number(details.averageRating) : null;
-        if (avgRating !== null) {
-          const fullStars = Math.round(avgRating);
-          sellerRatingEl.innerHTML = `<span class="stars">${'★'.repeat(fullStars)}${'☆'.repeat(5 - fullStars)}</span><span>${avgRating.toFixed(1)}</span>`;
-        }
-        if (details.dateJoined) {
-          const year = new Date(details.dateJoined).getFullYear();
-          const memberEl = document.createElement('p');
-          memberEl.className = 'seller-card-stats';
-          memberEl.textContent = `Member since ${year}`;
-          const existingStats = sellerCard.querySelector('.seller-card-stats');
-          if (existingStats) existingStats.remove();
-          sellerCard.querySelector('.seller-card-inner')?.insertAdjacentElement('afterend', memberEl);
-        }
-      }).catch(() => {});
-  }
-
-  if (isOwner) {
-    // Show owner panel
-    document.getElementById('owner-panel').style.display = 'block';
-    document.getElementById('seller-actions').innerHTML = '';
-
-    // Set status buttons
-    document.querySelectorAll('.status-opt').forEach(o => {
-      o.classList.toggle('active', o.getAttribute('data-status') === currentStatus);
-    });
-
-    prefillUpdateForm(l);
-    attachStatusHandlers();
-
-    // Load incoming offers panel (sellers see offers on their listing)
-    const incomingContainer = document.getElementById('incoming-offers-container');
-    renderIncomingOffers(listingId, incomingContainer);
-
-  } else {
-    // Show buyer actions
-    document.getElementById('seller-actions').innerHTML = `
-      <a href="message-seller.html?listing=${l.id}&seller=${l.sellerId || ''}" class="btn btn-primary">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-        Message Seller
-      </a>
-      <button class="btn btn-outline" onclick="toggleWish('${escapeHtml(String(l.id))}')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-        Save to Wishlist
-      </button>`;
-
-    // Load make-offer form (buyers can make an offer)
-    const makeOfferContainer = document.getElementById('make-offer-container');
-    renderMakeOfferForm(listingId, l.price, makeOfferContainer, false);
-  }
-
-  document.getElementById('loading-state').style.display = 'none';
-  document.getElementById('listing-content').style.display = 'block';
 }
 
 /* ─── Gallery ─── */
 function renderGallery(imgs) {
   currentImgIdx = 0;
-  const main = document.getElementById('gallery-main');
+  const main        = document.getElementById('gallery-main');
   const placeholder = document.getElementById('gallery-placeholder');
-  const nav = document.getElementById('gallery-nav');
-  const counter = document.getElementById('gallery-counter');
-  const thumbs = document.getElementById('gallery-thumbs');
+  const nav         = document.getElementById('gallery-nav');
+  const counter     = document.getElementById('gallery-counter');
+  const thumbs      = document.getElementById('gallery-thumbs');
 
-  const mainImg = document.createElement('img');
-  mainImg.src = imgs[0].imageUrl || imgs[0];
-  mainImg.alt = 'Listing image';
   placeholder.style.display = 'none';
+  const mainImg = document.createElement('img');
+  mainImg.src   = imgs[0]?.imageUrl || imgs[0] || '';
+  mainImg.alt   = 'Listing image 1';
+  mainImg.onerror = () => { placeholder.style.display = 'flex'; mainImg.remove(); };
   main.insertBefore(mainImg, nav);
   window._mainImg = mainImg;
 
   if (imgs.length > 1) {
-    nav.style.display = 'flex';
+    nav.style.display     = 'flex';
     counter.style.display = 'block';
-    counter.textContent = `1 / ${imgs.length}`;
+    counter.textContent   = `1 / ${imgs.length}`;
   }
 
   thumbs.innerHTML = imgs.map((img, i) => {
-    const url = img.imageUrl || img;
-    return `<div class="gallery-thumb ${i===0?'active':''}" onclick="goToImg(${i})">
-      <img src="${url}" alt="Thumb ${i+1}" loading="lazy">
+    const url = img?.imageUrl || img;
+    return `<div class="gallery-thumb ${i===0?'active':''}" onclick="goToImg(${i})" role="button" aria-label="Image ${i+1}" tabindex="0">
+      <img src="${escapeHtml(url)}" alt="Thumbnail ${i+1}" loading="lazy">
     </div>`;
   }).join('');
 }
 
 function changeImg(dir) {
-  const len = images.length;
-  if (!len) return;
-  currentImgIdx = (currentImgIdx + dir + len) % len;
+  if (!images.length) return;
+  currentImgIdx = (currentImgIdx + dir + images.length) % images.length;
   goToImg(currentImgIdx);
 }
 
 function goToImg(idx) {
   currentImgIdx = idx;
-  const url = images[idx].imageUrl || images[idx];
-  if (window._mainImg) window._mainImg.src = url;
+  const url = images[idx]?.imageUrl || images[idx];
+  if (window._mainImg) { window._mainImg.style.opacity = '0'; window._mainImg.src = url; window._mainImg.onload = () => { window._mainImg.style.opacity = '1'; }; }
   document.getElementById('gallery-counter').textContent = `${idx+1} / ${images.length}`;
   document.querySelectorAll('.gallery-thumb').forEach((t, i) => t.classList.toggle('active', i === idx));
 }
 
+/* ─── Status updates ─── */
+function attachStatusHandlers() {
+  document.querySelectorAll('.status-opt').forEach(btn => {
+    btn.addEventListener('click', handleStatusClick);
+  });
+}
+
+async function handleStatusClick(e) {
+  const btn       = e.currentTarget;
+  const newStatus = btn.getAttribute('data-status');
+  if (!newStatus || newStatus === currentStatus) return;
+
+  const allBtns = document.querySelectorAll('.status-opt');
+  allBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
+
+  try {
+    await API.patch(`/api/listings/${listingId}/status?status=${newStatus}`, null, true);
+    currentStatus = newStatus;
+    allBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    rebuildBadges();
+    showToast(`Status → ${newStatus.charAt(0)+newStatus.slice(1).toLowerCase()}`, 'success');
+  } catch (err) {
+    showToast('Could not update status.', 'error');
+  } finally {
+    allBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+  }
+}
+
 /* ─── Update modal ─── */
 function prefillUpdateForm(l) {
-  if (l.title) document.getElementById('u-title').value = l.title;
-  if (l.description) document.getElementById('u-description').value = l.description;
-  if (l.price) document.getElementById('u-price').value = l.price;
-  if (l.type) document.getElementById('u-type').value = l.type;
-  if (l.condition) document.getElementById('u-condition').value = l.condition;
-  if (l.size) document.getElementById('u-size').value = l.size;
-  if (l.characterName) document.getElementById('u-character').value = l.characterName;
-  if (l.seriesName) document.getElementById('u-series').value = l.seriesName;
-  if (l.location) document.getElementById('u-location').value = l.location;
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
+  set('u-title', l.title);
+  set('u-description', l.description);
+  set('u-price', l.price);
+  set('u-type', l.type);
+  set('u-condition', l.condition || '');
+  set('u-size', l.size || '');
+  set('u-character', l.characterName);
+  set('u-series', l.seriesName);
+  set('u-location', l.location);
   conventionOn = !!l.conventionPickup;
   updateConvToggle();
 }
@@ -1191,8 +709,29 @@ function closeModal() {
   document.body.style.overflow = '';
 }
 
-function toggleConvention() { conventionOn = !conventionOn; updateConvToggle(); }
-function updateConvToggle() { document.getElementById('conv-toggle').classList.toggle('on', conventionOn); }
+function toggleConvention() {
+  conventionOn = !conventionOn;
+  updateConvToggle();
+  document.getElementById('conv-toggle').setAttribute('aria-checked', conventionOn);
+}
+
+function updateConvToggle() {
+  const toggle = document.getElementById('conv-toggle');
+  const knob   = document.getElementById('conv-knob');
+  const sw     = document.getElementById('conv-switch');
+  if (!toggle) return;
+  if (conventionOn) {
+    toggle.style.borderColor   = 'var(--beaver)';
+    toggle.style.background    = 'rgba(200,122,80,0.12)';
+    if (sw)   sw.style.background = 'var(--beaver)';
+    if (knob) knob.style.transform = 'translateX(20px)';
+  } else {
+    toggle.style.borderColor   = 'rgba(200,122,80,0.2)';
+    toggle.style.background    = 'linear-gradient(135deg,rgba(200,122,80,0.08),rgba(240,98,146,0.05))';
+    if (sw)   sw.style.background = 'var(--border-dark)';
+    if (knob) knob.style.transform = 'translateX(0)';
+  }
+}
 
 function setImgMode(el, mode) {
   imgMode = mode;
@@ -1200,23 +739,19 @@ function setImgMode(el, mode) {
 }
 
 function handleImageFiles(files) {
-  newFiles = [...newFiles, ...Array.from(files)];
+  newFiles = [...newFiles, ...Array.from(files).filter(f => f.type.startsWith('image/'))];
   renderImgPreviews();
 }
 
 function renderImgPreviews() {
-  const grid = document.getElementById('img-preview-grid');
-  grid.innerHTML = newFiles.map((f, i) => `
+  document.getElementById('img-preview-grid').innerHTML = newFiles.map((f, i) => `
     <div class="img-preview-item">
       <img src="${URL.createObjectURL(f)}" alt="Preview ${i+1}">
-      <button class="img-preview-remove" onclick="removeFile(${i})" type="button">✕</button>
+      <button class="img-preview-remove" onclick="removeFile(${i})" type="button" aria-label="Remove image ${i+1}">✕</button>
     </div>`).join('');
 }
 
-function removeFile(idx) {
-  newFiles.splice(idx, 1);
-  renderImgPreviews();
-}
+function removeFile(idx) { newFiles.splice(idx, 1); renderImgPreviews(); }
 
 function setupDropZone() {
   const zone = document.getElementById('img-drop-zone');
@@ -1231,70 +766,85 @@ function setupDropZone() {
 }
 
 async function submitUpdate() {
-  const btn = document.getElementById('update-submit-btn');
+  const btn     = document.getElementById('update-submit-btn');
   const btnText = btn.querySelector('.btn-text');
-  const btnLoader = btn.querySelector('.btn-loader');
-  btn.disabled = true;
-  btnText.style.display = 'none';
-  btnLoader.style.display = 'flex';
+  const loader  = btn.querySelector('.btn-loader');
+  btn.disabled  = true;
+  if (btnText) btnText.style.display = 'none';
+  if (loader)  loader.style.display  = 'flex';
 
   try {
+    const get = id => document.getElementById(id)?.value?.trim() || null;
     const formData = new FormData();
-    const value = {
-      title: document.getElementById('u-title').value || null,
-      description: document.getElementById('u-description').value || null,
-      price: document.getElementById('u-price').value || null,
-      type: document.getElementById('u-type').value || null,
-      condition: document.getElementById('u-condition').value || null,
-      size: document.getElementById('u-size').value || null,
-      characterName: document.getElementById('u-character').value || null,
-      seriesName: document.getElementById('u-series').value || null,
-      location: document.getElementById('u-location').value || null,
-      conventionPickup: conventionOn,
-      imageMode: imgMode,
-    };
-    formData.append('value', new Blob([JSON.stringify(value)], { type: 'application/json' }));
+    formData.append('value', new Blob([JSON.stringify({
+      title:             get('u-title'),
+      description:       get('u-description'),
+      price:             get('u-price'),
+      type:              get('u-type'),
+      condition:         get('u-condition'),
+      size:              get('u-size'),
+      characterName:     get('u-character'),
+      seriesName:        get('u-series'),
+      location:          get('u-location'),
+      conventionPickup:  conventionOn,
+      imageMode:         imgMode,
+    })], { type: 'application/json' }));
     newFiles.forEach(f => formData.append('files', f));
 
     await API.patchForm(`/api/listings/update/${listingId}`, formData);
-    showToast('Listing updated successfully!', 'success');
+    showToast('Listing updated! ✨', 'success');
     closeModal();
     newFiles = [];
     await loadListing();
   } catch (err) {
-    showToast(err?.message || 'Update failed. Please try again.', 'error');
+    showToast(err?.data?.message || err?.message || 'Update failed. Try again.', 'error');
   } finally {
     btn.disabled = false;
-    btnText.style.display = 'inline';
-    btnLoader.style.display = 'none';
+    if (btnText) btnText.style.display = 'inline';
+    if (loader)  loader.style.display  = 'none';
   }
 }
 
-/* ─── Misc ─── */
-function confirmDelete() { openDeleteModal(); }
+/* ─── Delete ─── */
+function confirmDelete() { document.getElementById('delete-modal').classList.add('open'); }
+function closeDeleteModal() { document.getElementById('delete-modal').classList.remove('open'); }
 
+async function executeDelete() {
+  closeDeleteModal();
+  try {
+    await API.delete(`/api/listings/${listingId}`, true);
+    showToast('Listing deleted.', 'success');
+    setTimeout(() => { window.location.href = '../profile/profile.html'; }, 1200);
+  } catch (err) {
+    showToast('Could not delete. Try again.', 'error');
+  }
+}
+
+/* ─── Wishlist ─── */
 function toggleWish(id) {
   if (!API.isLoggedIn()) { showToast('Log in to save to wishlist', 'info'); return; }
-  showToast('Added to wishlist', 'success', 2000);
+  try {
+    const list = JSON.parse(localStorage.getItem('cosnimaWishlist') || '[]');
+    const idx  = list.indexOf(String(id));
+    if (idx > -1) { list.splice(idx, 1); showToast('Removed from wishlist', 'info', 2000); }
+    else { list.push(String(id)); showToast('❤️ Added to wishlist', 'success', 2000); }
+    localStorage.setItem('cosnimaWishlist', JSON.stringify(list));
+  } catch { showToast('Could not update wishlist.', 'error'); }
 }
 
-function showError() {
-  document.getElementById('loading-state').style.display = 'none';
-  document.getElementById('error-state').style.display = 'flex';
+/* ─── Error state ─── */
+function showError(msg) {
+  document.getElementById('loading-state').style.display  = 'none';
+  document.getElementById('listing-content').style.display = 'none';
+  const errState = document.getElementById('error-state');
+  const errMsg   = document.getElementById('error-msg');
+  if (errMsg) errMsg.textContent = msg || 'This listing may have been removed.';
+  errState.style.display = 'flex';
 }
 
+/* ─── Helpers ─── */
 function escapeHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function showToast(msg, type = 'info', duration = 3500) {
-  const container = document.getElementById('toast-container');
-  if (!container) return;
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.innerHTML = `<span>${msg}</span>`;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), duration);
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 </body>

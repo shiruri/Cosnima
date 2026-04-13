@@ -450,7 +450,7 @@ function attachCardEvents() {
     const sellerId = card?.getAttribute('data-seller-id');
 
     if (currentUser && String(currentUser.id) === String(sellerId)) {
-      showToast("You can't wishlist your own listing 😅", "info");
+      showToast("You can't wishlist your own listing", "info");
       return;
     }
 

@@ -1,41 +1,39 @@
 /* ============================================
-   COSNIMA — Offers Module  (fixed)
-   Endpoints match OffersController:
-     GET  /api/offers/listing/{id}    → getOffers (seller sees listing's offers)
-     GET  /api/offers/mine            → getUserOffers (buyer sees own offers)
-     POST /api/offers/{id}/accept     → acceptOffer
-     POST /api/offers/{id}/reject     → rejectOffer
-     POST /api/offers/{id}/cancel     → cancelOffer   ← was wrongly /{id}/accept
-     POST /api/offers/listing/{id}    → makeOffer
+   COSNIMA — Offers Module
+   Endpoints:
+     GET  /api/offers/listing/{id}         → seller sees listing's offers
+     GET  /api/offers/mine                 → buyer sees ALL own offers
+     GET  /api/offers/me?status=X          → buyer sees filtered offers
+     POST /api/offers/{id}/accept          → seller accepts
+     POST /api/offers/{id}/reject          → seller rejects
+     POST /api/offers/{id}/cancel          → buyer cancels
+     POST /api/offers/listing/{id}         → buyer makes offer
    ============================================ */
 
-/* ──────────────────────────────────────────
-   SHARED UTILITIES
-   ────────────────────────────────────────── */
-
+/* ── Shared Utilities ── */
 function formatPrice(p) {
-  if (p == null) return '—';
+  if (p == null || p === '') return '—';
   return '₱' + Number(p).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
 function formatRelativeTime(dateStr) {
   if (!dateStr) return '';
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now - date;
-  const diffMin = Math.floor(diffMs / 60000);
-  const diffHr  = Math.floor(diffMs / 3600000);
-  const diffDay = Math.floor(diffMs / 86400000);
-
-  if (diffMin < 1)  return 'just now';
-  if (diffMin < 60) return `${diffMin}m ago`;
-  if (diffHr  < 24) return `${diffHr}h ago`;
-  if (diffDay < 7)  return `${diffDay}d ago`;
-
-  return date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date)) return '';
+    const diffMs  = Date.now() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    const diffHr  = Math.floor(diffMs / 3600000);
+    const diffDay = Math.floor(diffMs / 86400000);
+    if (diffMin < 1)  return 'just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffHr  < 24) return `${diffHr}h ago`;
+    if (diffDay < 7)  return `${diffDay}d ago`;
+    return date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+  } catch { return ''; }
 }
 
-function escapeHtml(str) {
+function escHtml(str) {
   return String(str || '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;')
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -48,26 +46,19 @@ function offerStatusChip(status) {
     REJECTED:  { cls: 'chip-rejected',  label: 'Declined' },
     CANCELLED: { cls: 'chip-cancelled', label: 'Cancelled' },
   };
-  const s = map[status] || { cls: 'chip-pending', label: status };
+  const s = map[status] || { cls: 'chip-pending', label: status || 'Unknown' };
   return `<span class="offer-status-chip ${s.cls}">${s.label}</span>`;
 }
 
-
 /* ──────────────────────────────────────────
-   MAKE OFFER — BUYER (view-listing page)
-   renderMakeOfferForm(listingId, listedPrice, container, isOwner)
+   MAKE OFFER FORM — Buyer view (view-listing)
    ────────────────────────────────────────── */
-
 async function renderMakeOfferForm(listingId, listedPrice, container, isOwner = false) {
   if (!container) return;
+  container.innerHTML = '';
 
-  // Owners cannot offer on their own listing
-  if (isOwner) {
-    container.innerHTML = '';
-    return;
-  }
+  if (isOwner) return;
 
-  // Not logged in
   if (!API.isLoggedIn()) {
     container.innerHTML = `
       <div class="offer-login-prompt">
@@ -76,22 +67,31 @@ async function renderMakeOfferForm(listingId, listedPrice, container, isOwner = 
         </svg>
         <p>
           <a href="../login/login.html">Sign in</a> to make an offer on this listing.
-          Don't have an account? <a href="../signup/register.html">Create one free</a>.
+          New here? <a href="../signup/register.html">Create a free account</a>.
         </p>
       </div>`;
     return;
   }
 
-  // Check if user already has a PENDING offer on this listing
+  container.innerHTML = `<div style="padding:var(--space-lg);text-align:center;color:var(--ink-faint);font-size:0.85rem;">Checking offers…</div>`;
+
+  // Check for existing PENDING offer — try /me?status=PENDING first, fall back to /mine
   let alreadyOffered = false;
   try {
-    const myOffers = await API.get('/api/offers/mine', true);
-    if (Array.isArray(myOffers)) {
-      alreadyOffered = myOffers.some(o =>
-        String(o.listingId) === String(listingId) && o.status === 'PENDING'
-      );
+    const myPending = await API.get('/api/offers/me?status=PENDING', true);
+    if (Array.isArray(myPending)) {
+      alreadyOffered = myPending.some(o => String(o.listingId) === String(listingId));
     }
-  } catch { /* proceed normally */ }
+  } catch {
+    try {
+      const myOffers = await API.get('/api/offers/mine', true);
+      if (Array.isArray(myOffers)) {
+        alreadyOffered = myOffers.some(o =>
+          String(o.listingId) === String(listingId) && o.status === 'PENDING'
+        );
+      }
+    } catch { /* proceed anyway */ }
+  }
 
   if (alreadyOffered) {
     container.innerHTML = `
@@ -100,7 +100,7 @@ async function renderMakeOfferForm(listingId, listedPrice, container, isOwner = 
           <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
         </svg>
         You already have a pending offer on this listing.
-        <a href="../offers/offers.html" style="color:var(--accent);font-weight:800;text-decoration:underline;text-underline-offset:2px;margin-left:4px;">View it</a>
+        <a href="../offers/offers.html" style="color:var(--accent);font-weight:800;text-decoration:underline;text-underline-offset:2px;margin-left:4px;">View my offers →</a>
       </div>`;
     return;
   }
@@ -114,14 +114,9 @@ async function renderMakeOfferForm(listingId, listedPrice, container, isOwner = 
         <label for="offer-price">Your Offer Price</label>
         <div class="price-input-wrap">
           <span class="currency-prefix">₱</span>
-          <input
-            type="number"
-            id="offer-price"
+          <input type="number" id="offer-price"
             placeholder="${listedPrice ? Number(listedPrice).toFixed(0) : '0'}"
-            min="1"
-            step="1"
-            autocomplete="off"
-          >
+            min="1" step="1" autocomplete="off" inputmode="numeric">
         </div>
         ${listedPrice ? `
           <div class="listed-price-ref">
@@ -130,17 +125,14 @@ async function renderMakeOfferForm(listingId, listedPrice, container, isOwner = 
             </svg>
             Listed at ${formatPrice(listedPrice)}
           </div>` : ''}
-        <span class="offer-field-error" id="offer-price-error">Please enter a valid price greater than 0.</span>
+        <span class="offer-field-error" id="offer-price-error">Please enter a valid price greater than ₱0.</span>
       </div>
 
       <div class="offer-field">
         <label for="offer-message">Message <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
-        <textarea
-          id="offer-message"
-          rows="3"
-          placeholder="Any details you'd like to share with the seller..."
-          maxlength="500"
-        ></textarea>
+        <textarea id="offer-message" rows="3"
+          placeholder="Any details you'd like to share with the seller…"
+          maxlength="500"></textarea>
         <div class="offer-field-hint">Max 500 characters</div>
       </div>
 
@@ -165,63 +157,71 @@ async function submitOffer(listingId, container) {
   const statusEl   = document.getElementById('offer-form-status');
   const btn        = document.getElementById('offer-submit-btn');
 
-  // Validate
-  priceField.classList.remove('has-error');
-  statusEl.style.display = 'none';
-  const price = parseFloat(priceInput.value);
-  if (!priceInput.value || isNaN(price) || price <= 0) {
-    priceField.classList.add('has-error');
-    priceInput.focus();
+  priceField?.classList.remove('has-error');
+  if (statusEl) statusEl.style.display = 'none';
+
+  const price = parseFloat(priceInput?.value);
+  if (!priceInput?.value || isNaN(price) || price <= 0) {
+    priceField?.classList.add('has-error');
+    priceInput?.focus();
     return;
   }
 
-  // Loading state
-  const btnText   = btn.querySelector('.btn-text');
-  const btnLoader = btn.querySelector('.btn-loader');
-  btn.disabled = true;
-  btnText.style.display   = 'none';
-  btnLoader.style.display = 'inline-block';
+  const btnText   = btn?.querySelector('.btn-text');
+  const btnLoader = btn?.querySelector('.btn-loader');
+  if (btn) btn.disabled = true;
+  if (btnText)   btnText.style.display   = 'none';
+  if (btnLoader) btnLoader.style.display = 'inline-block';
 
   try {
-    // POST /api/offers/listing/{listingId}
-    // Body: { offeredPrice: number, message: string|null }
     await API.post(`/api/offers/listing/${listingId}`, {
       offeredPrice: price,
-      message: msgInput.value.trim() || null,
+      message: msgInput?.value?.trim() || null,
     }, true);
 
-    // Success — replace form with confirmation
     container.innerHTML = `
       <div class="offer-already-made">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
         </svg>
         Offer of ${formatPrice(price)} sent! The seller will review it.
-        <a href="../offers/offers.html" style="color:var(--accent);font-weight:800;text-decoration:underline;text-underline-offset:2px;margin-left:4px;">View my offers</a>
+        <a href="../offers/offers.html" style="color:var(--accent);font-weight:800;text-decoration:underline;text-underline-offset:2px;margin-left:4px;">View my offers →</a>
       </div>`;
 
-    if (typeof showToast === 'function') showToast('Offer sent successfully!', 'success');
+    if (typeof showToast === 'function') showToast('Offer sent successfully! 🎉', 'success');
 
   } catch (err) {
-    btn.disabled = false;
-    btnText.style.display   = 'inline';
-    btnLoader.style.display = 'none';
+    if (btn) btn.disabled = false;
+    if (btnText)   btnText.style.display   = 'inline';
+    if (btnLoader) btnLoader.style.display = 'none';
 
     const msg = err?.data?.message || err?.message || 'Failed to send offer. Please try again.';
-    statusEl.textContent         = msg;
-    statusEl.style.display       = 'block';
-    statusEl.style.background    = 'rgba(192,57,43,0.08)';
-    statusEl.style.border        = '1.5px solid rgba(192,57,43,0.2)';
-    statusEl.style.color         = 'var(--error)';
+
+    if (err?.status === 409 || msg.toLowerCase().includes('already')) {
+      container.innerHTML = `
+        <div class="offer-already-made">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+          You already have a pending offer on this listing.
+          <a href="../offers/offers.html" style="color:var(--accent);font-weight:800;text-decoration:underline;margin-left:4px;">View it →</a>
+        </div>`;
+      return;
+    }
+
+    if (statusEl) {
+      statusEl.textContent      = msg;
+      statusEl.style.display    = 'block';
+      statusEl.style.background = 'rgba(192,57,43,0.08)';
+      statusEl.style.border     = '1.5px solid rgba(192,57,43,0.2)';
+      statusEl.style.color      = 'var(--error)';
+    }
   }
 }
 
-
 /* ──────────────────────────────────────────
-   INCOMING OFFERS — SELLER (view-listing page)
-   renderIncomingOffers(listingId, container)
+   INCOMING OFFERS — Seller view (view-listing)
    ────────────────────────────────────────── */
-
 async function renderIncomingOffers(listingId, container) {
   if (!container || !API.isLoggedIn()) return;
 
@@ -231,13 +231,10 @@ async function renderIncomingOffers(listingId, container) {
         <h3 class="offers-panel-title">Incoming Offers</h3>
         <span class="offers-count-badge" id="offers-count">…</span>
       </div>
-      <div id="offers-list">
-        ${offerSkeletonRow()}${offerSkeletonRow()}
-      </div>
+      <div id="offers-list">${offerSkeletonRow()}${offerSkeletonRow()}</div>
     </div>`;
 
   try {
-    // GET /api/offers/listing/{listingId}
     const offers = await API.get(`/api/offers/listing/${listingId}`, true);
     const list   = document.getElementById('offers-list');
     const badge  = document.getElementById('offers-count');
@@ -249,7 +246,7 @@ async function renderIncomingOffers(listingId, container) {
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
           </svg>
-          No pending offers yet.
+          No offers yet. Share your listing to attract buyers!
         </div>`;
       return;
     }
@@ -257,37 +254,38 @@ async function renderIncomingOffers(listingId, container) {
     if (badge) badge.textContent = offers.length;
     if (list) {
       list.innerHTML = offers.map(offer => buildIncomingOfferRow(offer)).join('');
-
-      // Wire action buttons
-      list.querySelectorAll('[data-accept]').forEach(btn => {
-        btn.addEventListener('click', () => handleAcceptOffer(btn.dataset.accept, btn));
-      });
-      list.querySelectorAll('[data-reject]').forEach(btn => {
-        btn.addEventListener('click', () => handleRejectOffer(btn.dataset.reject, btn));
-      });
+      list.querySelectorAll('[data-accept]').forEach(btn =>
+        btn.addEventListener('click', () => handleAcceptOffer(btn.dataset.accept, btn)));
+      list.querySelectorAll('[data-reject]').forEach(btn =>
+        btn.addEventListener('click', () => handleRejectOffer(btn.dataset.reject, btn)));
     }
-
   } catch (err) {
     const list  = document.getElementById('offers-list');
     const badge = document.getElementById('offers-count');
     if (badge) badge.textContent = '—';
-    if (list) list.innerHTML = `<div class="offers-empty">Could not load offers.</div>`;
+    if (list) list.innerHTML = `
+      <div class="offers-empty">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        Could not load offers.
+        <button onclick="location.reload()" style="text-decoration:underline;font-weight:700;color:var(--accent);background:none;border:none;cursor:pointer;font-family:inherit;">Refresh</button>
+      </div>`;
   }
 }
 
 function buildIncomingOfferRow(offer) {
-  const initial = (offer.buyerUsername || 'B').charAt(0).toUpperCase();
-  // Only show accept/reject on PENDING offers
+  const initial   = (offer.buyerUsername || 'B').charAt(0).toUpperCase();
   const isPending = offer.status === 'PENDING';
   const actionsHtml = isPending
     ? `<div class="offer-row-actions">
-        <button class="offer-action-btn accept" data-accept="${escapeHtml(String(offer.id))}">
+        <button class="offer-action-btn accept" data-accept="${escHtml(String(offer.id))}">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
           </svg>
           Accept
         </button>
-        <button class="offer-action-btn reject" data-reject="${escapeHtml(String(offer.id))}">
+        <button class="offer-action-btn reject" data-reject="${escHtml(String(offer.id))}">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
           </svg>
@@ -297,100 +295,95 @@ function buildIncomingOfferRow(offer) {
     : `<div class="offer-row-actions">${offerStatusChip(offer.status)}</div>`;
 
   return `
-    <div class="offer-row" id="offer-row-${escapeHtml(String(offer.id))}">
+    <div class="offer-row" id="offer-row-${escHtml(String(offer.id))}">
       <div class="offer-row-buyer">
-        <div class="offer-row-ava">${initial}</div>
+        <div class="offer-row-ava">${escHtml(initial)}</div>
         <div>
-          <div class="offer-row-name">${escapeHtml(offer.buyerUsername || 'Buyer')}</div>
+          <div class="offer-row-name">${escHtml(offer.buyerUsername || 'Buyer')}</div>
           <div class="offer-row-time">${formatRelativeTime(offer.createdAt)}</div>
         </div>
       </div>
       ${offer.message
-        ? `<div class="offer-row-message">"${escapeHtml(offer.message)}"</div>`
-        : '<div class="offer-row-message" style="opacity:0.4;">No message</div>'}
+        ? `<div class="offer-row-message">"${escHtml(offer.message)}"</div>`
+        : '<div class="offer-row-message" style="opacity:0.35;font-style:italic;">No message</div>'}
       <div class="offer-row-price">${formatPrice(offer.offeredPrice)}</div>
       ${actionsHtml}
     </div>`;
 }
 
 async function handleAcceptOffer(offerId, btn) {
-  const row = document.getElementById(`offer-row-${offerId}`);
+  const row     = document.getElementById(`offer-row-${offerId}`);
   const allBtns = row?.querySelectorAll('.offer-action-btn');
-  allBtns?.forEach(b => b.disabled = true);
+  allBtns?.forEach(b => { b.disabled = true; b.style.opacity = '0.6'; });
 
   try {
-    // POST /api/offers/{offerId}/accept
     await API.post(`/api/offers/${offerId}/accept`, null, true);
     if (row) {
       row.innerHTML = `
-        <div style="display:flex;align-items:center;gap:var(--space-sm);width:100%;padding:var(--space-xs) 0;">
+        <div style="display:flex;align-items:center;gap:var(--space-sm);width:100%;padding:var(--space-xs) 0;flex-wrap:wrap;">
           ${offerStatusChip('ACCEPTED')}
           <span style="font-size:0.84rem;color:var(--ink-muted);font-weight:600;">Offer accepted — contact the buyer to arrange the exchange.</span>
         </div>`;
     }
-    if (typeof showToast === 'function') showToast('Offer accepted!', 'success');
+    if (typeof showToast === 'function') showToast('Offer accepted! 🎉', 'success');
   } catch (err) {
-    allBtns?.forEach(b => b.disabled = false);
+    allBtns?.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
     const msg = err?.data?.message || err?.message || 'Could not accept offer. Please try again.';
     if (typeof showToast === 'function') showToast(msg, 'error');
   }
 }
 
 async function handleRejectOffer(offerId, btn) {
-  const row = document.getElementById(`offer-row-${offerId}`);
+  const row     = document.getElementById(`offer-row-${offerId}`);
   const allBtns = row?.querySelectorAll('.offer-action-btn');
-  allBtns?.forEach(b => b.disabled = true);
+  allBtns?.forEach(b => { b.disabled = true; b.style.opacity = '0.6'; });
 
   try {
-    // POST /api/offers/{offerId}/reject
     await API.post(`/api/offers/${offerId}/reject`, null, true);
     if (row) {
-      row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      row.style.transition = 'opacity 0.3s, transform 0.3s';
       row.style.opacity    = '0';
       row.style.transform  = 'translateX(12px)';
-      setTimeout(() => row.remove(), 320);
-
-      // Decrement badge
-      const badge = document.getElementById('offers-count');
-      if (badge) {
-        const current = parseInt(badge.textContent) || 1;
-        badge.textContent = Math.max(0, current - 1);
-      }
+      setTimeout(() => {
+        row.remove();
+        const badge = document.getElementById('offers-count');
+        if (badge) badge.textContent = Math.max(0, (parseInt(badge.textContent) || 1) - 1);
+      }, 320);
     }
     if (typeof showToast === 'function') showToast('Offer declined.', 'info');
   } catch (err) {
-    allBtns?.forEach(b => b.disabled = false);
-    const msg = err?.data?.message || err?.message || 'Could not decline offer. Please try again.';
+    allBtns?.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+    const msg = err?.data?.message || err?.message || 'Could not decline offer.';
     if (typeof showToast === 'function') showToast(msg, 'error');
   }
 }
 
 function offerSkeletonRow() {
   return `
-    <div class="offer-row" style="opacity:0.5;">
+    <div class="offer-row" style="opacity:0.5;pointer-events:none;">
       <div class="offer-row-buyer">
-        <div class="offer-row-ava" style="background:var(--border);">&nbsp;</div>
+        <div class="offer-row-ava" style="background:var(--border);"></div>
         <div>
-          <div style="width:80px;height:11px;background:var(--border);border-radius:4px;margin-bottom:5px;"></div>
-          <div style="width:50px;height:9px;background:var(--border);border-radius:4px;"></div>
+          <div style="width:80px;height:10px;background:var(--border);border-radius:4px;margin-bottom:5px;"></div>
+          <div style="width:50px;height:8px;background:var(--border);border-radius:4px;"></div>
         </div>
       </div>
-      <div style="flex:2;height:11px;background:var(--border);border-radius:4px;"></div>
-      <div style="width:70px;height:18px;background:var(--border);border-radius:4px;"></div>
+      <div style="flex:2;height:10px;background:var(--border);border-radius:4px;"></div>
+      <div style="width:70px;height:16px;background:var(--border);border-radius:4px;"></div>
       <div style="width:120px;height:32px;background:var(--border);border-radius:var(--radius-pill);"></div>
     </div>`;
 }
 
-
 /* ──────────────────────────────────────────
    MY OFFERS PAGE — offers.html
+   Uses /api/offers/me?status=X for filtered tabs,
+   falls back to client-side filtering of allMyOffers
    ────────────────────────────────────────── */
-
-let allMyOffers  = [];
-let activeFilter = 'ALL';
+let allMyOffers    = [];
+let activeFilter   = 'ALL';
+let isLoadingFilter = false;
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Only run on the offers.html page
   if (!document.getElementById('my-offers-container')) return;
 
   if (!API.isLoggedIn()) {
@@ -398,11 +391,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // Show sell link for logged-in users
-  const sellLink = document.getElementById('sell-link');
-  const mobileSellLink = document.getElementById('mobile-sell-link');
-  if (sellLink) sellLink.style.display = '';
-  if (mobileSellLink) mobileSellLink.style.display = '';
+  ['sell-link', 'mobile-sell-link'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = '';
+  });
 
   showOfferSkeletons();
   await loadMyOffers();
@@ -411,9 +403,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadMyOffers() {
   try {
-    // GET /api/offers/mine
+    // /mine returns all statuses for the user — no status filter
     const offers = await API.get('/api/offers/mine', true);
-    allMyOffers = Array.isArray(offers) ? offers : [];
+    allMyOffers  = Array.isArray(offers) ? offers : [];
     renderFilteredOffers();
   } catch (err) {
     const container = document.getElementById('my-offers-container');
@@ -426,22 +418,74 @@ async function loadMyOffers() {
             </svg>
           </div>
           <h3>Could not load offers</h3>
-          <p>Check your connection and try refreshing the page.</p>
-          <button onclick="loadMyOffers()" class="btn btn-outline" style="margin-top:var(--space-md)">Retry</button>
+          <p>${err?.status === 0 ? 'Check your internet connection and try again.' : 'Something went wrong on our end.'}</p>
+          <button onclick="loadMyOffers()" class="btn btn-outline" style="margin-top:var(--space-md);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M1 4v6h6M23 20v-6h-6"/>
+              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+            </svg>
+            Retry
+          </button>
         </div>`;
     }
   }
 }
 
+/**
+ * For non-ALL filters, try GET /api/offers/me?status=X first.
+ * If that fails, fall back to client-side filtering of allMyOffers.
+ */
+async function loadFilteredOffers(status) {
+  if (isLoadingFilter) return;
+  isLoadingFilter = true;
+
+  const container = document.getElementById('my-offers-container');
+  const countEl   = document.getElementById('offers-total-count');
+  showOfferSkeletons();
+
+  try {
+    let filtered = [];
+    try {
+      const result = await API.get(`/api/offers/me?status=${status}`, true);
+      filtered = Array.isArray(result) ? result : [];
+    } catch {
+      // /me endpoint unavailable — fall back to local data
+      filtered = allMyOffers.filter(o => o.status === status);
+    }
+
+    if (countEl) countEl.textContent = `${filtered.length} offer${filtered.length !== 1 ? 's' : ''}`;
+
+    if (!container) return;
+    if (!filtered.length) {
+      container.innerHTML = buildEmptyState(status);
+      return;
+    }
+
+    container.innerHTML = `<div class="offers-grid">${filtered.map(o => buildMyOfferCard(o)).join('')}</div>`;
+    wireCardCancelButtons(container);
+
+  } finally {
+    isLoadingFilter = false;
+  }
+}
+
 function wireFilterTabs() {
   document.querySelectorAll('.offers-filter-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.offers-filter-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      activeFilter = tab.dataset.filter || 'ALL';
-      renderFilteredOffers();
-    });
+    tab.addEventListener('click', () => setFilter(tab.dataset.filter || 'ALL'));
   });
+}
+
+function setFilter(filter) {
+  document.querySelectorAll('.offers-filter-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.filter === filter)
+  );
+  activeFilter = filter;
+
+  if (filter === 'ALL') {
+    renderFilteredOffers();
+  } else {
+    loadFilteredOffers(filter);
+  }
 }
 
 function renderFilteredOffers() {
@@ -453,55 +497,64 @@ function renderFilteredOffers() {
     ? allMyOffers
     : allMyOffers.filter(o => o.status === activeFilter);
 
-  if (countEl) {
-    countEl.textContent = `${filtered.length} offer${filtered.length !== 1 ? 's' : ''}`;
-  }
+  if (countEl) countEl.textContent = `${filtered.length} offer${filtered.length !== 1 ? 's' : ''}`;
 
   if (!filtered.length) {
-    container.innerHTML = `
-      <div class="offers-page-empty">
-        <div class="empty-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-          </svg>
-        </div>
-        <h3>${activeFilter === 'ALL' ? 'No offers yet' : `No ${activeFilter.toLowerCase()} offers`}</h3>
-        <p>${activeFilter === 'ALL'
-          ? 'Browse listings and make your first offer.'
-          : 'Try a different filter.'}</p>
-        ${activeFilter === 'ALL'
-          ? `<a href="../listing/listings.html" class="btn btn-primary" style="margin-top:var(--space-md)">Browse Listings</a>`
-          : ''}
-      </div>`;
+    container.innerHTML = buildEmptyState(activeFilter);
     return;
   }
 
   container.innerHTML = `<div class="offers-grid">${filtered.map(o => buildMyOfferCard(o)).join('')}</div>`;
+  wireCardCancelButtons(container);
+}
 
-  // Wire cancel buttons
+function wireCardCancelButtons(container) {
   container.querySelectorAll('[data-cancel-offer]').forEach(btn => {
     btn.addEventListener('click', () => handleCancelOffer(btn.dataset.cancelOffer, btn));
   });
 }
 
+function buildEmptyState(filter) {
+  const isAll  = filter === 'ALL';
+  const label  = filter === 'REJECTED' ? 'declined' : filter.toLowerCase();
+  return `
+    <div class="offers-page-empty">
+      <div class="empty-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+        </svg>
+      </div>
+      <h3>${isAll ? 'No offers yet' : `No ${label} offers`}</h3>
+      <p>${isAll ? 'Browse listings and make your first offer!' : 'Try a different filter to see other offers.'}</p>
+      ${isAll ? `
+        <a href="../listing/listings.html" class="btn btn-primary" style="margin-top:var(--space-md);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+          Browse Listings
+        </a>` : ''}
+    </div>`;
+}
+
 function buildMyOfferCard(offer) {
   const listingThumb = offer.listingImageUrl
-    ? `<img src="${escapeHtml(offer.listingImageUrl)}" alt="${escapeHtml(offer.listingTitle || '')}">`
+    ? `<img src="${escHtml(offer.listingImageUrl)}" alt="${escHtml(offer.listingTitle || '')}" onerror="this.style.display='none'">`
     : `<div class="offer-card-listing-thumb-placeholder">
          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="width:24px;height:24px;">
            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
          </svg>
        </div>`;
 
-  const canCancel = offer.status === 'PENDING';
+  const canCancel  = offer.status === 'PENDING';
+  const isAccepted = offer.status === 'ACCEPTED';
 
   return `
-    <div class="offer-card" id="my-offer-card-${escapeHtml(String(offer.id))}">
+    <div class="offer-card${isAccepted ? ' offer-card--accepted' : ''}" id="my-offer-card-${escHtml(String(offer.id))}">
       <div class="offer-card-top">
         <div class="offer-card-listing-thumb">${listingThumb}</div>
         <div class="offer-card-listing-info">
-          <div class="offer-card-listing-title">${escapeHtml(offer.listingTitle || 'Listing')}</div>
-          <a class="offer-card-listing-link" href="../listing/view-listing.html?id=${escapeHtml(String(offer.listingId))}">
+          <div class="offer-card-listing-title">${escHtml(offer.listingTitle || 'Listing')}</div>
+          <a class="offer-card-listing-link" href="../listing/view-listing.html?id=${escHtml(String(offer.listingId))}">
             View Listing
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
@@ -510,64 +563,60 @@ function buildMyOfferCard(offer) {
         </div>
         ${offerStatusChip(offer.status)}
       </div>
+
+      ${isAccepted ? `
+        <div class="offer-card-accepted-banner">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px;flex-shrink:0;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+          Your offer was accepted! Reach out to the seller to arrange the exchange.
+        </div>` : ''}
+
       <div class="offer-card-body">
         <div class="offer-card-meta">
           <div class="offer-price-row">
             <span class="offer-my-price">${formatPrice(offer.offeredPrice)}</span>
             ${offer.listedPrice ? `<span class="offer-listed-price">${formatPrice(offer.listedPrice)} listed</span>` : ''}
           </div>
-          ${offer.message
-            ? `<div class="offer-message-preview">"${escapeHtml(offer.message)}"</div>`
-            : ''}
+          ${offer.message ? `<div class="offer-message-preview">"${escHtml(offer.message)}"</div>` : ''}
           <div class="offer-card-time">Sent ${formatRelativeTime(offer.createdAt)}</div>
         </div>
         <div class="offer-card-actions">
-          ${canCancel
-            ? `<button class="offer-cancel-btn" data-cancel-offer="${escapeHtml(String(offer.id))}">
-                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                 </svg>
-                 Cancel Offer
-               </button>`
-            : ''}
-          ${offer.status === 'ACCEPTED'
-            ? `<span style="font-size:0.78rem;font-weight:700;color:#1a7a40;display:flex;align-items:center;gap:4px;">
-                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;">
-                   <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                 </svg>
-                 Seller accepted!
-               </span>`
-            : ''}
+          ${canCancel ? `
+            <button class="offer-cancel-btn" data-cancel-offer="${escHtml(String(offer.id))}">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              Cancel Offer
+            </button>` : ''}
         </div>
       </div>
     </div>`;
 }
 
 async function handleCancelOffer(offerId, btn) {
-  if (!confirm('Cancel this offer?')) return;
+  if (!confirm('Cancel this offer? This cannot be undone.')) return;
 
-  btn.disabled = true;
+  const originalHtml = btn.innerHTML;
+  btn.disabled    = true;
   btn.textContent = 'Cancelling…';
 
   try {
-    // POST /api/offers/{offerId}/cancel  ← FIXED (was /accept in original)
     await API.post(`/api/offers/${offerId}/cancel`, null, true);
-
-    // Update local state
     const idx = allMyOffers.findIndex(o => String(o.id) === String(offerId));
     if (idx > -1) allMyOffers[idx].status = 'CANCELLED';
 
-    renderFilteredOffers();
-    if (typeof showToast === 'function') showToast('Offer cancelled.', 'info');
+    if (activeFilter === 'ALL') {
+      renderFilteredOffers();
+    } else {
+      await loadFilteredOffers(activeFilter);
+    }
 
+    if (typeof showToast === 'function') showToast('Offer cancelled.', 'info');
   } catch (err) {
-    btn.disabled = false;
-    btn.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-      </svg>
-      Cancel Offer`;
-    const msg = err?.data?.message || err?.message || 'Could not cancel offer. Please try again.';
+    btn.disabled  = false;
+    btn.innerHTML = originalHtml;
+    const msg = err?.data?.message || err?.message || 'Could not cancel. Please try again.';
     if (typeof showToast === 'function') showToast(msg, 'error');
   }
 }

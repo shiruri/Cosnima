@@ -27,7 +27,6 @@
   .auth-panel { padding: var(--space-2xl); min-height: auto; }
 }
 
-/* Wavy blob decoration */
 .auth-panel::before {
   content: '';
   position: absolute;
@@ -176,7 +175,10 @@
 }
 
 .field-group { position: relative; }
-.field-group input {
+
+.field-group input:not([type="radio"]):not([type="checkbox"]),
+.field-group select,
+.field-group textarea {
   width: 100%;
   padding: 1.1rem 1rem 0.5rem;
   border: 1.5px solid var(--border);
@@ -188,7 +190,9 @@
   transition: border-color var(--t-base), box-shadow var(--t-base);
   outline: none;
 }
-.field-group input:focus {
+.field-group input:not([type="radio"]):not([type="checkbox"]):focus,
+.field-group select:focus,
+.field-group textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 4px rgba(232,84,122,0.1);
 }
@@ -212,9 +216,17 @@
   color: var(--accent);
 }
 
-/* Password wrapper */
-.pw-field { position: relative; }
-.pw-field input { padding-right: 3rem; }
+/* Password wrapper — SINGLE eye icon only */
+.pw-field {
+  position: relative;
+}
+.pw-field input {
+  padding-right: 3rem !important;
+  /* Remove browser's native eye icon */
+}
+.pw-field input::-ms-reveal,
+.pw-field input::-ms-clear { display: none; }
+
 .pw-toggle {
   position: absolute;
   right: 0.75rem;
@@ -223,10 +235,22 @@
   color: var(--ink-faint);
   transition: color var(--t-base);
   padding: 0.3rem;
-  display: flex; align-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 2;
 }
 .pw-toggle:hover { color: var(--accent); }
-.pw-toggle svg { width: 18px; height: 18px; }
+.pw-toggle svg { width: 18px; height: 18px; display: block; }
+
+/* Enforce single icon display */
+.pw-toggle .eye-open  { display: block; }
+.pw-toggle .eye-close { display: none; }
+.pw-toggle.showing .eye-open  { display: none; }
+.pw-toggle.showing .eye-close { display: block; }
 
 /* Field error */
 .field-error {
@@ -304,3 +328,21 @@
 }
 .terms-note a { text-decoration: underline; text-underline-offset: 2px; color: var(--accent); }
 .terms-note a:hover { opacity: 0.8; }
+
+/* ============================================
+   SUCCESS / INFO banners (not just error)
+   ============================================ */
+#error-msg {
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: none;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+#error-msg.show { display: flex; }
+#error-msg.type-error   { background: rgba(192,57,43,0.08); border: 1.5px solid rgba(192,57,43,0.2); color: var(--error); }
+#error-msg.type-success { background: rgba(39,174,96,0.08); border: 1.5px solid rgba(39,174,96,0.25); color: #1a7a40; }
+#error-msg.type-info    { background: rgba(42,26,14,0.05);  border: 1.5px solid var(--border); color: var(--ink-muted); }
