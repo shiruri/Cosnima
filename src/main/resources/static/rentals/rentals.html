@@ -164,30 +164,68 @@
       <div id="incoming-rentals-container" class="rentals-list"></div>
     </div>
 
-    <!-- Panel 3: Calendar -->
-    <div id="calendar-panel" class="rentals-panel-section">
-      <div class="rental-calendar-full">
-        <div class="rental-calendar-header">
-          <h3>Rental Calendar</h3>
-          <div class="rental-calendar-nav">
-            <button onclick="changeCalendarMonth(-1)" aria-label="Previous month">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-            </button>
-            <span id="calendar-month-year"></span>
-            <button onclick="changeCalendarMonth(1)" aria-label="Next month">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="rental-calendar-grid" id="rental-calendar-grid"></div>
-        <div class="rental-calendar-legend">
-          <span class="legend-item"><span class="legend-dot" style="background:var(--accent);"></span> Active</span>
-          <span class="legend-item"><span class="legend-dot" style="background:#e67e22;"></span> Pending</span>
-          <span class="legend-item"><span class="legend-dot" style="background:#27ae60;"></span> Completed</span>
-        </div>
+<div id="calendar-panel" class="rentals-panel-section">
+  <div class="rental-calendar-full">
+ 
+    <!-- Header: month title + nav arrows -->
+    <div class="rental-calendar-header">
+      <h3 id="calendar-month-year">April 2026</h3>
+      <div class="rental-calendar-nav">
+        <button onclick="changeCalendarMonth(-1)" aria-label="Previous month">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </button>
+        <button onclick="changeCalendarMonth(1)" aria-label="Next month">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </button>
       </div>
     </div>
-
+ 
+    <!-- Legend -->
+    <div class="rental-calendar-legend">
+      <span class="legend-item">
+        <span class="legend-dot" style="background:var(--accent);border:1.5px solid var(--accent);"></span>
+        Today
+      </span>
+      <span class="legend-item">
+        <span class="legend-dot" style="background:#E67E22;"></span>
+        Pending
+      </span>
+      <span class="legend-item">
+        <span class="legend-dot" style="background:#27AE60;"></span>
+        Approved
+      </span>
+      <span class="legend-item">
+        <span class="legend-dot" style="background:#F06292;"></span>
+        Active
+      </span>
+      <span class="legend-item">
+        <span class="legend-dot" style="background:#7B8FA1;"></span>
+        Completed
+      </span>
+    </div>
+ 
+    <!-- Day grid (weekday labels + date cells injected by JS) -->
+    <div class="rental-calendar-grid" id="rental-calendar-grid"></div>
+ 
+    <!-- Summary stats row -->
+    <div class="rental-calendar-stats" id="rental-cal-stats">
+      <!-- Injected by renderCalendar() -->
+    </div>
+ 
+    <!-- Month rental list -->
+    <div class="rental-cal-list-header">This month</div>
+    <div id="rental-cal-list">
+      <!-- Injected by renderCalendar() -->
+    </div>
+ 
+  </div>
+</div>
   </div>
 </main>
 
@@ -215,7 +253,6 @@ let _incomingRentals = [];
 let _activePanel   = 'my-rentals';
 let _myFilter      = '';
 let _incomingFilter = '';
-let _calendarDate = new Date();
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!API.isLoggedIn()) {
@@ -515,67 +552,164 @@ function escH(str) {
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+let _calendarDate = new Date();
+ 
+const CAL_MONTHS = [
+  'January','February','March','April','May',
+  'June','July','August','September','October','November','December'
+];
+ 
+const CAL_DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+ 
+const STATUS_STYLES = {
+  PENDING:   { dot: '#E67E22', bar: '#E67E22', bg: 'pending-rental',   chip: 'rental-chip-pending' },
+  APPROVED:  { dot: '#27AE60', bar: '#27AE60', bg: 'approved-rental',  chip: 'rental-chip-approved' },
+  ACTIVE:    { dot: '#F06292', bar: '#F06292', bg: 'active-rental',    chip: 'rental-chip-active' },
+  COMPLETED: { dot: '#7B8FA1', bar: '#7B8FA1', bg: 'completed-rental', chip: 'rental-chip-completed' },
+  REJECTED:  { dot: '#E24B4A', bar: '#E24B4A', bg: '',                 chip: 'rental-chip-rejected' },
+  CANCELLED: { dot: '#B4B2A9', bar: '#B4B2A9', bg: '',                 chip: 'rental-chip-cancelled' },
+};
+ 
 function changeCalendarMonth(delta) {
   _calendarDate.setMonth(_calendarDate.getMonth() + delta);
   renderCalendar();
 }
-
+ 
 function renderCalendar() {
-  const year = _calendarDate.getFullYear();
+  const year  = _calendarDate.getFullYear();
   const month = _calendarDate.getMonth();
-  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('calendar-month-year').textContent = `${monthNames[month]} ${year}`;
-  
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  
-  const allRentals = [..._myRentals, ..._incomingRentals];
-  const rentalDays = {};
+  const today = new Date(); today.setHours(0,0,0,0);
+ 
+  // Update header text
+  const headerEl = document.getElementById('calendar-month-year');
+  if (headerEl) headerEl.textContent = `${CAL_MONTHS[month]} ${year}`;
+ 
+  // Merge all rentals
+  const allRentals = [...(_myRentals || []), ...(_incomingRentals || [])];
+ 
+  // Build day → rentals map
+  const dayMap = {};
   allRentals.forEach(r => {
-    if (r.startDate && r.endDate) {
-      const start = new Date(r.startDate);
-      const end = new Date(r.endDate);
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        const key = d.toISOString().split('T')[0];
-        rentalDays[key] = rentalDays[key] || [];
-        rentalDays[key].push(r);
-      }
+    if (!r.startDate || !r.endDate) return;
+    const start = new Date(r.startDate);
+    const end   = new Date(r.endDate);
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const key = d.toISOString().split('T')[0];
+      if (!dayMap[key]) dayMap[key] = [];
+      dayMap[key].push(r);
     }
   });
-  
-  let html = '<div class="calendar-weekdays" style="display:contents;">';
-  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => html += `<div class="calendar-weekday">${d}</div>`);
-  html += '</div><div class="calendar-days" style="display:contents;">';
-  
-  for (let i = 0; i < firstDay; i++) {
-    html += '<div class="calendar-day empty"></div>';
+ 
+  // Build grid
+  const firstDayOfWeek = new Date(year, month, 1).getDay();
+  const daysInMonth    = new Date(year, month + 1, 0).getDate();
+ 
+  let gridHtml = CAL_DAYS_SHORT
+    .map(d => `<div class="calendar-weekday">${d}</div>`)
+    .join('');
+ 
+  // Empty cells before month start
+  for (let i = 0; i < firstDayOfWeek; i++) {
+    gridHtml += `<div class="calendar-day empty"></div>`;
   }
-  
+ 
   for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month, day);
-    const dateKey = date.toISOString().split('T')[0];
-    const rentalsOnDay = rentalDays[dateKey] || [];
-    const isPast = date < today;
-    const isToday = date.getTime() === today.getTime();
-    const hasActive = rentalsOnDay.some(r => r.status === 'ACTIVE');
-    const hasPending = rentalsOnDay.some(r => r.status === 'PENDING');
-    const hasCompleted = rentalsOnDay.some(r => r.status === 'COMPLETED');
-    
+    const dateObj = new Date(year, month, day);
+    const isToday = dateObj.getTime() === today.getTime();
+    const isPast  = dateObj < today && !isToday;
+    const dateKey = dateObj.toISOString().split('T')[0];
+ 
+    const rentalsHere = dayMap[dateKey] || [];
+    const primary     = rentalsHere[0];
+    const statusStyle = primary ? (STATUS_STYLES[primary.status] || {}) : {};
+ 
     let classes = 'calendar-day';
-    if (isPast) classes += ' disabled';
-    else if (hasActive) classes += ' active-rental';
-    else if (hasPending) classes += ' pending-rental';
-    else if (hasCompleted) classes += ' completed-rental';
+    if (isPast && !rentalsHere.length) classes += ' disabled';
     if (isToday) classes += ' today';
-    
-    html += `<div class="${classes}">${day}${rentalsOnDay.length ? `<span class="rental-dot-indicator"></span>` : ''}</div>`;
+    if (statusStyle.bg) classes += ` ${statusStyle.bg}`;
+    if (rentalsHere.length) classes += ' has-rental';
+ 
+    // Status dots (max 3)
+    const dotsHtml = rentalsHere.length
+      ? `<div style="display:flex;gap:2px;position:absolute;bottom:4px;left:50%;transform:translateX(-50%);">${
+          rentalsHere.slice(0, 3).map(r => {
+            const sc = STATUS_STYLES[r.status] || {};
+            return `<span class="rental-dot-indicator" style="background:${sc.dot || 'var(--accent)'}"></span>`;
+          }).join('')
+        }</div>`
+      : '';
+ 
+    gridHtml += `<div class="${classes}">${day}${dotsHtml}</div>`;
   }
-  
-  html += '</div>';
-  document.getElementById('rental-calendar-grid').innerHTML = html;
+ 
+  const gridEl = document.getElementById('rental-calendar-grid');
+  if (gridEl) gridEl.innerHTML = gridHtml;
+ 
+  // Summary stats
+  const counts = { PENDING: 0, APPROVED: 0, ACTIVE: 0, COMPLETED: 0 };
+  allRentals.forEach(r => { if (counts[r.status] !== undefined) counts[r.status]++; });
+ 
+  const statsEl = document.getElementById('rental-cal-stats');
+  if (statsEl) {
+    statsEl.innerHTML = [
+      { num: allRentals.length, lbl: 'Total',     color: 'var(--ink)' },
+      { num: counts.PENDING,    lbl: 'Pending',   color: '#E67E22' },
+      { num: counts.APPROVED,   lbl: 'Approved',  color: '#27AE60' },
+      { num: counts.ACTIVE,     lbl: 'Active',    color: '#F06292' },
+      { num: counts.COMPLETED,  lbl: 'Completed', color: '#7B8FA1' },
+    ].map(s => `
+      <div class="rental-cal-stat">
+        <span class="rental-cal-stat-num" style="color:${s.color}">${s.num}</span>
+        <span class="rental-cal-stat-lbl">${s.lbl}</span>
+      </div>`).join('');
+  }
+ 
+  // Monthly rental list
+  const listEl = document.getElementById('rental-cal-list');
+  if (!listEl) return;
+ 
+  const mStart = new Date(year, month, 1);
+  const mEnd   = new Date(year, month + 1, 0);
+ 
+  const monthRentals = allRentals
+    .filter(r => {
+      if (!r.startDate || !r.endDate) return false;
+      return new Date(r.startDate) <= mEnd && new Date(r.endDate) >= mStart;
+    })
+    .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+ 
+  if (!monthRentals.length) {
+    listEl.innerHTML = `
+      <div class="rental-cal-empty">
+        No rentals this month
+      </div>`;
+    return;
+  }
+ 
+  listEl.innerHTML = monthRentals.map(r => {
+    const sc = STATUS_STYLES[r.status] || {};
+    const fmtD = d => d
+      ? new Date(d).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })
+      : '—';
+    const fmtP = p => p != null ? '₱' + Number(p).toLocaleString('en-PH', { minimumFractionDigits: 0 }) : '';
+ 
+    return `
+      <div class="rental-cal-row">
+        <div class="rental-cal-row-bar" style="background:${sc.bar || '#ccc'}"></div>
+        <div class="rental-cal-row-info">
+          <div class="rental-cal-row-title">${escH(r.listingTitle || 'Listing')}</div>
+          <div class="rental-cal-row-dates">
+            ${fmtD(r.startDate)} — ${fmtD(r.endDate)}
+            <span class="rental-status-chip ${sc.chip || ''}" style="margin-left:2px;">
+              ${r.status.toLowerCase()}
+            </span>
+          </div>
+        </div>
+        <div class="rental-cal-row-price">${fmtP(r.totalPrice)}</div>
+      </div>`;
+  }).join('');
 }
+ 
 </script>
 </body>
 </html>
