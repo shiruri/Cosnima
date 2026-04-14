@@ -87,8 +87,6 @@ public class RentalService {
             throw new RuntimeException("Start date cannot be in the past");
         }
 
-        // 4. TODO: check availability (VERY important later)
-        // e.g. overlapping rentals
 
         // 5. Create rental
         Rental rent = new Rental();
@@ -138,6 +136,12 @@ public class RentalService {
         if (!conflicts.isEmpty()) {
             throw new RuntimeException("Listing is already booked for this date range");
         }
+
+        //update listing status
+        Listing listing = rent.getListing();
+
+        listing.setStatus(Listing.Status.RENTED);
+        listingRepo.save(listing);
 
         // approve
         rent.setStatus(RentalStatus.APPROVED);

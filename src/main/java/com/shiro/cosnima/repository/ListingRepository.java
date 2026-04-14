@@ -28,6 +28,9 @@ public interface ListingRepository extends JpaRepository<Listing, String> {
     @Query("UPDATE Listing l SET l.viewCount = l.viewCount + 1 WHERE l.id = :listingId")
     int incrementViewCount(@Param("listingId") String listingId);
 
+    Optional<Listing> findFirstBySeller_Id(UUID sellerId);
+
+
     @Query("""
         SELECT l FROM Listing l
         LEFT JOIN FETCH l.images

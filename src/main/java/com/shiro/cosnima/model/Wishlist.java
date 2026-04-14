@@ -1,48 +1,35 @@
 package com.shiro.cosnima.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "wishlists",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "listing_id"}))
+@Table(name = "wishlists")
 public class Wishlist {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @EmbeddedId
+    private WishlistId id;
 
-    // ===== RELATIONSHIPS =====
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @MapsId("userId")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "listing_id", nullable = false)
+    @MapsId("listingId")
+    @JoinColumn(name = "listing_id")
     private Listing listing;
 
-    // ===== FIELDS =====
-    @NotNull
-    @Column(name = "saved_at", nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime savedAt = LocalDateTime.now();
 
-    // ===== CONSTRUCTORS =====
-    public Wishlist() {}
-
-    public Wishlist(User user, Listing listing) {
-        this.user = user;
-        this.listing = listing;
-        this.savedAt = LocalDateTime.now();
-    }
-
     // ===== GETTERS & SETTERS =====
-    public Long getId() {
+
+    public WishlistId getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(WishlistId id) {
         this.id = id;
     }
 

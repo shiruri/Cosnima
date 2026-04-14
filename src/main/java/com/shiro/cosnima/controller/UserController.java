@@ -3,6 +3,8 @@ package com.shiro.cosnima.controller;
 import com.shiro.cosnima.dto.request.UpdateProfileRequest;
 import com.shiro.cosnima.dto.response.ListingResponse;
 import com.shiro.cosnima.dto.request.UserDto;
+import com.shiro.cosnima.dto.response.RatingResponse;
+import com.shiro.cosnima.dto.response.WishlistResponse;
 import com.shiro.cosnima.model.Rating;
 import com.shiro.cosnima.model.Wishlist;
 import com.shiro.cosnima.service.UserService;
@@ -77,16 +79,19 @@ public class UserController {
     }
 
     @GetMapping("/{id}/ratings")
-    public ResponseEntity<List<Rating>> getUserRatings(@PathVariable UUID id) {
-        List<Rating> ratings = userServ.getUserRatings(id);
+    public ResponseEntity<List<RatingResponse>> getUserRatings(@PathVariable UUID id) {
+        List<RatingResponse> ratings = userServ.getUserRatings(id);
         if (ratings != null) {
             return ResponseEntity.ok().body(ratings);
         }
         return ResponseEntity.badRequest().build();
     }
+
+
+
     @GetMapping("/{id}/wishlists")
-    public ResponseEntity<List<Wishlist>> getUserWishlists(@PathVariable UUID id) {
-        List<Wishlist> wishlists = userServ.getUserWishlists(id);
+    public ResponseEntity<List<WishlistResponse>> getUserWishlists(@PathVariable UUID id) {
+        List<WishlistResponse> wishlists = userServ.getUserWishlists(id);
         if (wishlists != null) {
             return ResponseEntity.ok().body(wishlists);
         }

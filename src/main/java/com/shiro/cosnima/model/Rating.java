@@ -37,7 +37,7 @@ public class Rating {
 
     @NotNull
     @Column(nullable = false)
-    private Long transactionId; // offer_id OR rental_id
+    private String transactionId; // offer_id OR rental_id
 
     @NotNull
     @Min(1)
@@ -92,11 +92,11 @@ public class Rating {
         this.transactionType = transactionType;
     }
 
-    public Long getTransactionId() {
+    public String getTransactionId() {
         return transactionId;
     }
 
-    public void setTransactionId(Long transactionId) {
+    public void setTransactionId(String transactionId) {
         this.transactionId = transactionId;
     }
 

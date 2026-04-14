@@ -4,12 +4,16 @@ import com.shiro.cosnima.dto.request.UpdateProfileRequest;
 import com.shiro.cosnima.dto.response.AuthResult;
 import com.shiro.cosnima.dto.response.ListingResponse;
 import com.shiro.cosnima.dto.request.UserDto;
+import com.shiro.cosnima.dto.response.RatingResponse;
+import com.shiro.cosnima.dto.response.WishlistResponse;
 import com.shiro.cosnima.model.Rating;
 import com.shiro.cosnima.model.User;
 import com.shiro.cosnima.model.Wishlist;
 import com.shiro.cosnima.repository.UserRepository;
 import com.shiro.cosnima.security.JwtUtils;
 import com.shiro.cosnima.utility.ListingMapper;
+import com.shiro.cosnima.utility.RatingMapper;
+import com.shiro.cosnima.utility.WishlistMapper;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -108,11 +112,11 @@ public class UserService {
                 .map(ListingMapper::toDto)
                 .collect(Collectors.toList());
     }
-    public List<Rating> getUserRatings(UUID uuid) {
-        return userRepo.getRatingsByUserId(uuid);
+    public List<RatingResponse> getUserRatings(UUID uuid) {
+        return userRepo.getRatingsByUserId(uuid).stream().map(RatingMapper::toDto).toList();
     }
-    public List<Wishlist> getUserWishlists(UUID uuid) {
-        return userRepo.getWishlistByUserId(uuid);
+    public List<WishlistResponse> getUserWishlists(UUID uuid) {
+        return userRepo.getWishlistByUserId(uuid).stream().map(WishlistMapper::toDto).toList();
 
     }
 

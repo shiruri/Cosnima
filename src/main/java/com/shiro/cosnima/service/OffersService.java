@@ -79,6 +79,12 @@ public class OffersService {
         }
 
         accepted.setStatus(OfferStatus.ACCEPTED);
+
+        // update status of listing
+        Listing listing = accepted.getListing();
+        listing.setStatus(Listing.Status.SOLD);
+        listingRepo.save(listing);
+
         accepted.setUpdatedAt(LocalDateTime.now());
 
         offerRepo.saveAll(others);
