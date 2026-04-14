@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public class ReportResponse {
 
-    private String id;
+    private UUID id;
 
     private UUID reporterId;
     private UUID reviewedBy;
@@ -24,11 +24,11 @@ public class ReportResponse {
 
     // ===== GETTERS & SETTERS =====
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
