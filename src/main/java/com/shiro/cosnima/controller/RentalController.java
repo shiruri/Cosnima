@@ -151,7 +151,7 @@ public class RentalController {
         return ResponseEntity.status(401).build();
     }
 
-    @PostMapping("/{id}/approve")
+    @PostMapping("/{id}/cancel")
     public ResponseEntity<RentalResponse> cancelRental(@PathVariable("id") long rentalId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {

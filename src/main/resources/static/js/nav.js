@@ -1,9 +1,6 @@
 /* ============================================
-   COSNIMA — Shared Nav & UI Logic (FIXED)
-   - Consistent offers link in all navbars
-   - Correct relative path detection
-   - Duplicate event handler prevention
-   - Graceful error handling
+   COSNIMA — Shared Nav & UI Logic
+   Updated: messages + rentals links, consistent auth
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -30,9 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ── Mobile nav ──
-  const hamburger    = document.getElementById('hamburger');
-  const mobileNav    = document.getElementById('mobile-nav');
-  const overlay      = document.getElementById('mobile-overlay');
+  const hamburger = document.getElementById('hamburger');
+  const mobileNav = document.getElementById('mobile-nav');
+  const overlay   = document.getElementById('mobile-overlay');
 
   const closeMenu = () => {
     hamburger?.setAttribute('aria-expanded', 'false');
@@ -59,10 +56,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Show logged-in-only links
   if (API.isLoggedIn()) {
-    ['sell-link', 'mobile-sell-link', 'offers-link', 'mobile-offers-link'].forEach(id => {
+    const loggedInLinks = [
+      'sell-link', 'mobile-sell-link',
+      'messages-link', 'mobile-messages-link',
+      'rentals-link', 'mobile-rentals-link',
+    ];
+    loggedInLinks.forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = '';
     });
+
     const heroSell = document.getElementById('hero-sell-btn');
     if (heroSell) heroSell.style.display = '';
   }
@@ -80,11 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { threshold: 0.06 });
     revealEls.forEach(el => observer.observe(el));
   } else {
-    // Fallback for no IntersectionObserver
     revealEls.forEach(el => el.classList.add('visible'));
   }
 
-  // ── Smooth page transitions (prevent duplicate listeners) ──
+  // ── Smooth page transitions ──
   document.querySelectorAll('a[href]:not([href^="#"]):not([href^="http"]):not([href^="mailto"]):not([target]):not([data-nav-wired])').forEach(link => {
     link.setAttribute('data-nav-wired', 'true');
     link.addEventListener('click', (e) => {
@@ -112,26 +114,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-/* ── Detect path depth for relative links ── */
+/* ── Path prefix detection ── */
 function getPathPrefix() {
   const path = window.location.pathname;
-  if (path.includes('/listing/') || path.includes('/profile/') ||
-      path.includes('/login/')   || path.includes('/signup/')  ||
-      path.includes('/offers/'))  return '../';
+  if (
+    path.includes('/listing/') ||
+    path.includes('/profile/')  ||
+    path.includes('/login/')    ||
+    path.includes('/signup/')   ||
+    path.includes('/messages/') ||
+    path.includes('/rentals/')  ||
+    path.includes('/offers/')
+  ) return '../';
   return '';
 }
 
-/* ── Render nav auth buttons ── */
+/* ── Render nav auth ── */
 function renderNavAuth(container) {
   if (!container) return;
   const prefix = getPathPrefix();
 
   if (API.isLoggedIn()) {
-    const user = API.getUser();
-    const name = user?.username || 'Cosplayer';
+    const user    = API.getUser();
+    const name    = user?.username || 'Cosplayer';
     const initial = name.charAt(0).toUpperCase();
-
-    // Determine profile path
     const profilePath = prefix + 'profile/profile.html';
 
     container.innerHTML = `
@@ -143,30 +149,27 @@ function renderNavAuth(container) {
           <span class="greeting-text" style="display:none;">Hi, <strong>${escapeHtml(name)}</strong></span>
         </a>
         <button class="btn btn-ghost btn-nav" onclick="logout()" style="padding:0.4rem 0.8rem;font-size:0.8rem;" aria-label="Log out">Log out</button>
-      </div>
-    `;
+      </div>`;
 
     const greetSpan = container.querySelector('.greeting-text');
     if (greetSpan && window.innerWidth >= 1024) greetSpan.style.display = 'inline';
   } else {
+    const prefix = getPathPrefix();
     container.innerHTML = `
       <a href="${prefix}login/login.html" class="btn btn-ghost btn-nav">Log in</a>
-      <a href="${prefix}signup/register.html" class="btn btn-primary btn-nav">Register</a>
-    `;
+      <a href="${prefix}signup/register.html" class="btn btn-primary btn-nav">Register</a>`;
   }
 }
 
 /* ── Logout ── */
 async function logout() {
-  try { await API.post('/api/auth/logout', {}, true); } catch { /* ignore */ }
+  try { await API.post('/api/auth/logout', {}, true); } catch {}
   API.clearSession();
-  showToast('Logged out. See you soon! 🦫', 'success', 2000);
-  setTimeout(() => {
-    navigateTo(getPathPrefix() + 'login/login.html');
-  }, 700);
+  if (typeof showToast === 'function') showToast('Logged out. See you soon! 🦫', 'success', 2000);
+  setTimeout(() => navigateTo(getPathPrefix() + 'login/login.html'), 700);
 }
 
-/* ── Navigation with fade ── */
+/* ── Navigation ── */
 function navigateTo(url) {
   document.body.classList.add('fade-out');
   setTimeout(() => { window.location.href = url; }, 260);
@@ -174,9 +177,9 @@ function navigateTo(url) {
 
 function redirectTo(url) { navigateTo(url); }
 
-/* ── Escape helper (used in nav auth) ── */
+/* ── Escape helper ── */
 function escapeHtml(str) {
   return String(str || '')
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

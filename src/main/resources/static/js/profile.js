@@ -61,8 +61,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   fileInput?.addEventListener('change', previewAvatar);
 
   // Nav
-  renderNav();
+renderNavAuth(document.getElementById('nav-auth'));
+renderNavAuth(document.getElementById('mobile-auth'));
 
+// and replace this:
+document.getElementById('mobile-nav')?.classList.remove('open');
+hamburger?.setAttribute('aria-expanded', 'false');
+
+// with this:
+document.getElementById('mobile-nav')?.classList.remove('open');
+document.getElementById('hamburger')?.setAttribute('aria-expanded', 'false');
   // Tabs
   document.querySelectorAll('.profile-tab').forEach(tab => {
     tab.addEventListener('click', () => switchTab(tab.dataset.tab));
