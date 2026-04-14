@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../css/variables.css">
   <link rel="stylesheet" href="../css/global.css">
   <link rel="stylesheet" href="../css/home.css">
-  <link rel="stylesheet" href="../css/offers.css">
+  <link rel="stylesheet" href="../css/rental-actions.css">
   <script>(function(){var t=localStorage.getItem('cosnimaTheme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
 
   <style>
@@ -46,14 +46,15 @@
     .listing-tag{padding:0.3rem 0.8rem;background:rgba(240,98,146,0.08);border:1.5px solid rgba(240,98,146,0.2);border-radius:var(--radius-pill);font-size:0.74rem;font-weight:800;color:var(--accent);}
     .seller-card{background:var(--card);border:2px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-lg);}
     .seller-card-label{font-size:0.68rem;font-weight:900;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:var(--space-md);}
-    .seller-card-inner{display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-lg);}
+    .seller-card-inner{display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-md);}
     .seller-card-avatar{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--beaver),var(--accent));color:white;font-size:1.3rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:3px solid var(--card);box-shadow:0 0 0 2.5px var(--accent);}
     .seller-card-avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;}
     .seller-card-name{font-size:1rem;font-weight:800;color:var(--ink);}
     .seller-card-stats{font-size:0.78rem;color:var(--ink-muted);font-weight:600;margin-top:2px;}
     .seller-card-rating{display:flex;align-items:center;gap:var(--space-xs);font-size:0.78rem;color:var(--ink-muted);margin-top:3px;}
     .stars{color:#f5a623;letter-spacing:-1px;}
-    .seller-actions{display:flex;flex-direction:column;gap:var(--space-sm);}
+    .view-count-badge{display:flex;align-items:center;gap:var(--space-xs);font-size:0.78rem;font-weight:700;color:var(--ink-faint);}
+    /* Owner panel */
     .owner-panel{background:linear-gradient(135deg,rgba(240,98,146,0.05),rgba(200,122,80,0.05));border:2px solid rgba(240,98,146,0.2);border-radius:var(--radius-lg);padding:var(--space-lg);}
     .owner-panel-label{font-size:0.68rem;font-weight:900;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-bottom:var(--space-md);display:flex;align-items:center;gap:var(--space-sm);}
     .owner-panel-label::before{content:'✦';color:var(--accent);}
@@ -68,12 +69,11 @@
     .status-opt.active.rented{background:var(--beaver);}
     .status-opt.active.archived{background:var(--ink-faint);}
     .owner-actions{display:flex;flex-direction:column;gap:var(--space-sm);}
-    .view-count-badge{display:flex;align-items:center;gap:var(--space-xs);font-size:0.78rem;font-weight:700;color:var(--ink-faint);}
     /* Skeletons */
     .skeleton-line{height:14px;border-radius:6px;background:linear-gradient(90deg,var(--bg-alt) 25%,var(--border) 50%,var(--bg-alt) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;margin-bottom:var(--space-sm);}
     .skeleton-line.medium{width:70%;}.skeleton-line.short{width:40%;}.skeleton-line.tall{height:260px;}
     @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-    /* Update modal */
+    /* Update/Delete modals */
     .modal-backdrop{position:fixed;inset:0;background:rgba(42,26,14,0.6);z-index:800;opacity:0;pointer-events:none;transition:opacity 0.3s;backdrop-filter:blur(4px);}
     .modal-backdrop.open{opacity:1;pointer-events:all;}
     .modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-48%) scale(0.96);width:min(680px,95vw);max-height:90vh;background:var(--card);border-radius:var(--radius-xl);z-index:801;overflow:hidden;box-shadow:0 24px 80px rgba(42,26,14,0.25);transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s;opacity:0;pointer-events:none;display:flex;flex-direction:column;}
@@ -112,17 +112,20 @@
     .img-preview-item img{width:100%;height:100%;object-fit:cover;}
     .img-preview-remove{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(192,57,43,0.9);color:white;font-size:0.65rem;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform var(--t-fast);}
     .img-preview-remove:hover{transform:scale(1.2);}
-    /* Delete confirm modal */
     #delete-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;}
     #delete-modal.open{display:flex;}
     .delete-modal-inner{background:var(--bg);border-radius:var(--radius-xl);padding:2rem;max-width:400px;width:90%;border:2px solid var(--border);box-shadow:var(--shadow-lg);}
+    .wishlist-btn{display:flex;align-items:center;gap:var(--space-sm);padding:0.7rem var(--space-md);border-radius:var(--radius-pill);border:1.5px solid var(--border);background:var(--card);font-size:0.84rem;font-weight:700;color:var(--ink-muted);cursor:pointer;transition:all var(--t-base);font-family:var(--font-body);}
+    .wishlist-btn:hover{border-color:var(--accent);color:var(--accent);}
+    .wishlist-btn.wishlisted{border-color:var(--accent);color:var(--accent);background:rgba(240,98,146,0.06);}
+    .wishlist-btn svg{width:16px;height:16px;}
   </style>
 </head>
 <body>
 
 <div id="toast-container" aria-live="polite"></div>
 
-<!-- ── NAVBAR ── -->
+<!-- NAVBAR -->
 <nav class="navbar" role="navigation" aria-label="Main navigation">
   <div class="nav-inner">
     <a href="../index.html" class="nav-logo" aria-label="Cosnima home">
@@ -148,7 +151,7 @@
     <div class="nav-links">
       <a href="../index.html">Home</a>
       <a href="listings.html">Browse</a>
-      <a href="../offers/offers.html" id="offers-link" style="display:none;">My Offers</a>
+      <a href="../messages/messages.html" id="messages-link" style="display:none;">Messages</a>
       <a href="create-listing.html" id="sell-link" style="display:none;">+ Sell / Rent</a>
     </div>
     <div class="nav-right">
@@ -168,14 +171,14 @@
   <nav class="mobile-nav-links">
     <a href="../index.html">Home</a>
     <a href="listings.html">Browse</a>
-    <a href="../offers/offers.html" id="mobile-offers-link" style="display:none;">My Offers</a>
+    <a href="../messages/messages.html" id="mobile-messages-link" style="display:none;">Messages</a>
     <a href="create-listing.html" id="mobile-sell-link" style="display:none;">+ Sell / Rent</a>
   </nav>
   <div class="mobile-nav-actions" id="mobile-auth"></div>
 </div>
 <div class="mobile-overlay" id="mobile-overlay"></div>
 
-<!-- ── UPDATE MODAL ── -->
+<!-- UPDATE MODAL -->
 <div class="modal-backdrop" id="modal-backdrop" onclick="closeModal()"></div>
 <div class="modal" id="update-modal" role="dialog" aria-label="Update Listing" aria-modal="true">
   <div class="modal-header">
@@ -190,72 +193,22 @@
   <div class="modal-body">
     <form id="update-form">
       <div class="form-grid">
-        <div class="form-field full">
-          <label>Title</label>
-          <input type="text" id="u-title" placeholder="e.g. Nezuko Kamado Full Cosplay Set" maxlength="200">
-        </div>
-        <div class="form-field full">
-          <label>Description</label>
-          <textarea id="u-description" placeholder="Describe your cosplay in detail…" rows="4"></textarea>
-        </div>
-        <div class="form-field">
-          <label>Price (₱)</label>
-          <div class="price-field-wrap">
-            <span>₱</span>
-            <input type="number" id="u-price" placeholder="0.00" min="0" step="0.01">
-          </div>
-        </div>
-        <div class="form-field">
-          <label>Listing Type</label>
-          <select id="u-type">
-            <option value="SELL">For Sale</option>
-            <option value="RENT">For Rent</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label>Condition</label>
-          <select id="u-condition">
-            <option value="">Select condition…</option>
-            <option value="NEW">New</option>
-            <option value="LIKE_NEW">Like New</option>
-            <option value="USED">Used</option>
-            <option value="WORN">Worn</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label>Size</label>
-          <select id="u-size">
-            <option value="">Not specified</option>
-            <option value="XS">XS</option>
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-            <option value="XXL">XXL</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label>Character Name</label>
-          <input type="text" id="u-character" placeholder="e.g. Nezuko Kamado">
-        </div>
-        <div class="form-field">
-          <label>Series / Franchise</label>
-          <input type="text" id="u-series" placeholder="e.g. Demon Slayer">
-        </div>
-        <div class="form-field">
-          <label>Location</label>
-          <input type="text" id="u-location" placeholder="e.g. Quezon City, Manila">
-        </div>
+        <div class="form-field full"><label>Title</label><input type="text" id="u-title" placeholder="Title" maxlength="200"></div>
+        <div class="form-field full"><label>Description</label><textarea id="u-description" rows="4"></textarea></div>
+        <div class="form-field"><label>Price (₱)</label><div class="price-field-wrap"><span>₱</span><input type="number" id="u-price" min="0" step="0.01"></div></div>
+        <div class="form-field"><label>Type</label><select id="u-type"><option value="SELL">For Sale</option><option value="RENT">For Rent</option></select></div>
+        <div class="form-field"><label>Condition</label><select id="u-condition"><option value="">Select…</option><option value="NEW">New</option><option value="LIKE_NEW">Like New</option><option value="USED">Used</option><option value="WORN">Worn</option></select></div>
+        <div class="form-field"><label>Size</label><select id="u-size"><option value="">Not specified</option><option value="XS">XS</option><option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="XXL">XXL</option></select></div>
+        <div class="form-field"><label>Character</label><input type="text" id="u-character"></div>
+        <div class="form-field"><label>Series</label><input type="text" id="u-series"></div>
+        <div class="form-field"><label>Location</label><input type="text" id="u-location"></div>
         <div class="form-field full">
           <label>Convention Pickup</label>
-          <div id="conv-toggle" onclick="toggleConvention()" style="display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md) var(--space-lg);background:linear-gradient(135deg,rgba(200,122,80,0.08),rgba(240,98,146,0.05));border:2px solid rgba(200,122,80,0.2);border-radius:var(--radius-lg);cursor:pointer;transition:all var(--t-fast);" role="checkbox" aria-checked="false">
-            <div style="font-size:1.6rem;flex-shrink:0;" aria-hidden="true">🎪</div>
-            <div style="flex:1;">
-              <strong style="font-size:0.88rem;color:var(--ink);display:block;">Available for convention pickup</strong>
-              <small style="font-size:0.75rem;color:var(--ink-muted);">Buyers can pick this up at a cosplay convention or event</small>
-            </div>
-            <div id="conv-switch" style="width:44px;height:24px;border-radius:var(--radius-pill);background:var(--border-dark);position:relative;transition:background var(--t-base);flex-shrink:0;" aria-hidden="true">
-              <span style="position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,0.2);transition:transform var(--t-base);display:block;" id="conv-knob"></span>
+          <div id="conv-toggle" onclick="toggleConvention()" style="display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md) var(--space-lg);background:var(--bg-alt);border:2px solid var(--border);border-radius:var(--radius-lg);cursor:pointer;transition:all var(--t-fast);" role="checkbox" aria-checked="false">
+            <div style="font-size:1.4rem;flex-shrink:0;" aria-hidden="true">🎪</div>
+            <div style="flex:1;"><strong style="font-size:0.88rem;color:var(--ink);">Available for convention pickup</strong></div>
+            <div id="conv-switch" style="width:44px;height:24px;border-radius:var(--radius-pill);background:var(--border-dark);position:relative;transition:background var(--t-base);flex-shrink:0;">
+              <span id="conv-knob" style="position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,0.2);transition:transform var(--t-base);display:block;"></span>
             </div>
           </div>
         </div>
@@ -268,8 +221,8 @@
           <div class="img-upload-zone" id="img-drop-zone" onclick="document.getElementById('u-images').click()">
             <input type="file" id="u-images" multiple accept="image/*" onchange="handleImageFiles(this.files)">
             <div class="img-upload-icon">📸</div>
-            <p class="img-upload-text">Drop images here or <strong>browse</strong></p>
-            <p class="img-upload-hint">JPEG, PNG, WebP — max 10MB each</p>
+            <p class="img-upload-text">Drop images or <strong>browse</strong></p>
+            <p class="img-upload-hint">JPEG, PNG, WebP — max 10MB</p>
           </div>
           <div class="img-previews" id="img-preview-grid"></div>
         </div>
@@ -286,11 +239,11 @@
   </div>
 </div>
 
-<!-- ── DELETE CONFIRM ── -->
+<!-- DELETE CONFIRM -->
 <div id="delete-modal" role="dialog" aria-modal="true" aria-label="Confirm delete">
   <div class="delete-modal-inner">
     <h3 style="margin-bottom:0.75rem;color:var(--error);">Delete Listing?</h3>
-    <p style="color:var(--ink-muted);margin-bottom:1.5rem;">This action cannot be undone. All images and offers will be permanently removed.</p>
+    <p style="color:var(--ink-muted);margin-bottom:1.5rem;">This cannot be undone. All images and data will be permanently removed.</p>
     <div style="display:flex;gap:1rem;justify-content:flex-end;">
       <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
       <button class="btn" style="background:var(--error);color:white;border-color:var(--error);" onclick="executeDelete()">
@@ -301,7 +254,7 @@
   </div>
 </div>
 
-<!-- ── MAIN ── -->
+<!-- MAIN -->
 <main class="view-listing-page">
   <div class="container">
 
@@ -318,7 +271,6 @@
           <div style="display:flex;gap:var(--space-sm);">
             <div class="skeleton-line" style="width:72px;height:72px;border-radius:var(--radius);flex-shrink:0;"></div>
             <div class="skeleton-line" style="width:72px;height:72px;border-radius:var(--radius);flex-shrink:0;"></div>
-            <div class="skeleton-line" style="width:72px;height:72px;border-radius:var(--radius);flex-shrink:0;"></div>
           </div>
         </div>
         <div>
@@ -326,7 +278,6 @@
           <div class="skeleton-line" style="height:36px;margin:var(--space-sm) 0;width:60%;"></div>
           <div class="skeleton-line short"></div>
           <div class="skeleton-line medium"></div>
-          <div class="skeleton-line short"></div>
         </div>
       </div>
     </div>
@@ -338,7 +289,7 @@
         <!-- Left: Gallery -->
         <div>
           <div class="gallery-main" id="gallery-main">
-            <div class="gallery-placeholder" id="gallery-placeholder" aria-hidden="true">🌸</div>
+            <div class="gallery-placeholder" id="gallery-placeholder">🌸</div>
             <div class="gallery-nav" id="gallery-nav" style="display:none;">
               <button class="gallery-btn" onclick="changeImg(-1)" aria-label="Previous image">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
@@ -347,9 +298,9 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
               </button>
             </div>
-            <div class="gallery-counter" id="gallery-counter" style="display:none;" aria-live="polite">1 / 1</div>
+            <div class="gallery-counter" id="gallery-counter" style="display:none;">1 / 1</div>
           </div>
-          <div class="gallery-thumbs" id="gallery-thumbs" aria-label="Image thumbnails"></div>
+          <div class="gallery-thumbs" id="gallery-thumbs"></div>
         </div>
 
         <!-- Right: Details -->
@@ -392,10 +343,11 @@
                 </div>
               </div>
             </div>
-            <div class="seller-actions" id="seller-actions"></div>
+            <!-- PHASE 1: Action buttons injected here (message + rent) -->
+            <div id="listing-action-area"></div>
           </div>
 
-          <!-- Owner Panel (shown if isOwner) -->
+          <!-- Owner Panel -->
           <div class="owner-panel" id="owner-panel" style="display:none;" role="region" aria-label="Owner controls">
             <div class="owner-panel-label">Your Listing</div>
             <div class="status-selector">
@@ -413,17 +365,11 @@
                 Edit / Update Listing
               </button>
               <button class="btn btn-outline" onclick="confirmDelete()" style="border-color:var(--error);color:var(--error);">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
                 Delete Listing
               </button>
             </div>
           </div>
-
-          <!-- Incoming Offers (seller) -->
-          <div id="incoming-offers-container" aria-live="polite"></div>
-
-          <!-- Make Offer (buyer) -->
-          <div id="make-offer-container" aria-live="polite"></div>
 
         </div>
       </div>
@@ -444,9 +390,9 @@
 
 <script src="../js/api.js"></script>
 <script src="../js/nav.js"></script>
-<script src="../js/offers.js"></script>
+<script src="../js/listing-actions.js"></script>
 <script>
-/* ─── View Listing Logic ─── */
+/* ─── View Listing Core Logic ─── */
 let listing       = null;
 let currentImgIdx = 0;
 let images        = [];
@@ -461,9 +407,8 @@ const listingId = params.get('id');
 document.addEventListener('DOMContentLoaded', () => {
   if (!listingId) { showError('No listing ID specified.'); return; }
 
-  // Show nav links
   if (API.isLoggedIn()) {
-    ['offers-link','mobile-offers-link','sell-link','mobile-sell-link'].forEach(id => {
+    ['messages-link','mobile-messages-link','sell-link','mobile-sell-link'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = '';
     });
@@ -473,7 +418,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setupDropZone();
 });
 
-/* ─── Load listing ─── */
 async function loadListing() {
   try {
     listing = await API.get(`/api/listings/${listingId}`, API.isLoggedIn());
@@ -498,13 +442,14 @@ function renderListing(l) {
 
   document.getElementById('listing-title').textContent = l.title || 'Untitled';
   document.getElementById('listing-price').textContent = l.price ? `₱${Number(l.price).toLocaleString('en-PH')}` : '—';
-  document.getElementById('listing-price-note').textContent = l.type === 'RENT' ? '/ event' : '';
+  document.getElementById('listing-price-note').textContent = l.type === 'RENT' ? '/ day' : '';
 
   const chips = [];
   if (l.size)             chips.push(`<div class="info-chip">Size ${l.size}</div>`);
-  if (l.characterName)    chips.push(`<div class="info-chip">${escapeHtml(l.characterName)}</div>`);
-  if (l.seriesName)       chips.push(`<div class="info-chip">${escapeHtml(l.seriesName)}</div>`);
-  if (l.location)         chips.push(`<div class="info-chip">📍 ${escapeHtml(l.location)}</div>`);
+  if (l.characterName)    chips.push(`<div class="info-chip">${escH(l.characterName)}</div>`);
+  if (l.seriesName)       chips.push(`<div class="info-chip">${escH(l.seriesName)}</div>`);
+  if (l.condition)        chips.push(`<div class="info-chip">${l.condition.replace('_',' ')}</div>`);
+  if (l.location)         chips.push(`<div class="info-chip">📍 ${escH(l.location)}</div>`);
   if (l.conventionPickup) chips.push(`<div class="info-chip">🎪 Convention Pickup</div>`);
   document.getElementById('info-chips').innerHTML = chips.join('');
 
@@ -512,18 +457,17 @@ function renderListing(l) {
 
   if (l.tags && l.tags.length) {
     document.getElementById('listing-tags').innerHTML = l.tags.map(t =>
-      `<span class="listing-tag">#${escapeHtml(t)}</span>`).join('');
+      `<span class="listing-tag">#${escH(t)}</span>`).join('');
   }
 
   document.getElementById('view-count-badge').innerHTML = `
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
     <span>${l.viewCount || 0} view${l.viewCount !== 1 ? 's' : ''}</span>`;
 
-  // Seller info
-  const sellerName  = l.sellerUsername || 'Unknown';
-  const initial     = sellerName.charAt(0).toUpperCase();
-  const sellerId    = l.sellerId || l.seller?.id;
-  const isOwner     = !!l.isOwner;
+  const sellerName = l.sellerUsername || 'Unknown';
+  const initial    = sellerName.charAt(0).toUpperCase();
+  const sellerId   = l.sellerId || l.seller?.id;
+  const isOwner    = !!l.isOwner;
 
   document.getElementById('seller-name').textContent   = sellerName;
   document.getElementById('seller-avatar').textContent = initial;
@@ -531,63 +475,47 @@ function renderListing(l) {
   if (sellerId) {
     const sellerCard = document.getElementById('seller-card');
     sellerCard.style.cursor = 'pointer';
-    sellerCard.setAttribute('role', 'button');
-    sellerCard.setAttribute('tabindex', '0');
     sellerCard.addEventListener('click', (e) => {
-      if (e.target.closest('button') || e.target.closest('a')) return;
+      if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.listing-action-btns') || e.target.closest('.action-auth-gate')) return;
       window.location.href = isOwner
         ? '../profile/profile.html'
         : `../profile/public-profile.html?id=${sellerId}`;
     });
 
-    // Load avatar
-    API.get(`/api/listings/${listingId}/user-profile`, true)
-      .then(avatarUrl => {
-        if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.trim()) {
-          document.getElementById('seller-avatar').innerHTML =
-            `<img src="${avatarUrl.trim()}" alt="${escapeHtml(sellerName)}">`;
-        }
-      }).catch(() => {});
+    API.get(`/api/listings/${listingId}/user-profile`, true).then(avatarUrl => {
+      if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.trim()) {
+        document.getElementById('seller-avatar').innerHTML =
+          `<img src="${avatarUrl.trim()}" alt="${escH(sellerName)}">`;
+      }
+    }).catch(() => {});
 
-    // Load seller details
-    API.get(`/api/listings/${listingId}/user-details`, true)
-      .then(details => {
-        if (!details) return;
-        const avg = details.averageRating != null ? Number(details.averageRating) : null;
-        const ratingEl = document.getElementById('seller-rating');
-        if (avg !== null && ratingEl) {
-          const full = Math.round(avg);
-          ratingEl.innerHTML = `<span class="stars">${'★'.repeat(full)}${'☆'.repeat(5-full)}</span><span>${avg.toFixed(1)}</span>`;
-        }
-      }).catch(() => {});
+    API.get(`/api/listings/${listingId}/user-details`, true).then(details => {
+      if (!details) return;
+      const avg = details.averageRating != null ? Number(details.averageRating) : null;
+      const ratingEl = document.getElementById('seller-rating');
+      if (avg !== null && ratingEl) {
+        const full = Math.round(avg);
+        ratingEl.innerHTML = `<span class="stars">${'★'.repeat(full)}${'☆'.repeat(5-full)}</span><span>${avg.toFixed(1)}</span>`;
+      }
+    }).catch(() => {});
+  }
+
+  /* PHASE 1: Render action buttons (not offers) */
+  const actionArea = document.getElementById('listing-action-area');
+  if (!isOwner) {
+    renderListingActions(l, actionArea);
   }
 
   if (isOwner) {
     document.getElementById('owner-panel').style.display = 'block';
-    document.getElementById('seller-actions').innerHTML = '';
-
     document.querySelectorAll('.status-opt').forEach(o => {
       o.classList.toggle('active', o.getAttribute('data-status') === currentStatus);
     });
-
     prefillUpdateForm(l);
     attachStatusHandlers();
-    renderIncomingOffers(listingId, document.getElementById('incoming-offers-container'));
-  } else {
-    document.getElementById('seller-actions').innerHTML = `
-      <a href="message-seller.html?listing=${l.id}&seller=${l.sellerId || ''}" class="btn btn-primary">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-        Message Seller
-      </a>
-      <button class="btn btn-outline" id="wish-btn" onclick="toggleWish('${escapeHtml(String(l.id))}')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-        Save to Wishlist
-      </button>`;
-
-    renderMakeOfferForm(listingId, l.price, document.getElementById('make-offer-container'), false);
   }
 
-  document.getElementById('loading-state').style.display = 'none';
+  document.getElementById('loading-state').style.display  = 'none';
   document.getElementById('listing-content').style.display = 'block';
 }
 
@@ -602,12 +530,10 @@ function rebuildBadges() {
     : '';
   const statusColors = { AVAILABLE:'var(--success)', SOLD:'var(--ink)', RENTED:'var(--beaver)', ARCHIVED:'var(--ink-faint)' };
   const statusBadge = `<span class="badge" style="background:${statusColors[currentStatus]||'var(--ink)'};color:white;">${currentStatus.charAt(0)+currentStatus.slice(1).toLowerCase()}</span>`;
-  const convBadge = listing.conventionPickup
-    ? `<span class="badge" style="background:var(--beaver);color:white;">🎪 Conv. Pickup</span>` : '';
-  document.getElementById('listing-badges').innerHTML = typeBadge + condBadge + statusBadge + convBadge;
+  document.getElementById('listing-badges').innerHTML = typeBadge + condBadge + statusBadge;
 }
 
-/* ─── Gallery ─── */
+/* Gallery */
 function renderGallery(imgs) {
   currentImgIdx = 0;
   const main        = document.getElementById('gallery-main');
@@ -632,8 +558,8 @@ function renderGallery(imgs) {
 
   thumbs.innerHTML = imgs.map((img, i) => {
     const url = img?.imageUrl || img;
-    return `<div class="gallery-thumb ${i===0?'active':''}" onclick="goToImg(${i})" role="button" aria-label="Image ${i+1}" tabindex="0">
-      <img src="${escapeHtml(url)}" alt="Thumbnail ${i+1}" loading="lazy">
+    return `<div class="gallery-thumb ${i===0?'active':''}" onclick="goToImg(${i})" role="button" tabindex="0" aria-label="Image ${i+1}">
+      <img src="${escH(url)}" alt="Thumbnail ${i+1}" loading="lazy">
     </div>`;
   }).join('');
 }
@@ -647,90 +573,57 @@ function changeImg(dir) {
 function goToImg(idx) {
   currentImgIdx = idx;
   const url = images[idx]?.imageUrl || images[idx];
-  if (window._mainImg) { window._mainImg.style.opacity = '0'; window._mainImg.src = url; window._mainImg.onload = () => { window._mainImg.style.opacity = '1'; }; }
+  if (window._mainImg) { window._mainImg.style.opacity='0'; window._mainImg.src=url; window._mainImg.onload=()=>{window._mainImg.style.opacity='1';}; }
   document.getElementById('gallery-counter').textContent = `${idx+1} / ${images.length}`;
   document.querySelectorAll('.gallery-thumb').forEach((t, i) => t.classList.toggle('active', i === idx));
 }
 
-/* ─── Status updates ─── */
+/* Status */
 function attachStatusHandlers() {
   document.querySelectorAll('.status-opt').forEach(btn => {
-    btn.addEventListener('click', handleStatusClick);
+    btn.addEventListener('click', async () => {
+      const newStatus = btn.getAttribute('data-status');
+      if (!newStatus || newStatus === currentStatus) return;
+      const allBtns = document.querySelectorAll('.status-opt');
+      allBtns.forEach(b => { b.disabled=true; b.style.opacity='0.5'; });
+      try {
+        await API.patch(`/api/listings/${listingId}/status?status=${newStatus}`, null, true);
+        currentStatus = newStatus;
+        allBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        rebuildBadges();
+        showToast(`Status → ${newStatus.charAt(0)+newStatus.slice(1).toLowerCase()}`, 'success');
+      } catch {
+        showToast('Could not update status.', 'error');
+      } finally {
+        allBtns.forEach(b => { b.disabled=false; b.style.opacity='1'; });
+      }
+    });
   });
 }
 
-async function handleStatusClick(e) {
-  const btn       = e.currentTarget;
-  const newStatus = btn.getAttribute('data-status');
-  if (!newStatus || newStatus === currentStatus) return;
-
-  const allBtns = document.querySelectorAll('.status-opt');
-  allBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
-
-  try {
-    await API.patch(`/api/listings/${listingId}/status?status=${newStatus}`, null, true);
-    currentStatus = newStatus;
-    allBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    rebuildBadges();
-    showToast(`Status → ${newStatus.charAt(0)+newStatus.slice(1).toLowerCase()}`, 'success');
-  } catch (err) {
-    showToast('Could not update status.', 'error');
-  } finally {
-    allBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
-  }
-}
-
-/* ─── Update modal ─── */
+/* Update modal */
 function prefillUpdateForm(l) {
-  const set = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
-  set('u-title', l.title);
-  set('u-description', l.description);
-  set('u-price', l.price);
-  set('u-type', l.type);
-  set('u-condition', l.condition || '');
-  set('u-size', l.size || '');
-  set('u-character', l.characterName);
-  set('u-series', l.seriesName);
-  set('u-location', l.location);
-  conventionOn = !!l.conventionPickup;
-  updateConvToggle();
+  const set = (id, val) => { const el=document.getElementById(id); if(el&&val!=null) el.value=val; };
+  set('u-title',l.title); set('u-description',l.description); set('u-price',l.price);
+  set('u-type',l.type); set('u-condition',l.condition||''); set('u-size',l.size||'');
+  set('u-character',l.characterName); set('u-series',l.seriesName); set('u-location',l.location);
+  conventionOn = !!l.conventionPickup; updateConvToggle();
 }
 
-function openModal() {
-  document.getElementById('modal-backdrop').classList.add('open');
-  document.getElementById('update-modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeModal() {
-  document.getElementById('modal-backdrop').classList.remove('open');
-  document.getElementById('update-modal').classList.remove('open');
-  document.body.style.overflow = '';
-}
+function openModal() { document.getElementById('modal-backdrop').classList.add('open'); document.getElementById('update-modal').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal() { document.getElementById('modal-backdrop').classList.remove('open'); document.getElementById('update-modal').classList.remove('open'); document.body.style.overflow=''; }
 
 function toggleConvention() {
-  conventionOn = !conventionOn;
-  updateConvToggle();
+  conventionOn = !conventionOn; updateConvToggle();
   document.getElementById('conv-toggle').setAttribute('aria-checked', conventionOn);
 }
 
 function updateConvToggle() {
-  const toggle = document.getElementById('conv-toggle');
-  const knob   = document.getElementById('conv-knob');
-  const sw     = document.getElementById('conv-switch');
+  const toggle=document.getElementById('conv-toggle'); const knob=document.getElementById('conv-knob'); const sw=document.getElementById('conv-switch');
   if (!toggle) return;
-  if (conventionOn) {
-    toggle.style.borderColor   = 'var(--beaver)';
-    toggle.style.background    = 'rgba(200,122,80,0.12)';
-    if (sw)   sw.style.background = 'var(--beaver)';
-    if (knob) knob.style.transform = 'translateX(20px)';
-  } else {
-    toggle.style.borderColor   = 'rgba(200,122,80,0.2)';
-    toggle.style.background    = 'linear-gradient(135deg,rgba(200,122,80,0.08),rgba(240,98,146,0.05))';
-    if (sw)   sw.style.background = 'var(--border-dark)';
-    if (knob) knob.style.transform = 'translateX(0)';
-  }
+  if (conventionOn) { toggle.style.borderColor='var(--beaver)'; toggle.style.background='rgba(200,122,80,0.1)'; if(sw) sw.style.background='var(--beaver)'; if(knob) knob.style.transform='translateX(20px)'; }
+  else { toggle.style.borderColor='var(--border)'; toggle.style.background='var(--bg-alt)'; if(sw) sw.style.background='var(--border-dark)'; if(knob) knob.style.transform='translateX(0)'; }
 }
 
 function setImgMode(el, mode) {
@@ -758,54 +651,35 @@ function setupDropZone() {
   if (!zone) return;
   zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
   zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
-  zone.addEventListener('drop', e => {
-    e.preventDefault();
-    zone.classList.remove('dragover');
-    handleImageFiles(e.dataTransfer.files);
-  });
+  zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('dragover'); handleImageFiles(e.dataTransfer.files); });
 }
 
 async function submitUpdate() {
-  const btn     = document.getElementById('update-submit-btn');
-  const btnText = btn.querySelector('.btn-text');
-  const loader  = btn.querySelector('.btn-loader');
-  btn.disabled  = true;
-  if (btnText) btnText.style.display = 'none';
-  if (loader)  loader.style.display  = 'flex';
-
+  const btn = document.getElementById('update-submit-btn');
+  const btnText = btn.querySelector('.btn-text'); const loader = btn.querySelector('.btn-loader');
+  btn.disabled=true; if(btnText) btnText.style.display='none'; if(loader) loader.style.display='flex';
   try {
     const get = id => document.getElementById(id)?.value?.trim() || null;
     const formData = new FormData();
     formData.append('value', new Blob([JSON.stringify({
-      title:             get('u-title'),
-      description:       get('u-description'),
-      price:             get('u-price'),
-      type:              get('u-type'),
-      condition:         get('u-condition'),
-      size:              get('u-size'),
-      characterName:     get('u-character'),
-      seriesName:        get('u-series'),
-      location:          get('u-location'),
-      conventionPickup:  conventionOn,
-      imageMode:         imgMode,
-    })], { type: 'application/json' }));
+      title:get('u-title'), description:get('u-description'), price:get('u-price'),
+      type:get('u-type'), condition:get('u-condition'), size:get('u-size'),
+      characterName:get('u-character'), seriesName:get('u-series'), location:get('u-location'),
+      conventionPickup:conventionOn, imageMode:imgMode,
+    })], { type:'application/json' }));
     newFiles.forEach(f => formData.append('files', f));
-
     await API.patchForm(`/api/listings/update/${listingId}`, formData);
     showToast('Listing updated! ✨', 'success');
-    closeModal();
-    newFiles = [];
+    closeModal(); newFiles=[];
     await loadListing();
   } catch (err) {
-    showToast(err?.data?.message || err?.message || 'Update failed. Try again.', 'error');
+    showToast(err?.data?.message || err?.message || 'Update failed.', 'error');
   } finally {
-    btn.disabled = false;
-    if (btnText) btnText.style.display = 'inline';
-    if (loader)  loader.style.display  = 'none';
+    btn.disabled=false; if(btnText) btnText.style.display='inline'; if(loader) loader.style.display='none';
   }
 }
 
-/* ─── Delete ─── */
+/* Delete */
 function confirmDelete() { document.getElementById('delete-modal').classList.add('open'); }
 function closeDeleteModal() { document.getElementById('delete-modal').classList.remove('open'); }
 
@@ -815,24 +689,10 @@ async function executeDelete() {
     await API.delete(`/api/listings/${listingId}`, true);
     showToast('Listing deleted.', 'success');
     setTimeout(() => { window.location.href = '../profile/profile.html'; }, 1200);
-  } catch (err) {
-    showToast('Could not delete. Try again.', 'error');
-  }
+  } catch { showToast('Could not delete. Try again.', 'error'); }
 }
 
-/* ─── Wishlist ─── */
-function toggleWish(id) {
-  if (!API.isLoggedIn()) { showToast('Log in to save to wishlist', 'info'); return; }
-  try {
-    const list = JSON.parse(localStorage.getItem('cosnimaWishlist') || '[]');
-    const idx  = list.indexOf(String(id));
-    if (idx > -1) { list.splice(idx, 1); showToast('Removed from wishlist', 'info', 2000); }
-    else { list.push(String(id)); showToast('❤️ Added to wishlist', 'success', 2000); }
-    localStorage.setItem('cosnimaWishlist', JSON.stringify(list));
-  } catch { showToast('Could not update wishlist.', 'error'); }
-}
-
-/* ─── Error state ─── */
+/* Error state */
 function showError(msg) {
   document.getElementById('loading-state').style.display  = 'none';
   document.getElementById('listing-content').style.display = 'none';
@@ -842,9 +702,8 @@ function showError(msg) {
   errState.style.display = 'flex';
 }
 
-/* ─── Helpers ─── */
-function escapeHtml(str) {
-  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function escH(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 </body>

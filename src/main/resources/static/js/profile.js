@@ -352,6 +352,7 @@ function showPageError(msg) {
   if (el) { el.textContent = msg; el.style.display = 'block'; }
 }
 
+
 /* ── Logout ── */
 async function logout() {
   try {

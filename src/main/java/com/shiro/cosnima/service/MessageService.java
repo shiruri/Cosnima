@@ -43,7 +43,7 @@ public class MessageService {
     }
 
     public List<ConversationResponse> getUserConversations(String userId) {
-        return conversationRepo.findAllByUserId(userId).stream()
+        return conversationRepo.findAllByUserId(UUID.fromString(userId)).stream()
                 .map(ConversationMapper::toDto)
                 .toList();
     }
@@ -58,7 +58,8 @@ public class MessageService {
 
         // 1. Check if conversation already exists
         Optional<Conversation> existing = conversationRepo
-                .findExistingConversation(req.getListingId(), req.getBuyerId());
+                .findExistingConversation(req.getListingId(),UUID.fromString
+                        (req.getBuyerId()));
 
         if (existing.isPresent()) {
             return ConversationMapper.toDto(existing.get());

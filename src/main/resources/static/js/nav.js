@@ -1,5 +1,9 @@
 /* ============================================
-   COSNIMA — Shared Nav & UI Logic
+   COSNIMA — Shared Nav & UI Logic (FIXED)
+   - Consistent offers link in all navbars
+   - Correct relative path detection
+   - Duplicate event handler prevention
+   - Graceful error handling
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -26,9 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ── Mobile nav ──
-  const hamburger = document.getElementById('hamburger');
-  const mobileNav  = document.getElementById('mobile-nav');
-  const overlay    = document.getElementById('mobile-overlay');
+  const hamburger    = document.getElementById('hamburger');
+  const mobileNav    = document.getElementById('mobile-nav');
+  const overlay      = document.getElementById('mobile-overlay');
 
   const closeMenu = () => {
     hamburger?.setAttribute('aria-expanded', 'false');
@@ -42,9 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay?.classList.add('active');
     document.body.style.overflow = 'hidden';
   };
-  const toggleMenu = () => hamburger?.getAttribute('aria-expanded') === 'true' ? closeMenu() : openMenu();
 
-  hamburger?.addEventListener('click', toggleMenu);
+  hamburger?.addEventListener('click', () => {
+    hamburger.getAttribute('aria-expanded') === 'true' ? closeMenu() : openMenu();
+  });
   overlay?.addEventListener('click', closeMenu);
   mobileNav?.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
 
@@ -52,9 +57,10 @@ document.addEventListener('DOMContentLoaded', () => {
   renderNavAuth(document.getElementById('nav-auth'));
   renderNavAuth(document.getElementById('mobile-auth'));
 
-  // Show sell link if logged in
+  // Show logged-in-only links
   if (API.isLoggedIn()) {
-    document.querySelectorAll('#sell-link, #mobile-sell-link').forEach(el => {
+    ['sell-link', 'mobile-sell-link', 'offers-link', 'mobile-offers-link'].forEach(id => {
+      const el = document.getElementById(id);
       if (el) el.style.display = '';
     });
     const heroSell = document.getElementById('hero-sell-btn');
@@ -63,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Scroll reveals ──
   const revealEls = document.querySelectorAll('.reveal, .stagger');
-  if (revealEls.length) {
+  if (revealEls.length && 'IntersectionObserver' in window) {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -73,65 +79,76 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }, { threshold: 0.06 });
     revealEls.forEach(el => observer.observe(el));
+  } else {
+    // Fallback for no IntersectionObserver
+    revealEls.forEach(el => el.classList.add('visible'));
   }
 
-  // ── Smooth page transitions ──
-  document.querySelectorAll('a[href]:not([href^="#"]):not([href^="http"]):not([href^="mailto"]):not([target])').forEach(link => {
+  // ── Smooth page transitions (prevent duplicate listeners) ──
+  document.querySelectorAll('a[href]:not([href^="#"]):not([href^="http"]):not([href^="mailto"]):not([target]):not([data-nav-wired])').forEach(link => {
+    link.setAttribute('data-nav-wired', 'true');
     link.addEventListener('click', (e) => {
       const href = link.getAttribute('href');
       if (!href || href === '#' || href.startsWith('javascript')) return;
       e.preventDefault();
-      document.body.classList.add('fade-out');
-      setTimeout(() => { window.location.href = href; }, 260);
+      navigateTo(href);
     });
   });
 
   // ── Image fallback ──
   document.querySelectorAll('img').forEach(img => {
+    if (img.dataset.fallbackWired) return;
+    img.dataset.fallbackWired = 'true';
     img.addEventListener('error', () => {
+      if (img.dataset.fallbackApplied) return;
+      img.dataset.fallbackApplied = 'true';
       img.style.display = 'none';
       const placeholder = document.createElement('div');
       placeholder.className = 'card-thumb-placeholder';
-      placeholder.textContent = '🌸';
-      img.parentNode?.appendChild(placeholder);
+      placeholder.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" style="width:32px;height:32px;opacity:0.4"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`;
+      img.parentNode?.insertBefore(placeholder, img.nextSibling);
     });
   });
 
 });
 
+/* ── Detect path depth for relative links ── */
+function getPathPrefix() {
+  const path = window.location.pathname;
+  if (path.includes('/listing/') || path.includes('/profile/') ||
+      path.includes('/login/')   || path.includes('/signup/')  ||
+      path.includes('/offers/'))  return '../';
+  return '';
+}
+
 /* ── Render nav auth buttons ── */
 function renderNavAuth(container) {
   if (!container) return;
+  const prefix = getPathPrefix();
+
   if (API.isLoggedIn()) {
     const user = API.getUser();
     const name = user?.username || 'Cosplayer';
     const initial = name.charAt(0).toUpperCase();
-    // Figure out profile path (1 or 2 levels deep)
-    const isRoot = !window.location.pathname.includes('/listing/') &&
-                   !window.location.pathname.includes('/profile/') &&
-                   !window.location.pathname.includes('/login/') &&
-                   !window.location.pathname.includes('/signup/');
-    const profilePath = isRoot ? 'profile/profile.html' : '../profile/profile.html';
+
+    // Determine profile path
+    const profilePath = prefix + 'profile/profile.html';
+
     container.innerHTML = `
       <div class="auth-greeting">
-        <a href="${profilePath}" style="text-decoration:none;display:flex;align-items:center;gap:0.5rem;">
-          <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--beaver),var(--accent));color:white;font-size:0.75rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            ${initial}
+        <a href="${profilePath}" style="text-decoration:none;display:flex;align-items:center;gap:0.5rem;" aria-label="My profile">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--beaver),var(--accent));color:white;font-size:0.78rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:2px solid var(--card);box-shadow:0 0 0 2px var(--accent);">
+            ${escapeHtml(initial)}
           </div>
-          <span class="greeting-text" style="display:none;">Hi, <strong>${name}</strong></span>
+          <span class="greeting-text" style="display:none;">Hi, <strong>${escapeHtml(name)}</strong></span>
         </a>
-        <button class="btn btn-ghost btn-nav" onclick="logout()" style="padding:0.4rem 0.8rem;font-size:0.8rem;">Log out</button>
+        <button class="btn btn-ghost btn-nav" onclick="logout()" style="padding:0.4rem 0.8rem;font-size:0.8rem;" aria-label="Log out">Log out</button>
       </div>
     `;
-    // Show name on desktop
+
     const greetSpan = container.querySelector('.greeting-text');
     if (greetSpan && window.innerWidth >= 1024) greetSpan.style.display = 'inline';
   } else {
-    const isRoot = !window.location.pathname.includes('/listing/') &&
-                   !window.location.pathname.includes('/profile/') &&
-                   !window.location.pathname.includes('/login/') &&
-                   !window.location.pathname.includes('/signup/');
-    const prefix = isRoot ? '' : '../';
     container.innerHTML = `
       <a href="${prefix}login/login.html" class="btn btn-ghost btn-nav">Log in</a>
       <a href="${prefix}signup/register.html" class="btn btn-primary btn-nav">Register</a>
@@ -141,18 +158,25 @@ function renderNavAuth(container) {
 
 /* ── Logout ── */
 async function logout() {
-  try { await API.post('/api/auth/logout', {}, true); } catch (e) { /* ignore */ }
+  try { await API.post('/api/auth/logout', {}, true); } catch { /* ignore */ }
   API.clearSession();
   showToast('Logged out. See you soon! 🦫', 'success', 2000);
   setTimeout(() => {
-    document.body.classList.add('fade-out');
-    const isRoot = !window.location.pathname.includes('/listing/') && !window.location.pathname.includes('/profile/');
-    setTimeout(() => { window.location.href = (isRoot ? '' : '../') + 'login/login.html'; }, 280);
-  }, 600);
+    navigateTo(getPathPrefix() + 'login/login.html');
+  }, 700);
 }
 
-/* ── Redirect helper ── */
-function redirectTo(url) {
+/* ── Navigation with fade ── */
+function navigateTo(url) {
   document.body.classList.add('fade-out');
   setTimeout(() => { window.location.href = url; }, 260);
+}
+
+function redirectTo(url) { navigateTo(url); }
+
+/* ── Escape helper (used in nav auth) ── */
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }

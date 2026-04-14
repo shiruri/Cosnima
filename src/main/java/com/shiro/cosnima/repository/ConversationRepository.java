@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface ConversationRepository extends JpaRepository<Conversation, String> {
@@ -19,7 +20,7 @@ public interface ConversationRepository extends JpaRepository<Conversation, Stri
 WHERE c.buyer.id = :userId
    OR c.seller.id = :userId
 """)
-    List<Conversation> findAllByUserId(@Param("userId") String userId);
+    List<Conversation> findAllByUserId(@Param("userId") UUID userId);
 
     @Query("""
     SELECT c FROM Conversation c
@@ -28,7 +29,7 @@ WHERE c.buyer.id = :userId
 """)
     Optional<Conversation> findExistingConversation(
             @Param("listingId") String listingId,
-            @Param("buyerId") String buyerId
+            @Param("buyerId") UUID buyerId
     );
 
 }
