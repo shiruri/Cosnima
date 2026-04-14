@@ -6,7 +6,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Redirect if already logged in
   if (API.isLoggedIn()) {
-    redirectTo('../index.html');
+    const params = new URLSearchParams(window.location.search);
+    const redirect = params.get('redirect');
+    if (redirect === 'listing') {
+      redirectTo('../listing/view-listing.html');
+    } else {
+      redirectTo('../index.html');
+    }
     return;
   }
 
@@ -60,7 +66,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         API.setSession(result.token, result.user);
         showBanner('Signed in! Redirecting…', 'success');
-        setTimeout(() => redirectTo('../index.html'), 900);
+        const params = new URLSearchParams(window.location.search);
+        const redirect = params.get('redirect');
+        const redirectUrl = redirect === 'listing' ? '../listing/view-listing.html' : '../index.html';
+        setTimeout(() => redirectTo(redirectUrl), 900);
 
       } catch (err) {
         const status = err?.status;
@@ -133,7 +142,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         showBanner('Account created! Redirecting to login…', 'success');
-        setTimeout(() => redirectTo('../login/login.html'), 1500);
+        const params = new URLSearchParams(window.location.search);
+        const redirect = params.get('redirect');
+        const loginUrl = redirect === 'listing' ? '../login/login.html?redirect=listing' : '../login/login.html';
+        setTimeout(() => redirectTo(loginUrl), 1500);
 
       } catch (err) {
         const status = err?.status;

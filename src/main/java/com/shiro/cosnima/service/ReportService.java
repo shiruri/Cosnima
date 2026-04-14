@@ -86,7 +86,7 @@ public class ReportService {
     }
 
     public List<ReportResponse> getUserReports(UUID userId) {
-        return reportRepo.findByUserId(userId).stream().map(ReportMapper::toDto).toList();
+        return reportRepo.findByReporterId(userId).stream().map(ReportMapper::toDto).toList();
     }
 
 }

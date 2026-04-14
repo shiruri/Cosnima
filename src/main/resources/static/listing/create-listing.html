@@ -7,21 +7,50 @@
   <link rel="stylesheet" href="../css/variables.css">
   <link rel="stylesheet" href="../css/global.css">
   <link rel="stylesheet" href="../css/home.css">
-  <!-- Existing -->
-<link rel="stylesheet" href="../css/variables.css">
-<link rel="stylesheet" href="../css/global.css">
-<link rel="stylesheet" href="../css/home.css">
-
-<!-- ADD THESE -->
-<link rel="stylesheet" href="../css/messages.css">
-<link rel="stylesheet" href="../css/rentals.css">
-<link rel="stylesheet" href="../css/profile-enhanced.css">
   <script>(function(){var t=localStorage.getItem('cosnimaTheme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
   <style>
     /* Additional styles for create listing page */
     .create-listing-page {
       padding-top: calc(var(--nav-h) + var(--space-xl));
       padding-bottom: var(--space-3xl);
+    }
+
+    /* Rental type section styling */
+    .rental-info-section {
+      background: rgba(139, 92, 246, 0.05);
+      border: 1.5px solid rgba(139, 92, 246, 0.2);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-lg);
+      animation: fadeIn 0.3s ease;
+    }
+    .rental-info-section label {
+      color: #7c3aed;
+      font-weight: 700;
+    }
+    .rental-info-section .field-hint {
+      color: rgba(139, 92, 246, 0.7);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Type selection styling */
+    #type {
+      background: var(--card);
+    }
+    #type.rent-mode {
+      border-color: #7c3aed;
+      background: rgba(139, 92, 246, 0.08);
+    }
+    #type.sell-mode {
+      border-color: var(--beaver);
+      background: rgba(200, 122, 80, 0.08);
     }
 
     /* Multi-step progress - enhanced with numbers */
@@ -80,6 +109,96 @@
       background: white;
       color: var(--beaver);
     }
+    .nav-clear-btn {
+      background: rgba(220, 38, 38, 0.08);
+      border: 1.5px solid rgba(220, 38, 38, 0.3);
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      transition: all var(--t-fast);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-body);
+    }
+    /* Floating Clear Button */
+    .floating-clear-btn {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--accent), #f8bbd0);
+      border: none;
+      border-radius: var(--radius-pill);
+      padding: 10px 16px;
+      cursor: pointer;
+      box-shadow: var(--shadow-lg);
+      transition: all var(--t-base);
+    }
+    .floating-clear-btn:hover {
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 12px 32px rgba(240, 98, 146, 0.4);
+    }
+    .floating-btn-icon {
+      display: flex;
+    }
+    .floating-btn-text {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: white;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    .clear-btn-icon {
+      background: rgba(220, 38, 38, 0.2);
+      border-color: rgba(220, 38, 38, 0.5);
+      transform: scale(1.05);
+    }
+    .clear-btn-icon {
+      display: flex;
+      align-items: center;
+    }
+    .clear-btn-text {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #dc2626;
+    }
+    /* Clear confirmation modal */
+    .clear-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      animation: fadeIn 0.2s ease;
+    }
+    .clear-modal {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-2xl);
+      max-width: 340px;
+      text-align: center;
+      animation: slideUp 0.3s ease;
+    }
+    .clear-modal h3 {
+      margin: 0 0 var(--space-sm);
+      color: var(--ink);
+    }
+    .clear-modal p {
+      margin: 0 0 var(--space-lg);
+      color: var(--ink-muted);
+      font-size: 0.9rem;
+    }
+    .clear-modal-btns {
+      display: flex;
+      gap: var(--space-sm);
+      justify-content: center;
+    }
     .progress-bar {
       height: 4px;
       background: var(--border);
@@ -122,9 +241,22 @@
       border-radius: var(--radius);
       font-size: 0.9rem;
       font-weight: 600;
-      color: var(--ink);
-      background: var(--bg);
+      color: var(--ink) !important;
+      background: var(--card) !important;
       transition: all var(--t-base);
+    }
+    .form-group input::placeholder,
+    .form-group textarea::placeholder {
+      color: var(--ink-faint);
+    }
+    .form-group textarea::-webkit-scrollbar { width: 8px; }
+    .form-group textarea::-webkit-scrollbar-track { background: var(--bg-alt); }
+    .form-group textarea::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 4px;
+    }
+    .form-group textarea::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-dark);
     }
     .form-group input:focus,
     .form-group textarea:focus,
@@ -361,6 +493,15 @@
       display: flex;
       flex-direction: column;
     }
+    .preview-content::-webkit-scrollbar { width: 8px; }
+    .preview-content::-webkit-scrollbar-track { background: var(--bg-alt); }
+    .preview-content::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 4px;
+    }
+    .preview-content::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-dark);
+    }
     .preview-header {
       display: flex;
       justify-content: space-between;
@@ -392,6 +533,15 @@
       padding: var(--space-lg);
       overflow-y: auto;
       flex: 1;
+    }
+    .preview-body::-webkit-scrollbar { width: 6px; }
+    .preview-body::-webkit-scrollbar-track { background: var(--bg-alt); }
+    .preview-body::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 3px;
+    }
+    .preview-body::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-dark);
     }
     .preview-listing {
       display: flex;
@@ -479,8 +629,10 @@
     <div class="nav-links">
       <a href="../index.html">Home</a>
       <a href="listings.html">Browse</a>
-      <a href="../offers/offers.html" id="offers-link" style="display:none;">My Offers</a>
-      <a href="create-listing.html" id="sell-link" style="display:none;">+ Sell / Rent</a>
+      <a href="../messages/messages.html" id="messages-link">Messages</a>
+      <a href="../offers/offers.html" id="offers-link">My Offers</a>
+      <a href="../rentals/rentals.html" id="rentals-link">My Rentals</a>
+      <a href="create-listing.html" id="sell-link">+ Sell / Rent</a>
     </div>
     <div class="nav-right">
       <button class="nav-preview-btn" id="live-preview-btn" aria-label="Live preview">
@@ -503,8 +655,10 @@
   <nav class="mobile-nav-links">
     <a href="../index.html">Home</a>
     <a href="listings.html">Browse</a>
-    <a href="../offers/offers.html" id="mobile-offers-link" style="display:none;">My Offers</a>
-    <a href="create-listing.html" id="mobile-sell-link" style="display:none;">+ Sell / Rent</a>
+    <a href="../messages/messages.html" id="mobile-messages-link">Messages</a>
+    <a href="../offers/offers.html" id="mobile-offers-link">My Offers</a>
+    <a href="../rentals/rentals.html" id="mobile-rentals-link">My Rentals</a>
+    <a href="create-listing.html" id="mobile-sell-link">+ Sell / Rent</a>
   </nav>
   <div class="mobile-nav-actions" id="mobile-auth"></div>
 </div>
@@ -526,6 +680,27 @@
 </div>
 
 <main class="create-listing-page">
+  <!-- Floating Clear Button -->
+  <button class="floating-clear-btn" onclick="showClearConfirmModal()" aria-label="Clear Form">
+    <svg class="floating-btn-icon" width="28" height="28" viewBox="0 0 36 36" fill="none">
+      <ellipse cx="18" cy="21" rx="9" ry="8" fill="#c87a50"/>
+      <ellipse cx="18" cy="22.5" rx="5.5" ry="5" fill="#e8a878"/>
+      <ellipse cx="18" cy="13" rx="7.5" ry="6.5" fill="#c87a50"/>
+      <ellipse cx="14.5" cy="14.5" rx="2.5" ry="2" fill="#e8a878"/>
+      <ellipse cx="21.5" cy="14.5" rx="2.5" ry="2" fill="#e8a878"/>
+      <circle cx="15.5" cy="12" r="1.8" fill="#2a1a1f"/>
+      <circle cx="20.5" cy="12" r="1.8" fill="#2a1a1f"/>
+      <circle cx="16" cy="11.5" r="0.7" fill="white"/>
+      <circle cx="21" cy="11.5" r="0.7" fill="white"/>
+      <ellipse cx="12.5" cy="7.5" rx="2.5" ry="3" fill="#c87a50"/>
+      <ellipse cx="23.5" cy="7.5" rx="2.5" ry="3" fill="#c87a50"/>
+      <rect x="16" y="15.5" width="2" height="2.5" rx="0.5" fill="#f8f0e0"/>
+      <rect x="18.5" y="15.5" width="2" height="2.5" rx="0.5" fill="#f8f0e0"/>
+      <ellipse cx="18" cy="31" rx="7" ry="3.5" fill="#8b4c30"/>
+    </svg>
+    <span class="floating-btn-text">Clear</span>
+  </button>
+  
   <div class="container">
 
     <div class="step-progress">
@@ -560,9 +735,41 @@
       </div>
 
       <div class="form-group">
-        <label>Price (₱) *</label>
-        <input type="number" id="price" placeholder="0.00" min="0" step="0.01">
+        <label>Price (₱) * <span id="price-type-label" style="color:var(--accent);font-weight:600;"></span></label>
+        <input type="number" id="price" placeholder="0.00" min="0" max="100000" step="0.01">
+        <div class="field-hint" style="font-size:0.75rem;color:var(--ink-faint);margin-top:4px;">Max ₱100,000</div>
         <div class="field-error"></div>
+      </div>
+
+      <div id="rental-info" class="rental-info-section" style="display:none;">
+        <div class="form-group">
+          <label>Minimum Rental Duration *</label>
+          <select id="min-rental-days" required>
+            <option value="">Select minimum days</option>
+            <option value="1">1 day</option>
+            <option value="2">2 days</option>
+            <option value="3">3 days</option>
+            <option value="4">4 days</option>
+            <option value="5">5 days</option>
+            <option value="6">6 days</option>
+            <option value="7">1 week</option>
+            <option value="14">2 weeks</option>
+            <option value="30">1 month</option>
+          </select>
+          <div class="field-hint" style="font-size:0.75rem;color:var(--ink-faint);margin-top:4px;">Minimum number of days a renter must commit to</div>
+          <div class="field-error"></div>
+        </div>
+        <div class="form-group">
+          <label>Custom Price Options</label>
+          <div id="price-notes-container" style="display:flex;flex-direction:column;gap:var(--space-sm);margin-bottom:var(--space-sm);">
+            <!-- Dynamic price notes will appear here -->
+          </div>
+          <button type="button" id="add-price-note-btn" class="btn btn-outline" style="font-size:0.8rem;padding:0.5rem 1rem;border-color:#7c3aed;color:#7c3aed;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Add Price Option
+          </button>
+          <div class="field-hint" style="font-size:0.75rem;color:var(--ink-faint);margin-top:6px;"> These will be added to your listing description</div>
+        </div>
       </div>
 
       <div class="form-group">
@@ -675,8 +882,9 @@
         <div class="review-row"><div class="review-label">Images</div><div class="review-value"><div class="review-images" id="review-images"></div></div></div>
       </div>
       <div class="step-buttons">
-        <button class="btn btn-ghost" id="btn-prev-3">← Back</button>
-        <button class="btn btn-primary" id="btn-submit">
+        <div style="display:flex;gap:var(--space-md);">
+          <button class="btn btn-ghost" id="btn-prev-3">← Back</button>
+          <button class="btn btn-primary" id="btn-submit">
           <span class="btn-text">Publish Listing</span>
           <span class="btn-loader" style="display:none;"></span>
         </button>
@@ -720,7 +928,270 @@ document.addEventListener('DOMContentLoaded', async () => {
   initLivePreview();
   updateStepUI(1);
   updateStepIndicators(1);
+  
+  // Type change handler for rental dynamic fields
+  const typeSelect = document.getElementById('type');
+  const priceLabel = document.getElementById('price-type-label');
+  const rentalSection = document.getElementById('rental-info');
+  const minRentalSelect = document.getElementById('min-rental-days');
+  
+  typeSelect.addEventListener('change', function() {
+    const isRent = this.value === 'RENT';
+    const isSell = this.value === 'SELL';
+    
+    // Update price label
+    if (isRent) {
+      priceLabel.textContent = '(per day)';
+      priceLabel.style.color = '#7c3aed';
+      this.classList.add('rent-mode');
+      this.classList.remove('sell-mode');
+    } else if (isSell) {
+      priceLabel.textContent = '';
+      this.classList.add('sell-mode');
+      this.classList.remove('rent-mode');
+    } else {
+      priceLabel.textContent = '';
+      this.classList.remove('rent-mode', 'sell-mode');
+    }
+    
+    // Show/hide rental section
+    rentalSection.style.display = isRent ? 'block' : 'none';
+    
+    // Clear price notes when switching to SALE
+    if (!isRent) {
+      priceNotes = [];
+      const container = document.getElementById('price-notes-container');
+      if (container) container.innerHTML = '';
+    }
+    
+    // Update required attribute on min rental days
+    minRentalSelect.required = isRent;
+  });
+  
+  // Auto-save form to localStorage - load on page load
+  loadSavedForm();
+  
+  // Save form on any input change (target all inputs in step 1)
+  document.querySelectorAll('.form-step input, .form-step select, .form-step textarea').forEach(input => {
+    input.addEventListener('input', () => { saveFormDraft(); updateLivePreview(); });
+    input.addEventListener('change', () => { saveFormDraft(); updateLivePreview(); });
+  });
+  
+  // Add price note button handler
+  const addPriceNoteBtn = document.getElementById('add-price-note-btn');
+  if (addPriceNoteBtn) {
+    addPriceNoteBtn.addEventListener('click', () => {
+      addPriceNote();
+      setTimeout(updateLivePreview, 150);
+    });
+  }
 });
+
+/* ── Dynamic Price Notes ── */
+let priceNotes = [];
+
+function addPriceNote() {
+  const container = document.getElementById('price-notes-container');
+  const noteId = Date.now();
+  priceNotes.push(noteId);
+  
+  const noteDiv = document.createElement('div');
+  noteDiv.className = 'price-note-item';
+  noteDiv.style.cssText = 'display:flex;gap:var(--space-sm);align-items:center;';
+  noteDiv.innerHTML = `
+    <input type="text" class="price-note-input" data-note-id="${noteId}" placeholder="e.g., ₱500 for 3 days" style="flex:1;padding:0.6rem;border:1.5px solid var(--border);border-radius:var(--radius);font-size:0.85rem;background:var(--card);color:var(--ink);">
+    <button type="button" class="remove-note-btn" onclick="removePriceNote(${noteId})" style="background:none;border:none;color:var(--error);cursor:pointer;padding:4px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  `;
+  container.appendChild(noteDiv);
+  
+  // Add event listener for auto-save
+  noteDiv.querySelector('.price-note-input').addEventListener('input', saveFormDraft);
+  noteDiv.querySelector('.price-note-input').addEventListener('change', saveFormDraft);
+  saveFormDraft();
+}
+
+function removePriceNote(noteId) {
+  priceNotes = priceNotes.filter(id => id !== noteId);
+  const container = document.getElementById('price-notes-container');
+  const noteItem = container.querySelector(`[data-note-id="${noteId}"]`);
+  if (noteItem) noteItem.parentElement.remove();
+  saveFormDraft();
+}
+
+/* ── Auto-save form drafts ── */
+const DRAFT_KEY = 'cosnima_create_listing_draft';
+
+function saveFormDraft() {
+  const fields = ['title', 'description', 'price', 'type', 'condition', 'size', 'characterName', 'seriesName', 'location', 'conventionPickup', 'min-rental-days'];
+  const draft = {};
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (el.type === 'checkbox') {
+        draft[id] = el.checked;
+      } else if (el.type === 'select-one') {
+        draft[id] = el.value;
+      } else {
+        draft[id] = el.value;
+      }
+    }
+  });
+  // Save price notes
+  const noteInputs = document.querySelectorAll('.price-note-input');
+  draft.priceNotes = Array.from(noteInputs).map(input => input.value).filter(v => v.trim());
+  draft.selectedTags = selectedTags;
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+}
+
+function loadSavedForm() {
+  try {
+    const saved = localStorage.getItem(DRAFT_KEY);
+    if (!saved) return;
+    const draft = JSON.parse(saved);
+    Object.keys(draft).forEach(key => {
+      const el = document.getElementById(key);
+      if (!el) return;
+      if (el.type === 'checkbox') {
+        el.checked = draft[key];
+      } else {
+        el.value = draft[key] || '';
+      }
+    });
+    if (draft.selectedTags) {
+      selectedTags = draft.selectedTags;
+      renderSelectedTags();
+    }
+    // Load price notes
+    if (draft.priceNotes && draft.priceNotes.length) {
+      const container = document.getElementById('price-notes-container');
+      draft.priceNotes.forEach(noteText => {
+        const noteId = Date.now();
+        priceNotes.push(noteId);
+        const noteDiv = document.createElement('div');
+        noteDiv.className = 'price-note-item';
+        noteDiv.style.cssText = 'display:flex;gap:var(--space-sm);align-items:center;';
+        noteDiv.innerHTML = `
+          <input type="text" class="price-note-input" data-note-id="${noteId}" value="${escapeHtml(noteText)}" placeholder="e.g., ₱500 for 3 days" style="flex:1;padding:0.6rem;border:1.5px solid var(--border);border-radius:var(--radius);font-size:0.85rem;background:var(--card);color:var(--ink);">
+          <button type="button" class="remove-note-btn" onclick="removePriceNote(${noteId})" style="background:none;border:none;color:var(--error);cursor:pointer;padding:4px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        `;
+        container.appendChild(noteDiv);
+        noteDiv.querySelector('.price-note-input').addEventListener('input', saveFormDraft);
+        noteDiv.querySelector('.price-note-input').addEventListener('change', saveFormDraft);
+      });
+    }
+    // Trigger type change to show/hide rental section
+    const typeSelect = document.getElementById('type');
+    if (typeSelect.value === 'RENT') {
+      document.getElementById('rental-info').style.display = 'block';
+      document.getElementById('price-type-label').textContent = '(per day)';
+      document.getElementById('price-type-label').style.color = '#7c3aed';
+      typeSelect.classList.add('rent-mode');
+    } else if (typeSelect.value === 'SELL') {
+      typeSelect.classList.add('sell-mode');
+    }
+  } catch (e) { console.warn('Failed to load draft:', e); }
+}
+
+function clearFormDraft() {
+  localStorage.removeItem(DRAFT_KEY);
+  // Clear price notes from DOM
+  priceNotes = [];
+  const container = document.getElementById('price-notes-container');
+  if (container) container.innerHTML = '';
+}
+
+function showClearConfirmModal() {
+  const existingModal = document.getElementById('clear-confirm-modal');
+  if (existingModal) existingModal.remove();
+  
+  const modal = document.createElement('div');
+  modal.id = 'clear-confirm-modal';
+  modal.className = 'clear-modal-overlay';
+  modal.innerHTML = `
+    <div class="clear-modal">
+      <div style="margin-bottom:var(--space-md);">
+        <svg width="48" height="48" viewBox="0 0 36 36" fill="none">
+          <ellipse cx="18" cy="21" rx="9" ry="8" fill="#c87a50"/>
+          <ellipse cx="18" cy="22.5" rx="5.5" ry="5" fill="#e8a878"/>
+          <ellipse cx="18" cy="13" rx="7.5" ry="6.5" fill="#c87a50"/>
+          <ellipse cx="14.5" cy="14.5" rx="2.5" ry="2" fill="#e8a878"/>
+          <ellipse cx="21.5" cy="14.5" rx="2.5" ry="2" fill="#e8a878"/>
+          <circle cx="15.5" cy="12" r="1.8" fill="#2a1a1f"/>
+          <circle cx="20.5" cy="12" r="1.8" fill="#2a1a1f"/>
+          <ellipse cx="12.5" cy="7.5" rx="2.5" ry="3" fill="#c87a50"/>
+          <ellipse cx="23.5" cy="7.5" rx="2.5" ry="3" fill="#c87a50"/>
+          <rect x="16" y="15.5" width="2" height="2.5" rx="0.5" fill="#f8f0e0"/>
+          <rect x="18.5" y="15.5" width="2" height="2.5" rx="0.5" fill="#f8f0e0"/>
+          <ellipse cx="18" cy="31" rx="7" ry="3.5" fill="#8b4c30"/>
+          <path d="M15 15l6 6M21 15l-6 6" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h3>Clear Form?</h3>
+      <p>This will remove all your saved data, images, and tags. This action cannot be undone.</p>
+      <div class="clear-modal-btns">
+        <button class="btn" onclick="document.getElementById('clear-confirm-modal').remove()" style="background:var(--bg-alt);border:2px solid var(--border);color:var(--ink);">Cancel</button>
+        <button class="btn" onclick="document.getElementById('clear-confirm-modal').remove(); handleClearForm();" style="background:#dc2626;border:2px solid #dc2626;color:white;">Clear All</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.remove();
+  });
+}
+
+function handleClearForm() {
+  clearFormDraft();
+  
+  // Clear all form fields
+  const fields = ['title', 'description', 'price', 'type', 'condition', 'size', 'characterName', 'seriesName', 'location', 'min-rental-days'];
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (el.type === 'checkbox') {
+        el.checked = false;
+      } else {
+        el.value = '';
+      }
+    }
+  });
+  
+  // Clear convention pickup
+  document.getElementById('conventionPickup').checked = false;
+  
+  // Clear tags
+  selectedTags = [];
+  renderSelectedTags();
+  
+  // Clear custom tag input
+  const customTagInput = document.getElementById('custom-tag-input');
+  if (customTagInput) customTagInput.value = '';
+  
+  // Uncheck all tag checkboxes
+  document.querySelectorAll('input[name="predefinedTag"]').forEach(cb => cb.checked = false);
+  
+  // Clear images
+  uploadedFiles = [];
+  const imgGrid = document.getElementById('image-preview-grid');
+  if (imgGrid) imgGrid.innerHTML = '';
+  const imgCount = document.getElementById('image-count');
+  if (imgCount) imgCount.textContent = '0 / 8';
+  
+  // Hide rental section
+  document.getElementById('rental-info').style.display = 'none';
+  document.getElementById('price-type-label').textContent = '';
+  document.getElementById('type').classList.remove('rent-mode', 'sell-mode');
+  
+  // Reset to step 1
+  updateStepUI(1);
+  updateStepIndicators(1);
+  
+  showToast('Form cleared', 'info');
+}
 
 /* ── Step indicators with numbers ── */
 function updateStepIndicators(step) {
@@ -861,6 +1332,7 @@ function validateStep(step) {
     if (title && title.length > 200) errors.push({ field: 'title', msg: 'Title too long (max 200).' });
     if (!desc || desc.length < 10) errors.push({ field: 'description', msg: 'Description must be at least 10 characters.' });
     if (!price || isNaN(Number(price)) || Number(price) <= 0) errors.push({ field: 'price', msg: 'Enter a valid price (>0).' });
+    if (Number(price) > 100000) errors.push({ field: 'price', msg: 'Price cannot exceed ₱100,000.' });
     if (!type) errors.push({ field: 'type', msg: 'Select listing type.' });
   }
   if (step === 2) {
@@ -1035,7 +1507,23 @@ function updateLivePreview() {
   const character = get('characterName') || 'Not specified';
   const series = get('seriesName') || 'Not specified';
   const location = get('location') || 'Not specified';
-  const convention = document.getElementById('conventionPickup')?.checked ? '✓ Convention pickup available' : '';
+  const convention = document.getElementById('conventionPickup')?.checked ? 'Convention pickup available' : '';
+  
+  // Rental info
+  let rentalInfoHtml = '';
+  if (get('type') === 'RENT') {
+    const minDays = get('min-rental-days');
+    const noteInputs = document.querySelectorAll('.price-note-input');
+    const priceNotes = Array.from(noteInputs).map(input => input.value).filter(v => v.trim());
+    
+    if (minDays) {
+      rentalInfoHtml += `<div style="color:#7c3aed;font-weight:700;margin-top:8px;">Minimum Rental: ${minDays} day(s)</div>`;
+    }
+    if (priceNotes.length) {
+      rentalInfoHtml += `<div style="color:#7c3aed;margin-top:4px;"><strong>Pricing Options:</strong><br>${priceNotes.map(n => `• ${escapeHtml(n)}`).join('<br>')}</div>`;
+    }
+  }
+  
   const desc = get('description') || 'No description provided.';
   const tagsHtml = selectedTags.length ? selectedTags.map(t => `<span class="preview-badge">${escapeHtml(t)}</span>`).join('') : '<span class="preview-badge">No tags</span>';
   let imagesHtml = '';
@@ -1048,6 +1536,7 @@ function updateLivePreview() {
   container.innerHTML = `
     <div class="preview-title">${escapeHtml(title)}</div>
     <div class="preview-price">${price} <span style="font-size:0.8rem;">${type}</span></div>
+    ${rentalInfoHtml}
     <div class="preview-desc">${escapeHtml(desc)}</div>
     <div><strong>Condition:</strong> ${condition} | <strong>Size:</strong> ${size}</div>
     <div><strong>Character:</strong> ${escapeHtml(character)} | <strong>Series:</strong> ${escapeHtml(series)}</div>
@@ -1057,7 +1546,7 @@ function updateLivePreview() {
     <div class="preview-tags">${tagsHtml}</div>
     <div><strong>Images:</strong></div>
     <div class="preview-images">${imagesHtml}</div>
-  `;
+`;
 }
 
 /* ── Submit ── */
@@ -1086,6 +1575,23 @@ async function submitListing() {
     tags: selectedTags,
   };
 
+  // Add rental-specific info to description if RENT type
+  if (get('type') === 'RENT') {
+    const minDays = get('min-rental-days');
+    const noteInputs = document.querySelectorAll('.price-note-input');
+    const priceNotes = Array.from(noteInputs).map(input => input.value).filter(v => v.trim());
+    
+    let rentalInfo = '';
+    if (minDays) rentalInfo += `\nMinimum rental: ${minDays} day(s)`;
+    if (priceNotes.length) {
+      rentalInfo += `\nPricing Options:`;
+      priceNotes.forEach(note => {
+        rentalInfo += `\n  - ${note}`;
+      });
+    }
+    if (rentalInfo) listingJson.description = (listingJson.description || '') + rentalInfo;
+  }
+
   const formData = new FormData();
   formData.append('value', new Blob([JSON.stringify(listingJson)], { type: 'application/json' }));
   uploadedFiles.forEach(file => formData.append('images', file));
@@ -1093,6 +1599,7 @@ async function submitListing() {
   try {
     const result = await API.postForm('/api/listings/post', formData);
     const id = result?.id || result;
+    clearFormDraft();
     showToast('Listing published!', 'success');
     setTimeout(() => redirectTo(`view-listing.html?id=${id}`), 1000);
   } catch (err) {
@@ -1112,11 +1619,26 @@ function escapeHtml(str) {
 function showToast(msg, type, duration=3500) {
   const container = document.getElementById('toast-container');
   if (!container) return;
+  
+  const icons = {
+    success: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>',
+    error: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+    info: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>'
+  };
+  
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
-  toast.innerHTML = `<span>${msg}</span>`;
+  toast.innerHTML = `
+    <span class="toast-icon">${icons[type] || icons.info}</span>
+    <span>${msg}</span>
+  `;
   container.appendChild(toast);
-  setTimeout(() => toast.remove(), duration);
+  
+  // Auto remove with fade out
+  setTimeout(() => {
+    toast.style.animation = 'toastOut 0.3s ease forwards';
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
 }
 function redirectTo(url) { window.location.href = url; }
 </script>

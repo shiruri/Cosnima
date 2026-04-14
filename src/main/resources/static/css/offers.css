@@ -597,29 +597,6 @@
   flex-shrink: 0;
 }
 
-.offer-seller-info {
-  font-size: 0.72rem;
-  color: var(--ink-muted);
-  font-weight: 600;
-  margin-top: 4px;
-}
-
-.offer-card-accepted {
-  border-color: rgba(39, 174, 96, 0.4);
-}
-
-.offer-card-accepted-banner {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-md) var(--space-lg);
-  background: rgba(39, 174, 96, 0.08);
-  border-top: 1.5px solid rgba(39, 174, 96, 0.2);
-  font-size: 0.84rem;
-  font-weight: 600;
-  color: #1a7a40;
-}
-
 /* Cancel offer btn */
 .offer-cancel-btn {
   display: inline-flex;
@@ -693,6 +670,11 @@
   100% { background-position: -200% 0; }
 }
 
+.content-transition {
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
 /* Empty state for offers page */
 .offers-page-empty {
   text-align: center;
@@ -741,4 +723,26 @@
   .offer-row-message { display: none; }
   .offer-card-body { flex-direction: column; align-items: flex-start; }
   .offer-card-actions { flex-direction: row; align-items: center; }
+}/* ── Accepted offer card highlight ── */
+.offer-card--accepted {
+  border-color: rgba(39,174,96,0.4);
+  box-shadow: 0 0 0 2px rgba(39,174,96,0.1);
+}
+.offer-card--accepted:hover {
+  border-color: rgba(39,174,96,0.6);
+  box-shadow: 0 4px 20px rgba(39,174,96,0.15);
+}
+
+.offer-card-accepted-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0.65rem var(--space-lg);
+  background: rgba(39,174,96,0.08);
+  border-top: 1px solid rgba(39,174,96,0.15);
+  border-bottom: 1px solid rgba(39,174,96,0.15);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1a7a40;
+  line-height: 1.4;
 }

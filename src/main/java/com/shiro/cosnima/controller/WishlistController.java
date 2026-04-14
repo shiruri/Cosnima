@@ -22,6 +22,23 @@ public class WishlistController {
         this.wishlistsServ = wishlistsServ;
     }
 
+    @GetMapping("/{listingId}/count")
+    public ResponseEntity<Long> getListingWishlistCount(@PathVariable String listingId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+            try {
+                Long wishlistsCount = wishlistsServ.countListingWishlist(listingId);
+                if (wishlistsCount != null) {
+                    return ResponseEntity.ok().body(wishlistsCount);
+                }
+                return ResponseEntity.badRequest().build();
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.status(401).build();
+            }
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
     @GetMapping()
     public ResponseEntity<List<WishlistResponse>> getUserWishlists() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -40,7 +57,7 @@ public class WishlistController {
         return ResponseEntity.badRequest().build();
     }
 
-    @GetMapping("/{listingId}")
+    @GetMapping("/{listingId}/wishlist")
     public ResponseEntity<WishlistResponse> wishlistListing(@PathVariable String listingId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {

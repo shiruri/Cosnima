@@ -70,7 +70,7 @@ hamburger?.setAttribute('aria-expanded', 'false');
 
 // with this:
 document.getElementById('mobile-nav')?.classList.remove('open');
-document.getElementById('hamburger')?.setAttribute('aria-expanded', 'false');
+document.getElementById('hamburger')?.setAttribute('aria-expanded', 'false'); 
   // Tabs
   document.querySelectorAll('.profile-tab').forEach(tab => {
     tab.addEventListener('click', () => switchTab(tab.dataset.tab));
@@ -236,9 +236,60 @@ function buildProfileListingCard(listing) {
 }
 
 /* ── Tab switching ── */
+let offersLoaded = false;
+
 function switchTab(tab) {
   document.querySelectorAll('.profile-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === `${tab}-content`));
+  
+  if (tab === 'offers' && !offersLoaded) {
+    loadProfileOffers();
+    offersLoaded = true;
+  }
+}
+
+async function loadProfileOffers() {
+  const container = document.getElementById('offers-content');
+  if (!container) return;
+  
+  container.innerHTML = '<div style="text-align:center;padding:var(--space-xl);color:var(--ink-muted);">Loading offers...</div>';
+  
+  try {
+    const offers = await API.get('/api/offers/mine', true);
+    const offersArr = Array.isArray(offers) ? offers : [];
+    
+    if (!offersArr.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+          </div>
+          <h3>No offers yet</h3>
+          <p>You haven't made or received any offers.</p>
+          <a href="../offers/offers.html" class="btn btn-primary" style="margin-top:var(--space-md)">Go to Offers</a>
+        </div>`;
+      return;
+    }
+    
+    container.innerHTML = `
+      <div class="offers-grid" style="display:flex;flex-direction:column;gap:var(--space-md);">
+        ${offersArr.map(offer => `
+          <div class="offer-row" style="background:var(--card);border:2px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-lg);display:flex;gap:var(--space-md);align-items:center;">
+            <img src="${offer.listingImageUrl || ''}" alt="" style="width:80px;height:80px;object-fit:cover;border-radius:var(--radius);" onerror="this.style.display='none'">
+            <div style="flex:1;">
+              <h4 style="margin:0 0 4px;font-size:1rem;">${escapeHtml(offer.listingTitle || 'Listing')}</h4>
+              <p style="margin:0;color:var(--accent);font-weight:700;">₱${Number(offer.offeredPrice || 0).toLocaleString()}</p>
+              <span class="status-badge ${offer.status === 'PENDING' ? 'status-available' : offer.status === 'ACCEPTED' ? 'status-available' : 'status-sold'}" style="font-size:0.7rem;margin-top:6px;display:inline-block;">${offer.status || 'PENDING'}</span>
+            </div>
+            <a href="../listing/view-listing.html?id=${offer.listingId}" class="btn btn-outline" style="padding:0.5rem 1rem;font-size:0.8rem;">View</a>
+          </div>
+        `).join('')}
+      </div>`;
+  } catch (err) {
+    container.innerHTML = '<div class="empty-state"><h3>Could not load offers</h3><p>Please try again later.</p></div>';
+  }
 }
 
 /* ── Prefill settings form ── */

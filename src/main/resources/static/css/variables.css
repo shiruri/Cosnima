@@ -35,13 +35,19 @@
   --ink-faint:     #b89a86;
   --border:        #e8d5c0;
   --border-dark:   #d4b89a;
-  --card:          #fffcf8;
-  --card-hover:    #fff8f0;
+  --card:          var(--bg);
+  --card-hover:    var(--bg-alt);
 
   /* ── Semantic ── */
   --error:         #c0392b;
   --success:       #27ae60;
   --warning:       #e67e22;
+
+  /* ── Status Badge Colors ── */
+  --status-available: #3cb371;
+  --status-sold:      #dc2626;
+  --status-rented:    #9b59b6;
+  --status-archived: #9ca3af;
 
   /* ── Typography ── */
   --font-display:  'Gasoek One', 'Georgia', serif;

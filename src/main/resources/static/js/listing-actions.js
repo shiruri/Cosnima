@@ -15,54 +15,115 @@ function renderListingActions(listing, container) {
 
   const isLoggedIn = API.isLoggedIn();
   const isRent = listing.type === 'RENT';
+  const status = listing.status || 'AVAILABLE';
+  const isUnavailable = status === 'SOLD' || status === 'RENTED' || status === 'ARCHIVED';
 
   if (!isLoggedIn) {
-    container.innerHTML = `
-      <div class="action-auth-gate" style="
-        display:flex;align-items:center;gap:var(--space-md);
-        padding:var(--space-md) var(--space-lg);margin-top:var(--space-md);
-        background:rgba(240,98,146,0.05);border:1.5px dashed rgba(240,98,146,0.3);
-        border-radius:var(--radius);
+    // Remove any existing modal first
+    document.getElementById('auth-gate-modal')?.remove();
+    
+    // Create modal instead of simple link
+    const modal = document.createElement('div');
+    modal.id = 'auth-gate-modal';
+    modal.style.cssText = `
+      position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);
+      display:flex;align-items:center;justify-content:center;z-index:9999;
+      animation:fadeIn 0.2s ease;
+    `;
+    modal.innerHTML = `
+      <div style="
+        background:var(--card);border:2px solid var(--border);border-radius:var(--radius-xl);
+        padding:var(--space-2xl);max-width:360px;width:90%;text-align:center;
+        box-shadow:0 20px 40px rgba(0,0,0,0.15);animation:slideUp 0.3s ease;
       ">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:24px;height:24px;color:var(--accent);flex-shrink:0;">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-        </svg>
-        <p style="font-size:0.84rem;color:var(--ink-muted);font-weight:600;margin:0;">
-          <a href="../login/login.html" style="color:var(--accent);font-weight:800;text-decoration:underline;">Sign in</a> to contact this seller or request a rental.
+        <div style="
+          width:64px;height:64px;margin:0 auto var(--space-lg);
+          background:linear-gradient(135deg, var(--accent), #f8bbd0);
+          border-radius:50%;display:flex;align-items:center;justify-content:center;
+        ">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2" style="width:32px;height:32px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+        </div>
+        <h3 style="margin:0 0 var(--space-sm);color:var(--ink);font-size:1.25rem;">Join Cosnima</h3>
+        <p style="margin:0 0 var(--space-lg);color:var(--ink-muted);font-size:0.9rem;line-height:1.5;">
+          Sign in to message the seller, make offers, and save your favorites!
         </p>
-      </div>`;
+        <div style="display:flex;flex-direction:column;gap:var(--space-sm);">
+          <a href="../login/login.html" class="btn btn-primary" style="justify-content:center;text-decoration:none;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+            </svg>
+            Sign In
+          </a>
+          <a href="../signup/register.html" class="btn btn-outline" style="justify-content:center;text-decoration:none;border-color:var(--accent);color:var(--accent);">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+            </svg>
+            Create Account
+          </a>
+        </div>
+        <button onclick="document.getElementById('auth-gate-modal').remove()" style="
+          margin-top:var(--space-md);background:none;border:none;color:var(--ink-faint);
+          font-size:0.85rem;cursor:pointer;padding:var(--space-xs);
+        ">Maybe later</button>
+      </div>
+      <style>
+        @keyframes slideUp { from { opacity:0;transform:translateY(20px); } to { opacity:1;transform:translateY(0); } }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+      </style>
+    `;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
     return;
   }
 
-  const btnsHtml = `
-    <div class="listing-action-btns" style="display:flex;flex-direction:column;gap:var(--space-sm);margin-top:var(--space-md);">
+  let btnsHtml = `
+    <div class="listing-action-btns" style="display:flex;flex-direction:column;gap:var(--space-sm);margin-top:var(--space-md);">`;
+
+  if (isUnavailable) {
+    btnsHtml += `
+      <button class="btn" disabled style="width:100%;justify-content:center;background:var(--bg-alt);color:var(--ink-faint);border-color:var(--border);cursor:not-allowed;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+        </svg>
+        <span class="btn-text">This item is no longer available</span>
+      </button>`;
+  } else {
+    btnsHtml += `
       <button class="btn btn-primary" id="message-seller-btn" style="width:100%;justify-content:center;">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
           <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
         </svg>
         <span class="btn-text">Message Seller</span>
         <span class="btn-loader" style="display:none;width:14px;height:14px;border:2px solid rgba(255,255,255,0.5);border-top-color:white;border-radius:50%;animation:spin 0.6s linear infinite;"></span>
-      </button>
-      ${isRent ? `
-        <button class="btn btn-beaver" id="request-rent-btn" style="width:100%;justify-content:center;">
+      </button>`;
+    if (isRent) {
+      btnsHtml += `
+        <button class="btn btn-beaver" id="rent-btn" style="width:100%;justify-content:center;">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
           </svg>
-          Request Rent
-        </button>` : ''}
-    </div>`;
+          <span class="btn-text">Rent Now</span>
+        </button>`;
+    }
+  }
+
+  btnsHtml += `</div>`;
 
   container.innerHTML = btnsHtml;
+
+  if (isUnavailable) return;
 
   // Message seller
   document.getElementById('message-seller-btn')?.addEventListener('click', () => {
     handleMessageSeller(listing);
   });
 
-  // Rent request
+  // Rent button - redirect to chat
   if (isRent) {
-    document.getElementById('request-rent-btn')?.addEventListener('click', () => {
-      openRentModal(listing);
+    document.getElementById('rent-btn')?.addEventListener('click', () => {
+      redirectToChatWithRental(listing);
     });
   }
 }
@@ -324,4 +385,29 @@ function showRentModalStatus(msg, type) {
 
 function escH(str) {
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/* ── Redirect to Chat with Rental Intent ── */
+async function redirectToChatWithRental(listing) {
+  try {
+    const currentUser = API.getUser();
+    if (!currentUser?.id) throw new Error('Not logged in');
+
+    const conversation = await API.post('/api/conversations', {
+      listingId: listing.id,
+      buyerId:   String(currentUser.id),
+      sellerId:  String(listing.sellerId),
+    }, true);
+
+    if (!conversation?.conversationId) throw new Error('Could not start conversation');
+
+    showToast('Opening chat to discuss rental…', 'success', 1500);
+    setTimeout(() => {
+      window.location.href = `../messages/messages.html?conversation=${conversation.conversationId}&action=rent&listingId=${listing.id}`;
+    }, 600);
+
+  } catch (err) {
+    const msg = err?.data?.message || err?.message || 'Could not start conversation.';
+    showToast(msg, 'error');
+  }
 }

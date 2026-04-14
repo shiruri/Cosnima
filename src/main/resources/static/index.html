@@ -8,12 +8,13 @@
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/home.css">
+  
   <script>(function(){var t=localStorage.getItem('cosnimaTheme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
 </head>
 <body>
 
 <!-- Loading Screen -->
-<div id="loading-screen">
+<div id="loading-screen" role="status" aria-label="Loading">
   <div class="loader-beaver" aria-hidden="true">
     <svg width="90" height="90" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
       <ellipse cx="45" cy="52" rx="22" ry="20" fill="#c87a50"/>
@@ -37,23 +38,20 @@
       <ellipse cx="36" cy="72" rx="9" ry="5" fill="#8b4c30"/>
       <ellipse cx="54" cy="72" rx="9" ry="5" fill="#8b4c30"/>
       <ellipse cx="45" cy="76" rx="16" ry="8" fill="#8b4c30" transform="rotate(-5 45 76)"/>
-      <!-- Heart on chest -->
       <path d="M44 23 C44 21 41 19 39 21 C37 23 39 26 44 29 C49 26 51 23 49 21 C47 19 44 21 44 23Z" fill="#f06292" opacity="0.7"/>
     </svg>
   </div>
-  <div class="loader-dots"><span></span><span></span><span></span></div>
+  <div class="loader-dots" aria-hidden="true"><span></span><span></span><span></span></div>
   <p class="loader-text">Loading the marketplace…</p>
 </div>
 
-<!-- Toast container -->
 <div id="toast-container" aria-live="polite"></div>
 
 <!-- ── NAVBAR ── -->
 <nav class="navbar" role="navigation" aria-label="Main navigation">
   <div class="nav-inner">
-    <!-- Logo -->
     <a href="index.html" class="nav-logo" aria-label="Cosnima home">
-      <svg class="nav-logo-beaver" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg class="nav-logo-beaver" viewBox="0 0 36 36" fill="none">
         <ellipse cx="18" cy="21" rx="9" ry="8" fill="#c87a50"/>
         <ellipse cx="18" cy="22.5" rx="5.5" ry="5" fill="#e8a878"/>
         <ellipse cx="18" cy="13" rx="7.5" ry="6.5" fill="#c87a50"/>
@@ -73,15 +71,15 @@
       <span class="nav-logo-name">COS<span>NIMA</span></span>
     </a>
 
-    <!-- Desktop links -->
     <div class="nav-links" role="list">
-      <a href="index.html" class="active" role="listitem">Browse</a>
-      <a href="#how" role="listitem">How it works</a>
-      <a href="#conventions" role="listitem">Conventions</a>
-      <a href="listing/create-listing.html" role="listitem" id="sell-link" style="display:none;">+ Sell / Rent</a>
+      <a href="index.html" class="active" role="listitem">Home</a>
+      <a href="listing/listings.html" role="listitem">Browse</a>
+      <a href="messages/messages.html" id="messages-link" style="display:none;" role="listitem">Messages</a>
+      <a href="offers/offers.html" id="offers-link" style="display:none;" role="listitem">My Offers</a>
+      <a href="rentals/rentals.html" id="rentals-link" style="display:none;" role="listitem">My Rentals</a>
+      <a href="listing/create-listing.html" id="sell-link" style="display:none;" role="listitem">+ Sell / Rent</a>
     </div>
 
-    <!-- Right cluster -->
     <div class="nav-right">
       <button class="theme-btn" id="theme-btn" aria-label="Toggle dark mode">
         <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
@@ -98,9 +96,11 @@
 <!-- Mobile drawer -->
 <div class="mobile-nav" id="mobile-nav" role="dialog" aria-label="Mobile menu" aria-modal="true">
   <nav class="mobile-nav-links">
-    <a href="index.html">Browse</a>
-    <a href="#how">How it works</a>
-    <a href="#conventions">Conventions</a>
+    <a href="index.html" class="active">Home</a>
+    <a href="listing/listings.html">Browse</a>
+    <a href="messages/messages.html" id="mobile-messages-link" style="display:none;">Messages</a>
+    <a href="offers/offers.html" id="mobile-offers-link" style="display:none;">My Offers</a>
+    <a href="rentals/rentals.html" id="mobile-rentals-link" style="display:none;">My Rentals</a>
     <a href="listing/create-listing.html" id="mobile-sell-link" style="display:none;">+ Sell / Rent</a>
   </nav>
   <div class="mobile-nav-actions" id="mobile-auth"></div>
@@ -112,30 +112,27 @@
   <div class="container">
     <div class="hero-inner">
       <div class="hero-content">
-        <div class="hero-eyebrow" style="animation:slideUp 0.6s ease 0.1s both;">
-          🦫 Philippine Cosplay Marketplace
-        </div>
-        <h1 class="hero-title" style="animation:slideUp 0.6s ease 0.2s both;">
+        <div class="hero-eyebrow">🦫 Philippine Cosplay Marketplace</div>
+        <h1 class="hero-title">
           Your next <em>iconic</em><br>
           <span class="wiggle-line">cosplay</span> awaits
         </h1>
         <p class="hero-desc">
-          Buy, sell, and rent cosplay outfits directly within the Philippine community. 
+          Buy, sell, and rent cosplay outfits directly within the Philippine community.
           From maid dresses to full armour — find your look.
         </p>
 
-        <!-- Search -->
-        <div class="hero-search">
-          <input type="search" id="hero-search-input" placeholder="Search outfits, characters, series…" autocomplete="off">
-          <button onclick="handleSearch()" type="button">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <div class="hero-search" role="search" aria-label="Search listings">
+          <input type="search" id="hero-search-input" placeholder="Search outfits, characters, series…" autocomplete="off" aria-label="Search for cosplay">
+          <button onclick="handleSearch()" type="button" aria-label="Search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
             Search
           </button>
         </div>
 
         <div class="hero-ctas">
           <a href="listing/listings.html" class="btn btn-primary">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
             Browse All
           </a>
           <a href="listing/create-listing.html" class="btn btn-outline" id="hero-sell-btn">
@@ -144,18 +141,11 @@
         </div>
       </div>
 
-      <!-- Floating card stack -->
       <div class="hero-visual" aria-hidden="true">
         <div class="card-stack">
-          <div class="hero-card">
-            <div class="hero-card-placeholder">🌸</div>
-          </div>
-          <div class="hero-card">
-            <div class="hero-card-placeholder">⚔️</div>
-          </div>
-          <div class="hero-card">
-            <div class="hero-card-placeholder">🎭</div>
-          </div>
+          <div class="hero-card"><div class="hero-card-placeholder">🌸</div></div>
+          <div class="hero-card"><div class="hero-card-placeholder">⚔️</div></div>
+          <div class="hero-card"><div class="hero-card-placeholder">🎭</div></div>
         </div>
       </div>
     </div>
@@ -163,23 +153,31 @@
 </section>
 
 <!-- ── STATS STRIP ── -->
-<div class="stats-strip">
+<div class="stats-strip" aria-label="Marketplace statistics">
   <div class="container">
     <div class="stats-inner">
-      <div class="stat"><span class="stat-num" id="stat-listings">—</span><span class="stat-lbl">Active Listings</span></div>
-      <div class="stat-sep"></div>
-      <div class="stat"><span class="stat-num" id="stat-sellers">—</span><span class="stat-lbl">Sellers</span></div>
-      <div class="stat-sep"></div>
-      <div class="stat"><span class="stat-num">Free</span><span class="stat-lbl">to Join</span></div>
+      <div class="stat">
+        <span class="stat-num" id="stat-listings">—</span>
+        <span class="stat-lbl">Active Listings</span>
+      </div>
+      <div class="stat-sep" aria-hidden="true"></div>
+      <div class="stat">
+        <span class="stat-num" id="stat-sellers">—</span>
+        <span class="stat-lbl">Sellers</span>
+      </div>
+      <div class="stat-sep" aria-hidden="true"></div>
+      <div class="stat">
+        <span class="stat-num">Free</span>
+        <span class="stat-lbl">to Join</span>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- ── BROWSE SECTION ── -->
-<section class="section" id="listings">
+<section class="section" id="listings" aria-label="Featured listings">
   <div class="container">
 
-    <!-- Series pills -->
     <div class="section-header reveal">
       <div>
         <p class="section-label">Trending Series</p>
@@ -187,14 +185,12 @@
       </div>
     </div>
 
-    <div class="series-rail stagger" id="series-pills">
-      <!-- Populated by JS -->
-      <button class="pill active" data-series="">All Series</button>
+    <div class="series-rail stagger" id="series-pills" role="list" aria-label="Filter by series">
+      <button class="pill active" data-series="" role="listitem">All Series</button>
     </div>
 
     <div class="divider"></div>
 
-    <!-- Featured listings -->
     <div class="section-header reveal">
       <div>
         <p class="section-label">Fresh Drops</p>
@@ -203,23 +199,22 @@
       <a href="listing/listings.html">See all →</a>
     </div>
 
-    <!-- Error banner for listings -->
-    <div id="listings-error" class="error-banner" style="display:none;margin-bottom:var(--space-lg);">
-      Could not load listings. <button onclick="loadFeaturedListings()" style="text-decoration:underline;color:inherit;font-weight:700;">Try again</button>
+    <div id="listings-error" class="error-banner" style="display:none;margin-bottom:var(--space-lg);" role="alert">
+      Could not load listings.
+      <button onclick="loadFeaturedListings()" style="text-decoration:underline;color:inherit;font-weight:700;margin-left:8px;">Try again</button>
     </div>
 
-    <div id="listings-container" class="listings-grid stagger">
-      <!-- Skeleton loaders -->
-      <div class="skeleton-card"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div></div>
-      <div class="skeleton-card"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div></div>
-      <div class="skeleton-card"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div></div>
+    <div id="listings-container" class="listings-grid stagger" role="list" aria-label="Featured listings" aria-live="polite">
+      <div class="skeleton-card" aria-hidden="true"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div></div>
+      <div class="skeleton-card" aria-hidden="true"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div></div>
+      <div class="skeleton-card" aria-hidden="true"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div></div>
     </div>
 
   </div>
 </section>
 
 <!-- ── HOW IT WORKS ── -->
-<section class="how-section" id="how">
+<section class="how-section" id="how" aria-label="How it works">
   <div class="container">
     <div class="reveal" style="text-align:center;">
       <p class="section-label" style="justify-content:center;">Simple as 1-2-3</p>
@@ -235,7 +230,7 @@
       <div class="step-card">
         <div class="step-num">02</div>
         <h3 class="step-title">Connect & Negotiate</h3>
-        <p>Chat directly with sellers. Ask questions, negotiate prices, and lock in the details.</p>
+        <p>Chat directly with sellers. Ask questions, make offers, and lock in the details.</p>
       </div>
       <div class="step-card">
         <div class="step-num">03</div>
@@ -246,21 +241,7 @@
   </div>
 </section>
 
-<!-- ── CONVENTION BANNER ── -->
-<section class="section" id="conventions">
-  <div class="container">
-    <div class="convention-banner reveal">
-      <div class="conv-text">
-        <h2>Upcoming Conventions</h2>
-        <p>Browse listings tagged for convention pickup — meet your seller right at the venue.</p>
-      </div>
-      <a href="listing/listings.html?type=convention" class="btn btn-conv">
-        Explore Convention Listings
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </a>
-    </div>
-  </div>
-</section>
+
 
 <!-- ── FOOTER ── -->
 <footer class="footer">
@@ -276,7 +257,7 @@
           <li><a href="listing/listings.html">Browse Listings</a></li>
           <li><a href="listing/create-listing.html">Sell an Item</a></li>
           <li><a href="listing/create-listing.html">Rent an Outfit</a></li>
-          <li><a href="#conventions">Convention Hub</a></li>
+          
         </ul>
       </div>
       <div class="footer-col">
@@ -285,7 +266,7 @@
           <li><a href="signup/register.html">Register</a></li>
           <li><a href="login/login.html">Log In</a></li>
           <li><a href="profile/profile.html">My Profile</a></li>
-          <li><a href="profile/profile.html">My Listings</a></li>
+          <li><a href="offers/offers.html">My Offers</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -309,15 +290,13 @@
   </div>
 </footer>
 
-<!-- ── Inline styles for skeleton (listings page also uses these) ── -->
 <style>
-  .skeleton-card { background:var(--card); border-radius:var(--radius-lg); border:2px solid var(--border); overflow:hidden; }
-  .skeleton-thumb { height:220px; background:linear-gradient(90deg,var(--bg-alt) 25%,var(--border) 50%,var(--bg-alt) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; }
-  .skeleton-body  { padding:var(--space-md); }
-  .skeleton-line  { height:12px; border-radius:6px; background:linear-gradient(90deg,var(--bg-alt) 25%,var(--border) 50%,var(--bg-alt) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; margin-bottom:var(--space-sm); }
-  .skeleton-line.medium { width:80%; }
-  .skeleton-line.short  { width:55%; }
-  @keyframes shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
+  .skeleton-card{background:var(--card);border-radius:var(--radius-lg);border:2px solid var(--border);overflow:hidden;}
+  .skeleton-thumb{height:220px;background:linear-gradient(90deg,var(--bg-alt) 25%,var(--border) 50%,var(--bg-alt) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;}
+  .skeleton-body{padding:var(--space-md);}
+  .skeleton-line{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--bg-alt) 25%,var(--border) 50%,var(--bg-alt) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;margin-bottom:var(--space-sm);}
+  .skeleton-line.medium{width:80%;}.skeleton-line.short{width:55%;}
+  @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 </style>
 
 <script src="js/api.js"></script>

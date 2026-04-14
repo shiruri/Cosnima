@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loggedInLinks = [
       'sell-link', 'mobile-sell-link',
       'messages-link', 'mobile-messages-link',
+      'offers-link', 'mobile-offers-link',
       'rentals-link', 'mobile-rentals-link',
     ];
     loggedInLinks.forEach(id => {

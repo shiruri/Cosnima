@@ -653,8 +653,9 @@ input[type="password"]::-webkit-credentials-auto-fill-button { display: none !im
   font-weight: 800;
   letter-spacing: 0.07em;
   text-transform: uppercase;
+  color: white !important;
 }
-.status-available { background: rgba(39,174,96,0.12); color: #1a7a40; border: 1.5px solid rgba(39,174,96,0.25); }
-.status-sold      { background: rgba(192,57,43,0.1);  color: var(--error); border: 1.5px solid rgba(192,57,43,0.2); }
-.status-rented    { background: rgba(230,126,34,0.1);  color: #b35e00; border: 1.5px solid rgba(230,126,34,0.25); }
-.status-archived  { background: var(--bg-alt);         color: var(--ink-faint); border: 1.5px solid var(--border); }
+.status-available { background: #22c55e; border: none; }
+.status-sold      { background: #dc2626; border: none; }
+.status-rented    { background: #a855f7; border: none; }
+.status-archived  { background: #6b7280; border: none; }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,123 +8,91 @@
   <link rel="stylesheet" href="../css/global.css">
   <link rel="stylesheet" href="../css/home.css">
   <link rel="stylesheet" href="../css/profile.css">
+  <link rel="stylesheet" href="../css/rentals.css">
+  <script>(function(){var t=localStorage.getItem('cosnimaTheme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
   <style>
-  .nav-logo-img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-alt);
-}
-.nav-logo-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-/* ============================================
-   COSNIMA — Profile CSS Additions
-   Settings banner types + skeleton
-   ============================================ */
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Settings banner — typed variants */
-.settings-banner {
-  border-radius: var(--radius);
-  padding: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin-bottom: var(--space-md);
-  overflow: hidden;
-  max-height: 0;
-  transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
-  opacity: 0;
-}
-.settings-banner--error,
-.settings-banner--success {
-  padding: 0.8rem 1rem;
-  max-height: 80px;
-  opacity: 1;
-}
-.settings-banner--error {
-  background: rgba(192,57,43,0.08);
-  border: 1.5px solid rgba(192,57,43,0.2);
-  color: var(--error);
-}
-.settings-banner--success {
-  background: rgba(39,174,96,0.08);
-  border: 1.5px solid rgba(39,174,96,0.25);
-  color: #1a7a40;
-}
+    .profile-avatar {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid var(--border);
+      background: linear-gradient(135deg, var(--beaver), var(--accent));
+      flex-shrink: 0;
+      box-shadow: 0 0 0 4px var(--bg), 0 0 0 6px var(--border);
+    }
+    .profile-avatar-placeholder {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      color: white;
+    }
 
-/* Skeleton cards */
-.skeleton-card {
-  background: var(--card);
-  border-radius: var(--radius-lg);
-  border: 2px solid var(--border);
-  overflow: hidden;
-}
-.skeleton-thumb {
-  height: 220px;
-  background: linear-gradient(90deg, var(--bg-alt) 25%, var(--border) 50%, var(--bg-alt) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-.skeleton-body { padding: var(--space-md); }
-.skeleton-line {
-  height: 12px;
-  border-radius: 6px;
-  background: linear-gradient(90deg, var(--bg-alt) 25%, var(--border) 50%, var(--bg-alt) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  margin-bottom: var(--space-sm);
-}
-.skeleton-line.medium { width: 80%; }
-.skeleton-line.short  { width: 55%; }
-@keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* Profile avatar */
-.profile-avatar {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 3px solid var(--border);
-  background: linear-gradient(135deg, var(--beaver), var(--accent));
-  flex-shrink: 0;
-}
-.profile-avatar-placeholder {
-  width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display);
-  font-size: 2.5rem;
-  color: white;
-}
-
-/* Owner bar CSS is in view-listing-owner.css */
-/* Include that file in view-listing.html */
+    .settings-banner {
+      border-radius: var(--radius);
+      padding: 0;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: var(--space-md);
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+    }
+    .settings-banner--error, .settings-banner--success {
+      padding: 0.8rem 1rem;
+      max-height: 80px;
+      opacity: 1;
+    }
+    .settings-banner--error {
+      background: rgba(192,57,43,0.08);
+      border: 1.5px solid rgba(192,57,43,0.2);
+      color: var(--error);
+    }
+    .settings-banner--success {
+      background: rgba(39,174,96,0.08);
+      border: 1.5px solid rgba(39,174,96,0.25);
+      color: #1a7a40;
+    }
+    .skeleton-card {
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      border: 2px solid var(--border);
+      overflow: hidden;
+    }
+    .skeleton-thumb {
+      height: 220px;
+      background: linear-gradient(90deg, var(--bg-alt) 25%, var(--border) 50%, var(--bg-alt) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    .skeleton-body { padding: var(--space-md); }
+    .skeleton-line {
+      height: 12px; border-radius: 6px;
+      background: linear-gradient(90deg, var(--bg-alt) 25%, var(--border) 50%, var(--bg-alt) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      margin-bottom: var(--space-sm);
+    }
+    .skeleton-line.medium { width: 80%; }
+    .skeleton-line.short  { width: 55%; }
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
   </style>
-  <script>
-
-
-    (function() {
-      var t = localStorage.getItem('cosnimaTheme') || 'light';
-      document.documentElement.setAttribute('data-theme', t);
-    })();
-  </script>
 </head>
 <body>
+
+<div id="toast-container" aria-live="polite"></div>
 
 <!-- NAVBAR -->
 <nav class="navbar" role="navigation" aria-label="Main navigation">
   <div class="nav-inner">
-    <!-- Logo -->
     <a href="../index.html" class="nav-logo" aria-label="Cosnima home">
-      <svg class="nav-logo-beaver" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg class="nav-logo-beaver" viewBox="0 0 36 36" fill="none">
         <ellipse cx="18" cy="21" rx="9" ry="8" fill="#c87a50"/>
         <ellipse cx="18" cy="22.5" rx="5.5" ry="5" fill="#e8a878"/>
         <ellipse cx="18" cy="13" rx="7.5" ry="6.5" fill="#c87a50"/>
@@ -143,16 +111,13 @@
       </svg>
       <span class="nav-logo-name">COS<span>NIMA</span></span>
     </a>
-
-    <!-- Desktop links -->
     <div class="nav-links">
       <a href="../index.html">Home</a>
       <a href="../listing/listings.html">Browse</a>
-      <a href="../offers/offers.html" id="offers-link" style="display:none;">My Offers</a>
+      <a href="../messages/messages.html" id="messages-link" style="display:none;">Messages</a>
+      <a href="../rentals/rentals.html" id="rentals-link" style="display:none;">Rentals</a>
       <a href="../listing/create-listing.html" id="sell-link" style="display:none;">+ Sell / Rent</a>
     </div>
-
-    <!-- Right cluster -->
     <div class="nav-right">
       <button class="theme-btn" id="theme-btn" aria-label="Toggle dark mode">
         <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
@@ -166,32 +131,32 @@
   </div>
 </nav>
 
-<!-- Mobile drawer -->
 <div class="mobile-nav" id="mobile-nav" role="dialog" aria-label="Mobile menu">
   <nav class="mobile-nav-links">
     <a href="../index.html">Home</a>
     <a href="../listing/listings.html">Browse</a>
-    <a href="../offers/offers.html" id="mobile-offers-link" style="display:none;">My Offers</a>
+    <a href="../messages/messages.html" id="mobile-messages-link" style="display:none;">Messages</a>
+    <a href="../rentals/rentals.html" id="mobile-rentals-link" style="display:none;">Rentals</a>
     <a href="../listing/create-listing.html" id="mobile-sell-link" style="display:none;">+ Sell / Rent</a>
   </nav>
   <div class="mobile-nav-actions" id="mobile-auth"></div>
 </div>
 <div class="mobile-overlay" id="mobile-overlay"></div>
-<!-- Page error -->
-<div id="page-error" style="display:none;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.2);color:var(--error);padding:1rem 1.5rem;text-align:center;font-size:0.9rem;"></div>
+
+<div id="page-error" style="display:none;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.2);color:var(--error);padding:1rem 1.5rem;text-align:center;font-size:0.9rem;border-radius:0;"></div>
 
 <!-- PROFILE HERO -->
 <section class="profile-hero section">
   <div class="container">
     <div class="profile-inner">
-
       <div class="profile-header">
+
         <div class="profile-avatar" id="profile-avatar">
           <div class="profile-avatar-placeholder">?</div>
         </div>
 
         <div class="profile-info">
-          <h1 id="profile-username">Loading...</h1>
+          <h1 id="profile-username">Loading…</h1>
           <p class="profile-bio" id="profile-bio"></p>
         </div>
 
@@ -200,9 +165,8 @@
             <span class="profile-stat-num" id="stat-listings">0</span>
             <span class="profile-stat-label">Listings</span>
           </div>
-        
           <div class="profile-stat">
-            <span class="profile-stat-num" id="stat-rating">5.0</span>
+            <span class="profile-stat-num" id="stat-rating">—</span>
             <span class="profile-stat-label">Rating</span>
           </div>
         </div>
@@ -222,28 +186,48 @@
             New Listing
           </a>
         </div>
-      </div>
 
+      </div>
     </div>
   </div>
 </section>
 
-<!-- PROFILE CONTENT -->
+<!-- PROFILE TABS -->
 <section class="section" style="padding-top:0;">
   <div class="container">
 
     <div class="profile-tabs" role="tablist">
-      <button class="profile-tab active" role="tab" data-tab="listings" onclick="switchTab('listings')">My Listings</button>
-      <button class="profile-tab" role="tab" data-tab="wishlist" onclick="switchTab('wishlist')">Wishlist</button>
-      <button class="profile-tab" role="tab" data-tab="reviews" onclick="switchTab('reviews')">Reviews</button>
+      <button class="profile-tab active" role="tab" data-tab="listings">My Listings</button>
+      <button class="profile-tab" role="tab" data-tab="rentals">My Rentals</button>
+      <button class="profile-tab" role="tab" data-tab="messages">Messages</button>
+      <button class="profile-tab" role="tab" data-tab="wishlist">Wishlist</button>
+      <button class="profile-tab" role="tab" data-tab="reviews">Reviews</button>
     </div>
 
+    <!-- My Listings -->
     <div id="listings-content" class="tab-content active">
-      <div class="listings-grid" id="profile-listings">
-        <!-- Injected by profile.js -->
-      </div>
+      <div class="listings-grid" id="profile-listings"></div>
     </div>
-  
+
+    <!-- My Rentals -->
+    <div id="rentals-content" class="tab-content">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-lg);flex-wrap:wrap;gap:var(--space-sm);">
+        <p style="font-size:0.88rem;color:var(--ink-muted);">Rentals you've requested on other listings.</p>
+        <a href="../rentals/rentals.html" class="btn btn-outline" style="padding:0.5rem 1rem;font-size:0.8rem;">Full Rental Dashboard →</a>
+      </div>
+      <div id="profile-rentals" class="rentals-list"></div>
+    </div>
+
+    <!-- Messages -->
+    <div id="messages-content" class="tab-content">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-lg);flex-wrap:wrap;gap:var(--space-sm);">
+        <p style="font-size:0.88rem;color:var(--ink-muted);">Your recent conversations with sellers and buyers.</p>
+        <a href="../messages/messages.html" class="btn btn-outline" style="padding:0.5rem 1rem;font-size:0.8rem;">Open Messenger →</a>
+      </div>
+      <div id="profile-messages-list" style="display:flex;flex-direction:column;gap:var(--space-sm);"></div>
+    </div>
+
+    <!-- Wishlist -->
     <div id="wishlist-content" class="tab-content">
       <div class="empty-state">
         <div class="empty-state-icon">
@@ -251,12 +235,13 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
           </svg>
         </div>
-        <h3>Your wishlist is empty</h3>
+        <h3>Wishlist is empty</h3>
         <p>Save items you love and come back to them later.</p>
-        <a href="../index.html#listings" class="btn btn-primary" style="margin-top:var(--space-md)">Browse listings</a>
+        <a href="../listing/listings.html" class="btn btn-primary" style="margin-top:var(--space-md)">Browse listings</a>
       </div>
     </div>
 
+    <!-- Reviews -->
     <div id="reviews-content" class="tab-content">
       <div class="empty-state">
         <div class="empty-state-icon">
@@ -269,22 +254,10 @@
       </div>
     </div>
 
-    <div id="activity-content" class="tab-content">
-      <div class="empty-state">
-        <div class="empty-state-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-          </svg>
-        </div>
-        <h3>No activity yet</h3>
-        <p>Your recent transactions and interactions will show here.</p>
-      </div>
-    </div>
-
   </div>
 </section>
 
-<!-- SETTINGS PANEL (slide-in) -->
+<!-- SETTINGS PANEL -->
 <div class="profile-settings-panel" id="settings-panel" role="dialog" aria-label="Edit Profile" aria-modal="true">
   <div class="settings-panel-header">
     <h2>Edit Profile</h2>
@@ -295,27 +268,20 @@
     </button>
   </div>
 
-  <!-- Status banner -->
   <div id="settings-banner" class="settings-banner"></div>
 
   <form id="settings-form" enctype="multipart/form-data">
-
-    <!-- Profile info -->
     <div class="settings-section">
       <h3>Profile Information</h3>
-
       <div class="settings-field">
         <label for="settings-name">Username</label>
-        <input type="text" id="settings-name" name="username" placeholder="Your username" autocomplete="username" maxlength="20">
-        <div class="field-hint">3-20 characters, letters, numbers, underscores</div>
+        <input type="text" id="settings-name" placeholder="Your username" autocomplete="username" maxlength="20">
       </div>
-
       <div class="settings-field">
         <label for="settings-bio">Bio</label>
-        <textarea id="settings-bio" name="bio" placeholder="A little about you..." maxlength="300"></textarea>
+        <textarea id="settings-bio" placeholder="A little about you…" maxlength="300"></textarea>
         <div class="field-hint">Max 300 characters</div>
       </div>
-
       <div class="settings-field">
         <label>Avatar</label>
         <div class="avatar-upload-area">
@@ -325,31 +291,28 @@
             </svg>
           </div>
           <div class="file-label">
-            <input type="file" id="settings-avatar-file" name="file" accept="image/png,image/jpeg,image/gif,image/webp">
+            <input type="file" id="settings-avatar-file" accept="image/png,image/jpeg,image/gif,image/webp">
             <div class="field-hint">JPEG, PNG, GIF — max 5MB</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Password change -->
     <div class="settings-section">
       <h3>Change Password</h3>
-
       <div class="settings-field">
         <label for="settings-current-pw">Current Password</label>
-        <input type="password" id="settings-current-pw" name="currentPassword" placeholder="Enter current password" autocomplete="current-password">
+        <input type="password" id="settings-current-pw" placeholder="Enter current password" autocomplete="current-password">
       </div>
       <div class="settings-field">
         <label for="settings-new-pw">New Password</label>
-        <input type="password" id="settings-new-pw" name="newPassword" placeholder="New password" autocomplete="new-password">
+        <input type="password" id="settings-new-pw" placeholder="New password" autocomplete="new-password">
         <div class="field-hint">Min 8 characters, 1 uppercase, 1 number</div>
       </div>
       <div class="settings-field">
         <label for="settings-confirm-pw">Confirm New Password</label>
-        <input type="password" id="settings-confirm-pw" name="confirmPassword" placeholder="Confirm new password" autocomplete="new-password">
+        <input type="password" id="settings-confirm-pw" placeholder="Confirm new password">
       </div>
-      <div class="field-hint" style="margin-top:-0.5rem;">Leave blank to keep current password</div>
     </div>
 
     <button type="submit" class="save-btn" id="settings-save-btn">
@@ -357,12 +320,10 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
       </svg>
       <span class="btn-text">Save Changes</span>
-      <span class="btn-loader"></span>
+      <span class="btn-loader" style="display:none;width:14px;height:14px;border:2px solid rgba(255,255,255,0.5);border-top-color:white;border-radius:50%;animation:spin 0.6s linear infinite;"></span>
     </button>
-
   </form>
 
-  <!-- Danger zone -->
   <div class="settings-section" style="margin-top:var(--space-2xl);padding-top:var(--space-xl);border-top:1px solid var(--border);">
     <h3>Account</h3>
     <button type="button" class="danger-btn" onclick="logout()">
@@ -372,10 +333,160 @@
       Log Out
     </button>
   </div>
-
 </div>
 
-<script src="../js/api.js"></script>
+<<script src="../js/api.js"></script>
+<script src="../js/nav.js"></script>
 <script src="../js/profile.js"></script>
+<script>
+/* ── Extended profile: Rentals + Messages tabs ── */
+
+const _origSwitchTab = typeof switchTab === 'function' ? switchTab : null;
+
+function switchTab(tab) {
+  document.querySelectorAll('.profile-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === `${tab}-content`));
+
+  if (tab === 'rentals' && !document.getElementById('profile-rentals')._loaded) {
+    loadProfileRentals();
+  }
+  if (tab === 'messages' && !document.getElementById('profile-messages-list')._loaded) {
+    loadProfileMessages();
+  }
+}
+
+async function loadProfileRentals() {
+  const container = document.getElementById('profile-rentals');
+  if (!container) return;
+  container._loaded = true;
+
+  container.innerHTML = Array(2).fill(`
+    <div class="rental-skeleton">
+      <div class="rental-skeleton-top"></div>
+      <div class="rental-skeleton-body">
+        <div><div class="rental-skeleton-line w-50"></div><div class="rental-skeleton-line w-30"></div></div>
+        <div><div class="rental-skeleton-line w-70"></div></div>
+      </div>
+    </div>`).join('');
+
+  try {
+    const rentals = await API.get('/api/rental/mine', true) || [];
+    if (!rentals.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <h3>No rentals yet</h3>
+          <p>Browse listings to find something to rent.</p>
+          <a href="../listing/listings.html?type=RENT" class="btn btn-primary" style="margin-top:var(--space-md);">Browse Rentals</a>
+        </div>`;
+      return;
+    }
+    // Show first 5 as preview cards
+    const fmtDate  = (d) => d ? new Date(d).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) : '—';
+    const fmtPrice = (p) => p != null ? '₱' + Number(p).toLocaleString('en-PH', { minimumFractionDigits: 0 }) : '—';
+    const statusLabels = { PENDING:'Pending',APPROVED:'Approved',REJECTED:'Rejected',ACTIVE:'Active',COMPLETED:'Completed',CANCELLED:'Cancelled' };
+    const statusClasses = { PENDING:'rental-chip-pending',APPROVED:'rental-chip-approved',REJECTED:'rental-chip-rejected',ACTIVE:'rental-chip-active',COMPLETED:'rental-chip-completed',CANCELLED:'rental-chip-cancelled' };
+
+    container.innerHTML = rentals.slice(0, 5).map(r => `
+      <div class="rental-card" style="animation:none;">
+        <div class="rental-card-top">
+          <div class="rental-card-thumb">
+            <div class="rental-card-thumb-placeholder">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="width:22px;height:22px;color:var(--ink-faint);">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="rental-card-info">
+            <div class="rental-card-title">${escH(r.listingTitle || 'Listing')}</div>
+            <a class="rental-card-link" href="../listing/view-listing.html?id=${escH(String(r.listingId))}">View Listing →</a>
+          </div>
+          <span class="rental-status-chip ${statusClasses[r.status] || 'rental-chip-pending'}">${statusLabels[r.status] || r.status}</span>
+        </div>
+        <div class="rental-card-body" style="gap:var(--space-md);">
+          <div class="rental-card-dates">
+            <div class="rental-date-block">
+              <div class="rental-date-label">From</div>
+              <div class="rental-date-value">${fmtDate(r.startDate)}</div>
+            </div>
+            <div style="color:var(--ink-faint);align-self:center;">→</div>
+            <div class="rental-date-block">
+              <div class="rental-date-label">To</div>
+              <div class="rental-date-value">${fmtDate(r.endDate)}</div>
+            </div>
+          </div>
+          <div class="rental-card-pricing">
+            <div class="rental-total-price">${fmtPrice(r.totalPrice)}</div>
+          </div>
+        </div>
+      </div>`).join('');
+
+  } catch {
+    container.innerHTML = `<div class="empty-state"><h3>Could not load rentals</h3><p>Please refresh the page.</p></div>`;
+  }
+}
+
+async function loadProfileMessages() {
+  const container = document.getElementById('profile-messages-list');
+  if (!container) return;
+  container._loaded = true;
+
+  container.innerHTML = `<div style="text-align:center;padding:var(--space-xl);color:var(--ink-faint);"><div style="width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto var(--space-md);"></div>Loading…</div>`;
+
+  try {
+    const convos = await API.get('/api/conversations', true) || [];
+    if (!convos.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+          </div>
+          <h3>No messages yet</h3>
+          <p>Message a seller from any listing to start a conversation.</p>
+          <a href="../listing/listings.html" class="btn btn-primary" style="margin-top:var(--space-md);">Browse Listings</a>
+        </div>`;
+      return;
+    }
+
+    const fmtTime = (d) => {
+      if (!d) return '';
+      const dt = new Date(d);
+      const diff = Date.now() - dt.getTime();
+      if (diff < 3600000) return Math.floor(diff/60000) + 'm ago';
+      if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
+      return Math.floor(diff/86400000) + 'd ago';
+    };
+
+    container.innerHTML = convos.slice(0, 6).map(c => `
+      <a href="../messages/messages.html?conversation=${escH(c.conversationId)}"
+         style="display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md) var(--space-lg);background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);text-decoration:none;transition:border-color var(--t-base),box-shadow var(--t-base);"
+         onmouseover="this.style.borderColor='var(--accent)'"
+         onmouseout="this.style.borderColor='var(--border)'">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--beaver),var(--accent));color:white;font-size:0.9rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          ${escH((c.listingTitle || 'U').charAt(0).toUpperCase())}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:0.88rem;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escH(c.listingTitle || 'Conversation')}</div>
+          <div style="font-size:0.76rem;color:var(--ink-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escH(c.lastMessage || 'No messages yet')}</div>
+        </div>
+        <div style="font-size:0.68rem;color:var(--ink-faint);font-weight:600;white-space:nowrap;">${fmtTime(c.lastMessageTime)}</div>
+        ${c.unreadCount > 0 ? `<span style="background:var(--accent);color:white;border-radius:999px;font-size:0.62rem;font-weight:800;padding:2px 6px;min-width:18px;text-align:center;">${c.unreadCount}</span>` : ''}
+      </a>`).join('');
+
+  } catch {
+    container.innerHTML = `<div class="empty-state"><h3>Could not load messages</h3><p>Please refresh the page.</p></div>`;
+  }
+}
+
+function escH(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
 </body>
 </html>

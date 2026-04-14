@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="../css/global.css">
   <link rel="stylesheet" href="../css/home.css">
   <link rel="stylesheet" href="../css/offers.css">
+  
   <script>(function(){var t=localStorage.getItem('cosnimaTheme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
   <style>
     /* Additional dashboard styles */
@@ -201,7 +202,9 @@
     <div class="nav-links">
       <a href="../index.html">Home</a>
       <a href="../listing/listings.html">Browse</a>
-      <a href="../offers/offers.html" class="active">Offers</a>
+      <a href="../messages/messages.html" id="messages-link" style="display:none;">Messages</a>
+      <a href="offers.html" class="active">My Offers</a>
+      <a href="../rentals/rentals.html" id="rentals-link" style="display:none;">My Rentals</a>
       <a href="../listing/create-listing.html" id="sell-link" style="display:none;">+ Sell / Rent</a>
     </div>
     <div class="nav-right">
@@ -221,7 +224,9 @@
   <nav class="mobile-nav-links">
     <a href="../index.html">Home</a>
     <a href="../listing/listings.html">Browse</a>
-    <a href="../offers/offers.html">Offers</a>
+    <a href="../messages/messages.html" id="mobile-messages-link" style="display:none;">Messages</a>
+    <a href="offers.html" class="active">My Offers</a>
+    <a href="../rentals/rentals.html" id="mobile-rentals-link" style="display:none;">My Rentals</a>
     <a href="../listing/create-listing.html" id="mobile-sell-link" style="display:none;">+ Sell / Rent</a>
   </nav>
   <div class="mobile-nav-actions" id="mobile-auth"></div>

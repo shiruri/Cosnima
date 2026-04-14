@@ -1,0 +1,265 @@
+/* ============================================
+   COSNIMA — Rental Calendar
+   ============================================ */
+
+.rental-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  padding: var(--space-md);
+  background: var(--bg-alt);
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border);
+}
+
+.rental-calendar-header {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+
+.rental-calendar-title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.rental-calendar-nav {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.rental-calendar-nav button {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--ink-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+
+.rental-calendar-nav button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.calendar-weekdays {
+  display: contents;
+}
+
+.calendar-weekday {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-align: center;
+  padding: 4px;
+}
+
+.calendar-days {
+  display: contents;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--t-fast);
+  background: var(--bg-alt);
+  color: var(--ink-muted);
+  border: 1px solid var(--border);
+}
+
+.calendar-day:hover:not(.disabled):not(.booked) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.calendar-day.available {
+  background: var(--card);
+  color: var(--ink);
+}
+
+.calendar-day.booked {
+  background: var(--beaver);
+  color: white;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.calendar-day.selected {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(240,98,146,0.3);
+}
+
+.calendar-day.in-range {
+  background: rgba(240,98,146,0.15);
+  border-color: var(--accent);
+}
+
+.calendar-day.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.calendar-day.empty {
+  background: transparent;
+  border: none;
+  cursor: default;
+}
+
+/* Rental modal styles */
+.rental-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(42,26,14,0.6);
+  z-index: 800;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rental-modal-backdrop.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.rental-modal {
+  background: var(--card);
+  border-radius: var(--radius-xl);
+  width: min(480px, 90vw);
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  transform: scale(0.96);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.rental-modal-backdrop.open .rental-modal {
+  transform: scale(1);
+}
+
+.rental-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-lg);
+  border-bottom: 1.5px solid var(--border);
+  background: linear-gradient(135deg, var(--bg-alt), var(--card));
+}
+
+.rental-modal-header h2 {
+  font-size: 1.2rem;
+  color: var(--ink);
+}
+
+.rental-modal-body {
+  padding: var(--space-lg);
+  overflow-y: auto;
+}
+
+.rental-field {
+  margin-bottom: var(--space-md);
+}
+
+.rental-field label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: var(--space-xs);
+}
+
+.rental-field input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--bg);
+  outline: none;
+  transition: border-color var(--t-base);
+}
+
+.rental-field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(240,98,146,0.1);
+}
+
+.rental-field-error {
+  font-size: 0.72rem;
+  color: var(--error);
+  margin-top: 4px;
+  display: none;
+}
+
+.rental-field.has-error .rental-field-error {
+  display: block;
+}
+
+.rental-field.has-error input {
+  border-color: var(--error);
+}
+
+.rental-price-summary {
+  background: var(--bg-alt);
+  border-radius: var(--radius);
+  padding: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.rental-price-row-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-bottom: var(--space-xs);
+}
+
+.rental-price-row-item .label {
+  color: var(--ink-muted);
+}
+
+.rental-price-row-item .value {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.rental-price-total {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--accent) !important;
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border);
+}
+
+.rental-modal-footer {
+  display: flex;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  border-top: 1.5px solid var(--border);
+  justify-content: flex-end;
+}

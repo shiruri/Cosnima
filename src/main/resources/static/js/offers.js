@@ -440,6 +440,10 @@ async function loadFilteredOffers(status) {
 
   const container = document.getElementById('my-offers-container');
   const countEl   = document.getElementById('offers-total-count');
+  
+  // Add transition class for smooth swap
+  if (container) container.classList.add('content-transition');
+  
   showOfferSkeletons();
 
   try {
@@ -456,12 +460,22 @@ async function loadFilteredOffers(status) {
 
     if (!container) return;
     if (!filtered.length) {
-      container.innerHTML = buildEmptyState(status);
+      // Small delay to let skeletons render before swapping
+      setTimeout(() => {
+        container.innerHTML = buildEmptyState(status);
+        // Remove transition class after content settles
+        setTimeout(() => container.classList.remove('content-transition'), 200);
+      }, 100);
       return;
     }
 
-    container.innerHTML = `<div class="offers-grid">${filtered.map(o => buildMyOfferCard(o)).join('')}</div>`;
-    wireCardCancelButtons(container);
+    // Small delay to let skeletons render before swapping
+    setTimeout(() => {
+      container.innerHTML = `<div class="offers-grid">${filtered.map(o => buildMyOfferCard(o)).join('')}</div>`;
+      wireCardCancelButtons(container);
+      // Remove transition class after content settles
+      setTimeout(() => container.classList.remove('content-transition'), 200);
+    }, 100);
 
   } finally {
     isLoadingFilter = false;
@@ -738,7 +752,7 @@ function buildIncomingOfferCard(offer) {
         <div class="offer-card-listing-thumb">${listingThumb}</div>
         <div class="offer-card-listing-info">
           <div class="offer-card-listing-title">${escHtml(offer.listingTitle || 'Listing')}</div>
-          <a class="offer-card-listing-link" href="../listing/view-listing.html?id=${escHtml(String(offer.listingId))}" target="_blank">
+<a class="offer-card-listing-link" href="../listing/view-listing.html?id=${escHtml(String(offer.listingId))}">
             View Listing
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>

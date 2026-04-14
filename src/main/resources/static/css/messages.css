@@ -1,0 +1,171 @@
+/* ============================================
+   COSNIMA — Chat Offer/Rental Cards
+   ============================================ */
+
+.offer-card, .rental-card {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  margin: var(--space-xs) 0;
+  min-width: 260px;
+  max-width: 340px;
+}
+
+.offer-card {
+  border-left: 4px solid var(--accent);
+}
+
+.rental-card {
+  border-left: 4px solid var(--beaver);
+}
+
+.offer-card-header, .rental-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--border);
+}
+
+.offer-card-header svg { color: var(--accent); }
+.rental-card-header svg { color: var(--beaver); }
+
+.offer-card-label, .rental-card-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.offer-card-label { color: var(--accent); }
+.rental-card-label { color: var(--beaver); }
+
+.offer-card-listing {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  padding: var(--space-sm);
+  background: var(--bg-alt);
+  border-radius: var(--radius);
+}
+
+.offer-card-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  background: var(--border);
+}
+
+.offer-card-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.offer-card-price {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--accent);
+  margin-bottom: var(--space-xs);
+}
+
+.rental-card-dates {
+  display: flex;
+  gap: var(--space-md);
+  margin-bottom: var(--space-sm);
+  font-size: 0.82rem;
+}
+
+.rental-card-date-label {
+  color: var(--ink-faint);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rental-card-date-value {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.rental-card-total {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--beaver);
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border);
+}
+
+.offer-card-message, .rental-card-message {
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+  margin-bottom: var(--space-md);
+  font-style: italic;
+}
+
+.offer-card-actions, .rental-card-actions {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.offer-card-actions .btn, .rental-card-actions .btn {
+  flex: 1;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+}
+
+.offer-card .btn-accept { background: var(--success); color: white; border-color: var(--success); }
+.offer-card .btn-accept:hover { background: #219a52; }
+
+.offer-card .btn-reject { background: transparent; color: var(--error); border-color: var(--error); }
+.offer-card .btn-reject:hover { background: rgba(192,57,43,0.1); }
+
+.rental-card .btn-accept { background: var(--beaver); color: white; border-color: var(--beaver); }
+.rental-card .btn-accept:hover { background: var(--beaver-dark); }
+
+.rental-card .btn-reject { background: transparent; color: var(--error); border-color: var(--error); }
+.rental-card .btn-reject:hover { background: rgba(192,57,43,0.1); }
+
+.offer-card .btn:disabled, .rental-card .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Status indicator on card */
+.offer-status, .rental-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-left: auto;
+}
+
+.offer-status.pending, .rental-status.pending {
+  background: rgba(230,126,34,0.15);
+  color: #d35400;
+}
+
+.offer-status.accepted, .rental-status.accepted {
+  background: rgba(39,174,96,0.15);
+  color: #1a7a40;
+}
+
+.offer-status.rejected, .rental-status.rejected {
+  background: rgba(192,57,43,0.15);
+  color: var(--error);
+}

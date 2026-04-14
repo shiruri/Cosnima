@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rentals — Cosnima</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/home.css">
+  <link rel="stylesheet" href="../css/rentals.css">
+  <link rel="stylesheet" href="../css/rental-actions.css">
+  <script>(function(){var t=localStorage.getItem('cosnimaTheme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div id="toast-container" aria-live="polite"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar" role="navigation" aria-label="Main navigation">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo" aria-label="Cosnima home">
+      <svg class="nav-logo-beaver" viewBox="0 0 36 36" fill="none">
+        <ellipse cx="18" cy="21" rx="9" ry="8" fill="#c87a50"/>
+        <ellipse cx="18" cy="22.5" rx="5.5" ry="5" fill="#e8a878"/>
+        <ellipse cx="18" cy="13" rx="7.5" ry="6.5" fill="#c87a50"/>
+        <ellipse cx="14.5" cy="14.5" rx="2.5" ry="2" fill="#e8a878"/>
+        <ellipse cx="21.5" cy="14.5" rx="2.5" ry="2" fill="#e8a878"/>
+        <circle cx="15.5" cy="12" r="1.8" fill="#2a1a1f"/>
+        <circle cx="20.5" cy="12" r="1.8" fill="#2a1a1f"/>
+        <circle cx="16" cy="11.5" r="0.7" fill="white"/>
+        <circle cx="21" cy="11.5" r="0.7" fill="white"/>
+        <ellipse cx="12.5" cy="7.5" rx="2.5" ry="3" fill="#c87a50"/>
+        <ellipse cx="23.5" cy="7.5" rx="2.5" ry="3" fill="#c87a50"/>
+        <rect x="16" y="15.5" width="2" height="2.5" rx="0.5" fill="#f8f0e0"/>
+        <rect x="18.5" y="15.5" width="2" height="2.5" rx="0.5" fill="#f8f0e0"/>
+        <ellipse cx="18" cy="31" rx="7" ry="3.5" fill="#8b4c30"/>
+        <path d="M17.5 9 C17.5 8 16 7 15 8 C14 9 15 10.5 17.5 12 C20 10.5 21 9 20 8 C19 7 17.5 8 17.5 9Z" fill="#f06292"/>
+      </svg>
+      <span class="nav-logo-name">COS<span>NIMA</span></span>
+    </a>
+<div class="nav-links">
+      <a href="../index.html">Home</a>
+      <a href="../listing/listings.html">Browse</a>
+      <a href="../messages/messages.html" id="messages-link">Messages</a>
+      <a href="../offers/offers.html" id="offers-link">My Offers</a>
+      <a href="rentals.html" class="active">My Rentals</a>
+      <a href="../listing/create-listing.html" id="sell-link">+ Sell / Rent</a>
+    </div>
+    <div class="nav-right">
+      <button class="theme-btn" id="theme-btn" aria-label="Toggle dark mode">
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="5"/><path stroke-linecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+      <div id="nav-auth"></div>
+      <button class="nav-hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+<div class="mobile-nav" id="mobile-nav" role="dialog" aria-label="Mobile menu" aria-modal="true">
+  <nav class="mobile-nav-links">
+    <a href="../index.html">Home</a>
+    <a href="../listing/listings.html">Browse</a>
+    <a href="../messages/messages.html" id="mobile-messages-link">Messages</a>
+    <a href="../offers/offers.html" id="mobile-offers-link">My Offers</a>
+    <a href="rentals.html">My Rentals</a>
+    <a href="../listing/create-listing.html" id="mobile-sell-link">+ Sell / Rent</a>
+  </nav>
+  <div class="mobile-nav-actions" id="mobile-auth"></div>
+</div>
+<div class="mobile-overlay" id="mobile-overlay"></div>
+
+<!-- PAGE -->
+<main class="rentals-page">
+  <div class="container">
+
+    <div class="rentals-header">
+      <div style="display:flex;align-items:center;gap:var(--space-md);justify-content:space-between;flex-wrap:wrap;">
+        <div>
+          <p class="section-label">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            Rental Dashboard
+          </p>
+          <h1>Manage Rentals</h1>
+          <p>Track rentals you've requested and rental requests on your listings.</p>
+        </div>
+        <a href="../listing/listings.html?type=RENT" class="btn btn-primary" style="padding:0.6rem 1.2rem;font-size:0.84rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          Browse Rentals
+        </a>
+      </div>
+    </div>
+
+    <!-- Dashboard tabs -->
+    <div class="rentals-dashboard-tabs" role="tablist">
+      <button class="rental-dashboard-tab active" data-panel="my-rentals" role="tab">My Rentals</button>
+      <button class="rental-dashboard-tab" data-panel="incoming-rentals" role="tab">Requests</button>
+      <button class="rental-dashboard-tab" data-panel="calendar" role="tab">Calendar</button>
+    </div>
+
+    <!-- Panel 1: My rentals (as renter) -->
+    <div id="my-rentals-panel" class="rentals-panel-section active">
+      <div class="rental-status-tabs" id="my-rentals-status-tabs">
+        <button class="rental-status-tab active" data-filter="">
+          <span class="rental-status-dot" style="background:var(--ink-faint);"></span>
+          All
+        </button>
+        <button class="rental-status-tab" data-filter="PENDING">
+          <span class="rental-status-dot" style="background:#e67e22;"></span>
+          Pending
+        </button>
+        <button class="rental-status-tab" data-filter="APPROVED">
+          <span class="rental-status-dot" style="background:#27ae60;"></span>
+          Approved
+        </button>
+        <button class="rental-status-tab" data-filter="ACTIVE">
+          <span class="rental-status-dot" style="background:var(--beaver);"></span>
+          Active
+        </button>
+        <button class="rental-status-tab" data-filter="COMPLETED">
+          <span class="rental-status-dot" style="background:#27ae60;"></span>
+          Completed
+        </button>
+        <button class="rental-status-tab" data-filter="REJECTED">
+          <span class="rental-status-dot" style="background:var(--error);"></span>
+          Rejected
+        </button>
+      </div>
+      <div id="my-rentals-container" class="rentals-list"></div>
+    </div>
+
+    <!-- Panel 2: Incoming rental requests (as seller) -->
+    <div id="incoming-rentals-panel" class="rentals-panel-section">
+      <div class="rental-status-tabs" id="incoming-status-tabs">
+        <button class="rental-status-tab active" data-filter="">
+          <span class="rental-status-dot" style="background:var(--ink-faint);"></span>
+          All
+        </button>
+        <button class="rental-status-tab" data-filter="PENDING">
+          <span class="rental-status-dot" style="background:#e67e22;"></span>
+          Pending
+        </button>
+        <button class="rental-status-tab" data-filter="APPROVED">
+          <span class="rental-status-dot" style="background:#27ae60;"></span>
+          Approved
+        </button>
+        <button class="rental-status-tab" data-filter="COMPLETED">
+          <span class="rental-status-dot" style="background:#27ae60;"></span>
+          Completed
+        </button>
+        <button class="rental-status-tab" data-filter="REJECTED">
+          <span class="rental-status-dot" style="background:var(--error);"></span>
+          Rejected
+        </button>
+      </div>
+      <div id="incoming-rentals-container" class="rentals-list"></div>
+    </div>
+
+    <!-- Panel 3: Calendar -->
+    <div id="calendar-panel" class="rentals-panel-section">
+      <div class="rental-calendar-full">
+        <div class="rental-calendar-header">
+          <h3>Rental Calendar</h3>
+          <div class="rental-calendar-nav">
+            <button onclick="changeCalendarMonth(-1)" aria-label="Previous month">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span id="calendar-month-year"></span>
+            <button onclick="changeCalendarMonth(1)" aria-label="Next month">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="rental-calendar-grid" id="rental-calendar-grid"></div>
+        <div class="rental-calendar-legend">
+          <span class="legend-item"><span class="legend-dot" style="background:var(--accent);"></span> Active</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#e67e22;"></span> Pending</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#27ae60;"></span> Completed</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer class="footer" style="margin-top:var(--space-3xl);">
+  <div class="container">
+    <div class="footer-bottom">
+      <p>© 2025 Cosnima 🦫</p>
+      <div class="footer-bottom-links">
+        <a href="../index.html">Home</a>
+        <a href="../listing/listings.html">Browse</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="../js/api.js"></script>
+<script src="../js/nav.js"></script>
+<script>
+/* ============================================
+   COSNIMA — Rentals Dashboard Logic
+   ============================================ */
+
+let _myRentals     = [];
+let _incomingRentals = [];
+let _activePanel   = 'my-rentals';
+let _myFilter      = '';
+let _incomingFilter = '';
+let _calendarDate = new Date();
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!API.isLoggedIn()) {
+    window.location.href = '../login/login.html';
+    return;
+  }
+
+  if (API.isLoggedIn()) {
+    ['messages-link','mobile-messages-link','sell-link','mobile-sell-link'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = '';
+    });
+  }
+
+  // Dashboard tab switching
+  document.querySelectorAll('.rental-dashboard-tab').forEach(tab => {
+    tab.addEventListener('click', () => switchPanel(tab.dataset.panel));
+  });
+
+  // Status filter tabs (My Rentals)
+  document.querySelectorAll('#my-rentals-status-tabs .rental-status-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('#my-rentals-status-tabs .rental-status-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      _myFilter = tab.dataset.filter;
+      renderMyRentals();
+    });
+  });
+
+  // Status filter tabs (Incoming)
+  document.querySelectorAll('#incoming-status-tabs .rental-status-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('#incoming-status-tabs .rental-status-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      _incomingFilter = tab.dataset.filter;
+      renderIncomingRentals();
+    });
+  });
+
+  await loadMyRentals();
+});
+
+function switchPanel(panel) {
+  _activePanel = panel;
+  document.querySelectorAll('.rental-dashboard-tab').forEach(t => t.classList.toggle('active', t.dataset.panel === panel));
+  document.querySelectorAll('.rentals-panel-section').forEach(p => p.classList.remove('active'));
+  document.getElementById(`${panel}-panel`)?.classList.add('active');
+
+  if (panel === 'incoming-rentals' && !_incomingRentals.length) {
+    loadIncomingRentals();
+  }
+  if (panel === 'calendar') {
+    // Always render calendar when switching to calendar tab, even with empty data
+    renderCalendar();
+    
+    // Load data in background if needed
+    if (!_myRentals.length && !_incomingRentals.length) {
+      // Load both in parallel for better UX
+      loadMyRentals().then(() => loadIncomingRentals());
+    } else if (!_myRentals.length) {
+      loadMyRentals();
+    } else if (!_incomingRentals.length) {
+      loadIncomingRentals();
+    }
+  }
+}
+
+/* ── My Rentals ── */
+async function loadMyRentals() {
+  showRentalSkeletons('my-rentals-container');
+  try {
+    _myRentals = await API.get('/api/rental/mine', true) || [];
+    renderMyRentals();
+    renderCalendar();
+  } catch (err) {
+    showRentalError('my-rentals-container', () => loadMyRentals());
+  }
+}
+
+function renderMyRentals() {
+  const container = document.getElementById('my-rentals-container');
+  if (!container) return;
+
+  const filtered = _myFilter ? _myRentals.filter(r => r.status === _myFilter) : _myRentals;
+
+  if (!filtered.length) {
+    container.innerHTML = buildRentalsEmpty(_myFilter, false);
+    return;
+  }
+
+  container.innerHTML = filtered.map(r => buildRentalCard(r, false)).join('');
+}
+
+/* ── Incoming Rentals (seller) ── */
+async function loadIncomingRentals() {
+  showRentalSkeletons('incoming-rentals-container');
+  try {
+    _incomingRentals = await API.get('/api/rental/my-listings', true) || [];
+    renderIncomingRentals();
+    renderCalendar();
+  } catch (err) {
+    showRentalError('incoming-rentals-container', () => loadIncomingRentals());
+  }
+}
+
+function renderIncomingRentals() {
+  const container = document.getElementById('incoming-rentals-container');
+  if (!container) return;
+
+  const filtered = _incomingFilter ? _incomingRentals.filter(r => r.status === _incomingFilter) : _incomingRentals;
+
+  if (!filtered.length) {
+    container.innerHTML = buildRentalsEmpty(_incomingFilter, true);
+    return;
+  }
+
+  container.innerHTML = filtered.map(r => buildRentalCard(r, true)).join('');
+  wireIncomingButtons(container);
+}
+
+/* ── Build rental card ── */
+function buildRentalCard(rental, isSeller) {
+  const statusMap = {
+    PENDING:   { cls: 'rental-chip-pending',   label: 'Pending' },
+    APPROVED:  { cls: 'rental-chip-approved',  label: 'Approved' },
+    REJECTED:  { cls: 'rental-chip-rejected',  label: 'Rejected' },
+    ACTIVE:    { cls: 'rental-chip-active',    label: 'Active' },
+    COMPLETED: { cls: 'rental-chip-completed', label: 'Completed' },
+    CANCELLED: { cls: 'rental-chip-cancelled', label: 'Cancelled' },
+  };
+  const statusInfo = statusMap[rental.status] || { cls: 'rental-chip-pending', label: rental.status };
+
+  const days = rental.startDate && rental.endDate
+    ? Math.max(1, Math.round((new Date(rental.endDate) - new Date(rental.startDate)) / 86400000))
+    : null;
+
+  const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+  const fmtPrice = (p) => p != null ? '₱' + Number(p).toLocaleString('en-PH', { minimumFractionDigits: 0 }) : '—';
+
+  const isPending = rental.status === 'PENDING';
+
+  const actions = isSeller && isPending ? `
+    <div class="rental-card-actions">
+      <button class="rental-action-btn approve" data-rental-id="${rental.id}" data-action="approve">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+        Approve
+      </button>
+      <button class="rental-action-btn reject" data-rental-id="${rental.id}" data-action="reject">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+        Reject
+      </button>
+    </div>` : `<div class="rental-card-actions">${buildStatusChip(statusInfo.cls, statusInfo.label)}</div>`;
+
+  const renterInfo = isSeller && rental.renterUsername ? `
+    <div class="rental-renter-row">
+      <div class="rental-renter-ava">${rental.renterUsername.charAt(0).toUpperCase()}</div>
+      <span>Renter: <strong>${escH(rental.renterUsername)}</strong></span>
+    </div>` : '';
+
+  return `
+    <div class="rental-card" id="rental-card-${rental.id}">
+      <div class="rental-card-top">
+        <div class="rental-card-thumb">
+          <div class="rental-card-thumb-placeholder">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="width:24px;height:24px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="rental-card-info">
+          <div class="rental-card-title">${escH(rental.listingTitle || 'Listing')}</div>
+          <a class="rental-card-link" href="../listing/view-listing.html?id=${escH(String(rental.listingId))}">
+            View Listing
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="width:10px;height:10px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+          </a>
+          ${renterInfo}
+        </div>
+        ${!isSeller || !isPending ? buildStatusChip(statusInfo.cls, statusInfo.label) : ''}
+      </div>
+      <div class="rental-card-body">
+        <div class="rental-card-dates">
+          <div class="rental-date-block">
+            <div class="rental-date-label">Start</div>
+            <div class="rental-date-value">${fmtDate(rental.startDate)}</div>
+          </div>
+          <div style="color:var(--ink-faint);align-self:center;font-size:1.2rem;">→</div>
+          <div class="rental-date-block">
+            <div class="rental-date-label">End</div>
+            <div class="rental-date-value">${fmtDate(rental.endDate)}</div>
+          </div>
+          ${days ? `<div class="rental-duration-badge">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            ${days} day${days !== 1 ? 's' : ''}
+          </div>` : ''}
+        </div>
+        <div class="rental-card-pricing">
+          <div class="rental-total-price">${fmtPrice(rental.totalPrice)}</div>
+          ${rental.deposit ? `<div class="rental-deposit-note">Deposit: ${fmtPrice(rental.deposit)}</div>` : ''}
+        </div>
+        ${actions}
+      </div>
+    </div>`;
+}
+
+function buildStatusChip(cls, label) {
+  return `<span class="rental-status-chip ${escH(cls)}">${escH(label)}</span>`;
+}
+
+function wireIncomingButtons(container) {
+  container.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', () => handleRentalAction(btn.dataset.rentalId, btn.dataset.action, btn));
+  });
+}
+
+async function handleRentalAction(rentalId, action, btn) {
+  const card    = document.getElementById(`rental-card-${rentalId}`);
+  const allBtns = card?.querySelectorAll('.rental-action-btn');
+  allBtns?.forEach(b => { b.disabled = true; });
+
+  const endpoint = `/api/rental/${rentalId}/${action}`;
+  try {
+    await API.post(endpoint, null, true);
+
+    // Update local data
+    const idx = _incomingRentals.findIndex(r => String(r.id) === String(rentalId));
+    if (idx > -1) {
+      _incomingRentals[idx].status = action === 'approve' ? 'APPROVED' : 'REJECTED';
+    }
+
+    renderIncomingRentals();
+    showToast(action === 'approve' ? 'Rental approved!' : 'Rental rejected.', action === 'approve' ? 'success' : 'info');
+
+  } catch (err) {
+    allBtns?.forEach(b => { b.disabled = false; });
+    const msg = err?.data?.message || err?.message || 'Action failed. Please try again.';
+    showToast(msg, 'error');
+  }
+}
+
+/* ── UI helpers ── */
+function showRentalSkeletons(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = Array(3).fill(`
+    <div class="rental-skeleton">
+      <div class="rental-skeleton-top"></div>
+      <div class="rental-skeleton-body">
+        <div>
+          <div class="rental-skeleton-line w-50"></div>
+          <div class="rental-skeleton-line w-30"></div>
+        </div>
+        <div>
+          <div class="rental-skeleton-line w-70"></div>
+          <div class="rental-skeleton-line w-50"></div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function showRentalError(containerId, retryFn) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = `
+    <div class="rentals-empty">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+      <h3>Could not load rentals</h3>
+      <p>Check your connection and try again.</p>
+      <button class="btn btn-outline" style="margin-top:var(--space-md);" onclick="(${retryFn.toString()})()">Retry</button>
+    </div>`;
+}
+
+function buildRentalsEmpty(filter, isSeller) {
+  const isAll = !filter;
+  const label = filter ? filter.toLowerCase() : '';
+  return `
+    <div class="rentals-empty">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+      <h3>${isAll ? (isSeller ? 'No rental requests yet' : 'No rentals yet') : `No ${label} rentals`}</h3>
+      <p>${isAll && !isSeller ? 'Browse listings and request a rental.' : (isAll ? 'Rental requests on your listings will appear here.' : 'Try a different filter.')}</p>
+      ${isAll && !isSeller ? `<a href="../listing/listings.html?type=RENT" class="btn btn-primary" style="margin-top:var(--space-md);">Browse Rentable Listings</a>` : ''}
+    </div>`;
+}
+
+function escH(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function changeCalendarMonth(delta) {
+  _calendarDate.setMonth(_calendarDate.getMonth() + delta);
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const year = _calendarDate.getFullYear();
+  const month = _calendarDate.getMonth();
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calendar-month-year').textContent = `${monthNames[month]} ${year}`;
+  
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  
+  const allRentals = [..._myRentals, ..._incomingRentals];
+  const rentalDays = {};
+  allRentals.forEach(r => {
+    if (r.startDate && r.endDate) {
+      const start = new Date(r.startDate);
+      const end = new Date(r.endDate);
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const key = d.toISOString().split('T')[0];
+        rentalDays[key] = rentalDays[key] || [];
+        rentalDays[key].push(r);
+      }
+    }
+  });
+  
+  let html = '<div class="calendar-weekdays" style="display:contents;">';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => html += `<div class="calendar-weekday">${d}</div>`);
+  html += '</div><div class="calendar-days" style="display:contents;">';
+  
+  for (let i = 0; i < firstDay; i++) {
+    html += '<div class="calendar-day empty"></div>';
+  }
+  
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const dateKey = date.toISOString().split('T')[0];
+    const rentalsOnDay = rentalDays[dateKey] || [];
+    const isPast = date < today;
+    const isToday = date.getTime() === today.getTime();
+    const hasActive = rentalsOnDay.some(r => r.status === 'ACTIVE');
+    const hasPending = rentalsOnDay.some(r => r.status === 'PENDING');
+    const hasCompleted = rentalsOnDay.some(r => r.status === 'COMPLETED');
+    
+    let classes = 'calendar-day';
+    if (isPast) classes += ' disabled';
+    else if (hasActive) classes += ' active-rental';
+    else if (hasPending) classes += ' pending-rental';
+    else if (hasCompleted) classes += ' completed-rental';
+    if (isToday) classes += ' today';
+    
+    html += `<div class="${classes}">${day}${rentalsOnDay.length ? `<span class="rental-dot-indicator"></span>` : ''}</div>`;
+  }
+  
+  html += '</div>';
+  document.getElementById('rental-calendar-grid').innerHTML = html;
+}
+</script>
+</body>
+</html>

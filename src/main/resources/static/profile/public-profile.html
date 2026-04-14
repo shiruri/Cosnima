@@ -8,9 +8,7 @@
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/home.css">
     <link rel="stylesheet" href="../css/profile.css">
-    <link rel="stylesheet" href="../css/messages.css">
-<link rel="stylesheet" href="../css/rentals.css">
-<link rel="stylesheet" href="../css/profile-enhanced.css">
+    
     <script>
         (function() {
             var t = localStorage.getItem('cosnimaTheme') || 'light';
@@ -46,7 +44,9 @@
     <div class="nav-links">
       <a href="../index.html">Home</a>
       <a href="../listing/listings.html">Browse</a>
+      <a href="../messages/messages.html" id="messages-link" style="display:none;">Messages</a>
       <a href="../offers/offers.html" id="offers-link" style="display:none;">My Offers</a>
+      <a href="../rentals/rentals.html" id="rentals-link" style="display:none;">My Rentals</a>
       <a href="../listing/create-listing.html" id="sell-link" style="display:none;">+ Sell / Rent</a>
     </div>
     <div class="nav-right">
@@ -67,7 +67,9 @@
   <nav class="mobile-nav-links">
     <a href="../index.html">Home</a>
     <a href="../listing/listings.html">Browse</a>
+    <a href="../messages/messages.html" id="mobile-messages-link" style="display:none;">Messages</a>
     <a href="../offers/offers.html" id="mobile-offers-link" style="display:none;">My Offers</a>
+    <a href="../rentals/rentals.html" id="mobile-rentals-link" style="display:none;">My Rentals</a>
     <a href="../listing/create-listing.html" id="mobile-sell-link" style="display:none;">+ Sell / Rent</a>
   </nav>
   <div class="mobile-nav-actions" id="mobile-auth"></div>
@@ -152,9 +154,11 @@
     /* ============================================
        Public Profile Logic (clickable listings, no follow)
        ============================================ */
+    let userId = null;
+    
     document.addEventListener('DOMContentLoaded', async () => {
         const params = new URLSearchParams(window.location.search);
-        const userId = params.get('id');
+        userId = params.get('id');
 
         if (!userId) {
             showError('No user specified.');
@@ -241,15 +245,24 @@
                 if (l.images && l.images.length) {
                     primaryImage = l.images[0].imageUrl;
                 }
+                const typeLabel = l.type === 'RENT' ? 'For Rent' : 'For Sale';
+                const typeClass = l.type === 'RENT' ? 'badge-rent' : 'badge-sell';
                 return `
-                    <article class="listing-card" data-listing-id="${l.id}" style="cursor:pointer;">
+                    <article class="listing-card" data-listing-id="${l.id}">
                         <div class="card-thumb">
                             <img src="${primaryImage || 'https://picsum.photos/seed/' + l.id + '/400/300'}" alt="${l.title}">
-                            <div class="card-badges"><span class="badge badge-sell">Listed</span></div>
+                            <div class="card-badges">
+                                <span class="badge ${typeClass}">${typeLabel}</span>
+                                ${l.condition ? `<span class="badge badge-condition">${l.condition}</span>` : ''}
+                            </div>
                         </div>
                         <div class="card-body">
                             <h4 class="card-name">${l.title}</h4>
-                            <p style="font-size:0.83rem;color:var(--ink-muted);margin-top:var(--space-xs)">${l.description || ''}</p>
+                            ${l.seriesName || l.characterName ? `<p style="font-size:0.75rem;color:var(--ink-faint);margin-bottom:var(--space-xs)">${[l.seriesName, l.characterName].filter(Boolean).join(' • ')}</p>` : ''}
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--space-sm);">
+                                <span style="font-weight:700;color:var(--accent);font-size:1.1rem;">${l.price ? '₱' + Number(l.price).toLocaleString('en-PH') : '—'}</span>
+                                ${l.size ? `<span style="font-size:0.75rem;color:var(--ink-muted);">${l.size}</span>` : ''}
+                            </div>
                         </div>
                     </article>
                 `;
@@ -275,15 +288,78 @@
         }
     }
 
-    function switchTab(tabName) {
+function switchTab(tabName) {
         document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         const tab     = document.querySelector(`[data-tab="${tabName}"]`);
         const content = document.getElementById(`${tabName}-content`);
         if (tab)     tab.classList.add('active');
         if (content) content.classList.add('active');
+        
+        // Load reviews when switching to reviews tab
+        if (tabName === 'reviews') {
+            loadUserReviews();
+        }
     }
-
+    
+    let reviewsLoaded = false;
+    
+    async function loadUserReviews() {
+        if (reviewsLoaded) return;
+        reviewsLoaded = true;
+        
+        const container = document.getElementById('reviews-content');
+        if (!container) return;
+        
+        container.innerHTML = '<div style="text-align:center;padding:var(--space-2xl);color:var(--ink-faint);"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto var(--space-md)"></div>Loading reviews...</div>';
+        
+        try {
+            const reviews = await API.get(`/api/ratings/user/${userId}`, true);
+            const reviewsArr = Array.isArray(reviews) ? reviews : [];
+            
+            if (!reviewsArr.length) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                        </div>
+                        <h3>No reviews yet</h3>
+                        <p>Reviews will appear here after completed transactions.</p>
+                    </div>`;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div style="display:flex;flex-direction:column;gap:var(--space-md);">
+                    ${reviewsArr.map(review => `
+                        <div class="review-card" style="background:var(--card);border:2px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-lg);">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-sm);">
+                                <div style="display:flex;align-items:center;gap:var(--space-md);">
+                                    <div style="width:40px;height:40px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.1rem;">
+                                        ${(review.raterName || 'A')[0].toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:700;color:var(--ink);">${review.raterName || 'Anonymous'}</div>
+                                        <div style="font-size:0.75rem;color:var(--ink-faint);">${review.createdAt ? new Date(review.createdAt).toLocaleDateString() : ''}</div>
+                                    </div>
+                                </div>
+                                ${review.transactionType ? `<span style="background:var(--accent);color:#fff;padding:2px 10px;border-radius:20px;font-size:0.7rem;font-weight:600;text-transform:uppercase;">${review.transactionType}</span>` : ''}
+                            </div>
+                            <div style="display:flex;gap:2px;margin-bottom:var(--space-sm);">
+                                ${[1,2,3,4,5].map(i => `<svg width="16" height="16" viewBox="0 0 24 24" fill="${i <= (review.stars || 0) ? 'var(--accent)' : 'none'}" stroke="${i <= (review.stars || 0) ? 'var(--accent)' : 'var(--border)'}"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`).join('')}
+                            </div>
+                            <p style="color:var(--ink);font-size:0.9rem;margin:0;">${review.comment || 'No comment'}</p>
+                        </div>
+                    `).join('')}
+                </div>`;
+        } catch (err) {
+            console.error('Failed to load reviews:', err);
+            container.innerHTML = '<div class="empty-state"><h3>Could not load reviews</h3><p>Please try again later.</p></div>';
+        }
+    }
+    
     function showError(msg) {
         document.getElementById('page-error').style.display = 'block';
         document.querySelector('#page-error p').textContent = msg;
