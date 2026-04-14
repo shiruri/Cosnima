@@ -1,10 +1,13 @@
 package com.shiro.cosnima.service;
 
 import com.shiro.cosnima.dto.request.CreateOfferRequest;
+import com.shiro.cosnima.dto.request.MessageRequest;
 import com.shiro.cosnima.dto.response.OfferResponse;
+import com.shiro.cosnima.model.Conversation;
 import com.shiro.cosnima.model.Listing;
 import com.shiro.cosnima.model.Offer;
 import com.shiro.cosnima.model.OfferStatus;
+import com.shiro.cosnima.repository.ConversationRepository;
 import com.shiro.cosnima.repository.ListingRepository;
 import com.shiro.cosnima.repository.OffersRepository;
 import com.shiro.cosnima.repository.UserRepository;
@@ -23,13 +26,16 @@ public class OffersService {
 
     private final OffersRepository offerRepo;
     private final UserRepository userRepo;
+    private final ConversationRepository conversationRepo;
     private final ListingRepository listingRepo;
-
+    private final MessageService messageServ;
     @Autowired
-    public OffersService(OffersRepository offerRepo, UserRepository userRepo, ListingRepository listingRepo) {
+    public OffersService(OffersRepository offerRepo, UserRepository userRepo, ConversationRepository conversationRepo, ListingRepository listingRepo, MessageService messageServ) {
         this.offerRepo   = offerRepo;
         this.userRepo    = userRepo;
+        this.conversationRepo = conversationRepo;
         this.listingRepo = listingRepo;
+        this.messageServ = messageServ;
     }
 
     public List<OfferResponse> getIncomingOffers(UUID userId) {
@@ -87,7 +93,25 @@ public class OffersService {
 
         accepted.setUpdatedAt(LocalDateTime.now());
 
-        offerRepo.saveAll(others);
+        try {
+            Optional<Conversation> convo = conversationRepo.findExistingConversation(
+                    accepted.getListing().getId(),
+                    accepted.getBuyer().getId()
+            );
+            if (convo.isPresent()) {
+                MessageRequest autoMsg = new MessageRequest();
+                autoMsg.setConversationId(convo.get().getId());
+                autoMsg.setContent("Great news! I've accepted your offer of ₱" +
+                        accepted.getOfferedPrice() + " for \"" +
+                        accepted.getListing().getTitle() + "\". " +
+                        "Let's arrange the exchange! Feel free to message me here.");
+                messageServ.sendMessage(autoMsg, accepted.getListing().getSeller().getId());
+            }
+
+            offerRepo.saveAll(others);
+
+            return mapToResponse(accepted);
+        }  catch (Exception e) { /* silently fail */ }
 
         return mapToResponse(accepted);
     }

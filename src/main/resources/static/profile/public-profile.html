@@ -8,17 +8,455 @@
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/home.css">
     <link rel="stylesheet" href="../css/profile.css">
-    
     <script>
         (function() {
             var t = localStorage.getItem('cosnimaTheme') || 'light';
             document.documentElement.setAttribute('data-theme', t);
         })();
     </script>
+    <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Message Modal ── */
+        .msg-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(42,26,14,0.65);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .msg-modal-backdrop.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .msg-modal {
+            background: var(--card);
+            border-radius: var(--radius-xl);
+            width: min(500px, 94vw);
+            max-height: 88vh;
+            overflow: hidden;
+            box-shadow: 0 32px 80px rgba(42,26,14,0.25);
+            border: 2px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transform: translateY(24px) scale(0.97);
+            transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .msg-modal-backdrop.open .msg-modal {
+            transform: translateY(0) scale(1);
+        }
+        .msg-modal-header {
+            padding: var(--space-xl) var(--space-xl) var(--space-md);
+            border-bottom: 1.5px solid var(--border);
+            background: linear-gradient(135deg, var(--bg-alt), var(--card));
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: var(--space-md);
+            flex-shrink: 0;
+        }
+        .msg-modal-header-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        .msg-modal-user-avatar {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--beaver), var(--accent));
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(240,98,146,0.3);
+            overflow: hidden;
+        }
+        .msg-modal-user-avatar img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .msg-modal-header h3 {
+            font-size: 1.15rem;
+            color: var(--ink);
+            margin: 0 0 2px;
+        }
+        .msg-modal-header p {
+            font-size: 0.78rem;
+            color: var(--ink-muted);
+            margin: 0;
+            font-weight: 600;
+        }
+        .msg-modal-close {
+            width: 34px; height: 34px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ink-muted);
+            border: 1.5px solid var(--border);
+            cursor: pointer;
+            transition: all var(--t-fast);
+            flex-shrink: 0;
+            background: var(--card);
+        }
+        .msg-modal-close:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Steps inside modal */
+        .msg-modal-step {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-xl);
+        }
+        .msg-modal-step.active { display: block; }
+
+        .msg-step-label {
+            font-size: 0.7rem;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: var(--space-sm);
+        }
+        .msg-step-title {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            color: var(--ink);
+            margin-bottom: var(--space-md);
+        }
+
+        /* Listing picker */
+        .listing-picker-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+            max-height: 340px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .listing-picker-list::-webkit-scrollbar { width: 5px; }
+        .listing-picker-list::-webkit-scrollbar-track { background: var(--bg-alt); border-radius: 4px; }
+        .listing-picker-list::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+
+        .listing-pick-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: all var(--t-fast);
+            background: var(--card);
+        }
+        .listing-pick-item:hover {
+            border-color: var(--accent);
+            background: rgba(240,98,146,0.04);
+            transform: translateX(4px);
+        }
+        .listing-pick-item.selected {
+            border-color: var(--accent);
+            background: rgba(240,98,146,0.06);
+        }
+        .listing-pick-thumb {
+            width: 58px; height: 58px;
+            border-radius: var(--radius);
+            overflow: hidden;
+            background: var(--bg-alt);
+            flex-shrink: 0;
+            border: 1.5px solid var(--border);
+        }
+        .listing-pick-thumb img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+        .listing-pick-thumb-placeholder {
+            width: 100%; height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ink-faint);
+        }
+        .listing-pick-info { flex: 1; min-width: 0; }
+        .listing-pick-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 3px;
+        }
+        .listing-pick-meta {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            flex-wrap: wrap;
+        }
+        .listing-pick-price {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: var(--accent);
+        }
+        .listing-pick-type {
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            padding: 2px 7px;
+            border-radius: var(--radius-pill);
+        }
+        .listing-pick-type.rent { background: rgba(200,122,80,0.15); color: var(--beaver); }
+        .listing-pick-type.sell { background: rgba(240,98,146,0.15); color: var(--accent); }
+
+        .listing-pick-radio {
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all var(--t-fast);
+        }
+        .listing-pick-item.selected .listing-pick-radio {
+            border-color: var(--accent);
+            background: var(--accent);
+        }
+        .listing-pick-radio-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: white;
+            transform: scale(0);
+            transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .listing-pick-item.selected .listing-pick-radio-dot { transform: scale(1); }
+
+        /* No listings state */
+        .listing-pick-empty {
+            text-align: center;
+            padding: var(--space-xl);
+            color: var(--ink-muted);
+        }
+        .listing-pick-empty svg {
+            width: 40px; height: 40px;
+            margin: 0 auto var(--space-md);
+            display: block;
+            opacity: 0.3;
+        }
+
+        /* Message compose step */
+        .msg-compose-listing-preview {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            background: linear-gradient(135deg, rgba(240,98,146,0.06), rgba(200,122,80,0.04));
+            border: 1.5px solid rgba(240,98,146,0.2);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-lg);
+        }
+        .msg-compose-listing-thumb {
+            width: 48px; height: 48px;
+            border-radius: var(--radius);
+            overflow: hidden;
+            flex-shrink: 0;
+            background: var(--bg-alt);
+        }
+        .msg-compose-listing-thumb img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+        .msg-compose-listing-name {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: var(--ink);
+        }
+        .msg-compose-listing-price {
+            font-size: 0.8rem;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .msg-compose-field {
+            margin-bottom: var(--space-md);
+        }
+        .msg-compose-field label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--ink-faint);
+            margin-bottom: var(--space-xs);
+        }
+        .msg-compose-field textarea {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+            font-size: 0.92rem;
+            font-family: var(--font-body);
+            font-weight: 500;
+            color: var(--ink);
+            background: var(--bg-alt);
+            outline: none;
+            resize: none;
+            min-height: 100px;
+            transition: border-color var(--t-base), box-shadow var(--t-base);
+            line-height: 1.6;
+        }
+        .msg-compose-field textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(240,98,146,0.1);
+            background: var(--card);
+        }
+        .msg-char-count {
+            font-size: 0.7rem;
+            color: var(--ink-faint);
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        /* Quick messages */
+        .quick-msgs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-xs);
+            margin-bottom: var(--space-md);
+        }
+        .quick-msg-btn {
+            padding: 0.35rem 0.85rem;
+            border-radius: var(--radius-pill);
+            border: 1.5px solid var(--border);
+            background: var(--card);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--ink-muted);
+            cursor: pointer;
+            transition: all var(--t-fast);
+            font-family: var(--font-body);
+        }
+        .quick-msg-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(240,98,146,0.06);
+        }
+
+        /* Modal footer */
+        .msg-modal-footer {
+            padding: var(--space-lg) var(--space-xl);
+            border-top: 1.5px solid var(--border);
+            display: flex;
+            gap: var(--space-sm);
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            background: var(--bg-alt);
+        }
+
+        /* Step indicator */
+        .msg-modal-steps {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            padding: var(--space-sm) var(--space-xl);
+            border-bottom: 1.5px solid var(--border);
+            background: var(--bg-alt);
+            flex-shrink: 0;
+        }
+        .msg-modal-step-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--border-dark);
+            transition: all var(--t-base);
+        }
+        .msg-modal-step-dot.active {
+            background: var(--accent);
+            transform: scale(1.4);
+        }
+        .msg-modal-step-dot.done {
+            background: var(--beaver);
+        }
+        .msg-modal-step-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--ink-faint);
+            margin-left: var(--space-xs);
+        }
+        .msg-modal-step-label.active {
+            color: var(--accent);
+        }
+
+        /* Success state */
+        .msg-success-state {
+            text-align: center;
+            padding: var(--space-2xl);
+        }
+        .msg-success-icon {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--beaver), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-lg);
+            box-shadow: 0 8px 24px rgba(240,98,146,0.3);
+            animation: successPop 0.5s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes successPop {
+            from { transform: scale(0); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+        .msg-success-icon svg { width: 32px; height: 32px; color: white; }
+        .msg-success-title {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            color: var(--ink);
+            margin-bottom: var(--space-sm);
+        }
+        .msg-success-desc {
+            font-size: 0.9rem;
+            color: var(--ink-muted);
+            line-height: 1.65;
+            max-width: 320px;
+            margin: 0 auto var(--space-xl);
+        }
+
+        /* Loopy sparkle decoration */
+        .msg-modal-sparkle {
+            position: absolute;
+            pointer-events: none;
+            font-size: 1.2rem;
+            animation: sparklePop 0.6s ease forwards;
+            opacity: 0;
+        }
+        @keyframes sparklePop {
+            0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+            60% { transform: scale(1.3) rotate(10deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 0; }
+        }
+    </style>
 </head>
 <body>
 
-<!-- NAVBAR (与 listings 保持一致) -->
+<div id="toast-container" aria-live="polite"></div>
+
+<!-- NAVBAR -->
 <nav class="navbar" role="navigation" aria-label="Main navigation">
   <div class="nav-inner">
     <a href="../index.html" class="nav-logo" aria-label="Cosnima home">
@@ -62,7 +500,6 @@
   </div>
 </nav>
 
-<!-- Mobile drawer -->
 <div class="mobile-nav" id="mobile-nav" role="dialog" aria-label="Mobile menu">
   <nav class="mobile-nav-links">
     <a href="../index.html">Home</a>
@@ -75,6 +512,118 @@
   <div class="mobile-nav-actions" id="mobile-auth"></div>
 </div>
 <div class="mobile-overlay" id="mobile-overlay"></div>
+
+<!-- ── MESSAGE MODAL ── -->
+<div class="msg-modal-backdrop" id="msg-modal-backdrop" onclick="if(event.target===this)closeMsgModal()">
+  <div class="msg-modal" role="dialog" aria-modal="true" aria-label="Message seller">
+
+    <div class="msg-modal-header">
+      <div class="msg-modal-header-info">
+        <div class="msg-modal-user-avatar" id="msg-modal-avatar">?</div>
+        <div>
+          <h3 id="msg-modal-username">User</h3>
+          <p id="msg-modal-subtitle">Choose a listing to discuss</p>
+        </div>
+      </div>
+      <button class="msg-modal-close" onclick="closeMsgModal()" aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Step indicators -->
+    <div class="msg-modal-steps">
+      <div class="msg-modal-step-dot active" id="step-dot-1"></div>
+      <div class="msg-modal-step-dot" id="step-dot-2"></div>
+      <div class="msg-modal-step-dot" id="step-dot-3"></div>
+      <span class="msg-modal-step-label active" id="step-label">Pick a listing</span>
+    </div>
+
+    <!-- STEP 1: Pick a listing -->
+    <div class="msg-modal-step active" id="msg-step-1">
+      <div class="msg-step-label">Step 1 of 2</div>
+      <div class="msg-step-title">Which listing are you interested in?</div>
+
+      <div id="listing-picker-container">
+        <div style="text-align:center;padding:var(--space-xl);color:var(--ink-faint);">
+          <div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto var(--space-md);"></div>
+          Loading listings…
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Compose message -->
+    <div class="msg-modal-step" id="msg-step-2">
+      <div class="msg-step-label">Step 2 of 2</div>
+      <div class="msg-step-title">Write your first message</div>
+
+      <div class="msg-compose-listing-preview" id="msg-compose-preview">
+        <div class="msg-compose-listing-thumb" id="msg-compose-thumb">
+          <div style="width:100%;height:100%;background:var(--bg-alt);display:flex;align-items:center;justify-content:center;color:var(--ink-faint);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="msg-compose-listing-name" id="msg-compose-listing-name">Listing</div>
+          <div class="msg-compose-listing-price" id="msg-compose-listing-price">₱—</div>
+        </div>
+      </div>
+
+      <div class="msg-compose-field">
+        <label>Quick replies</label>
+        <div class="quick-msgs" id="quick-msgs-container">
+          <button class="quick-msg-btn" onclick="useQuickMsg(this)">Hi! Is this still available?</button>
+          <button class="quick-msg-btn" onclick="useQuickMsg(this)">Can I see more photos?</button>
+          <button class="quick-msg-btn" onclick="useQuickMsg(this)">Is the price negotiable?</button>
+          <button class="quick-msg-btn" onclick="useQuickMsg(this)">What's your meetup location?</button>
+        </div>
+      </div>
+
+      <div class="msg-compose-field">
+        <label>Your message</label>
+        <textarea id="msg-compose-text" placeholder="Write your message here…" maxlength="500" oninput="updateCharCount()"></textarea>
+        <div class="msg-char-count"><span id="msg-char-count">0</span> / 500</div>
+      </div>
+    </div>
+
+    <!-- STEP 3: Success -->
+    <div class="msg-modal-step" id="msg-step-3">
+      <div class="msg-success-state">
+        <div class="msg-success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+        </div>
+        <div class="msg-success-title">Message Sent!</div>
+        <p class="msg-success-desc" id="msg-success-desc">
+          Your message has been sent. Head to your messages to continue the conversation!
+        </p>
+        <div style="display:flex;flex-direction:column;gap:var(--space-sm);max-width:260px;margin:0 auto;">
+          <a href="#" id="msg-go-to-chat" class="btn btn-primary" style="justify-content:center;text-decoration:none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            Open Chat
+          </a>
+          <button onclick="closeMsgModal()" class="btn btn-ghost" style="justify-content:center;">Stay on Profile</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal footer -->
+    <div class="msg-modal-footer" id="msg-modal-footer">
+      <button class="btn btn-ghost" id="msg-back-btn" onclick="msgGoBack()" style="display:none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Back
+      </button>
+      <div style="margin-left:auto;display:flex;gap:var(--space-sm);align-items:center;">
+        <button class="btn btn-ghost" onclick="closeMsgModal()">Cancel</button>
+        <button class="btn btn-primary" id="msg-next-btn" onclick="msgNextStep()" disabled>
+          <span class="btn-text">Next →</span>
+          <span class="btn-loader" style="display:none;width:14px;height:14px;border:2px solid rgba(255,255,255,0.5);border-top-color:white;border-radius:50%;animation:spin 0.6s linear infinite;"></span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 <!-- Error state -->
 <div id="page-error" style="display:none;padding:3rem;text-align:center;">
@@ -151,225 +700,488 @@
 <script src="../js/api.js"></script>
 <script src="../js/nav.js"></script>
 <script>
-    /* ============================================
-       Public Profile Logic (clickable listings, no follow)
-       ============================================ */
-    let userId = null;
-    
-    document.addEventListener('DOMContentLoaded', async () => {
-        const params = new URLSearchParams(window.location.search);
-        userId = params.get('id');
+/* ============================================
+   PUBLIC PROFILE PAGE
+   ============================================ */
+let _profileUser = null;
+let _profileListings = [];
+let _selectedListingId = null;
+let _msgStep = 1;
+let _activeConvoId = null;
+let userId = null;
 
-        if (!userId) {
-            showError('No user specified.');
+document.addEventListener('DOMContentLoaded', async () => {
+    const params = new URLSearchParams(window.location.search);
+    userId = params.get('id');
+
+    if (!userId) { showError('No user specified.'); return; }
+
+    try {
+        const user = await API.get(`/api/users/${userId}`, false);
+        if (!user) throw new Error('User not found.');
+        _profileUser = user;
+        renderPublicProfile(user);
+        await loadPublicListings(userId);
+    } catch (err) {
+        showError(err?.message || 'Could not load this profile.');
+    }
+});
+
+function renderPublicProfile(user) {
+    const avatarEl = document.getElementById('profile-avatar');
+    if (avatarEl) {
+        if (user.avatarUrl) {
+            avatarEl.innerHTML = `<img src="${user.avatarUrl}" alt="${user.username}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        } else {
+            const initial = user.username ? user.username[0].toUpperCase() : '?';
+            avatarEl.innerHTML = `<div class="profile-avatar-placeholder">${initial}</div>`;
+        }
+    }
+
+    const usernameEl = document.getElementById('profile-username');
+    if (usernameEl) {
+        usernameEl.textContent = user.username || 'User';
+        usernameEl.style.opacity = '1';
+    }
+
+    const bioEl = document.getElementById('profile-bio');
+    if (bioEl) bioEl.textContent = user.bio || '';
+
+    const updateStat = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    };
+    updateStat('stat-listings', user.listingCount ?? '0');
+    updateStat('stat-rating', user.ratingStars != null ? Number(user.ratingStars).toFixed(1) : '—');
+
+    const actionsEl = document.getElementById('profile-actions');
+    if (actionsEl) {
+        const isOwn = API.isLoggedIn() && String(API.getUser()?.id) === String(user.id);
+        if (isOwn) {
+            actionsEl.innerHTML = `<a href="profile.html" class="btn btn-primary">Edit Profile</a>`;
+        } else if (API.isLoggedIn()) {
+            actionsEl.innerHTML = `
+                <button class="btn btn-primary" id="open-msg-modal-btn" onclick="openMsgModal()">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    Message
+                </button>
+            `;
+        } else {
+            actionsEl.innerHTML = `<a href="../login/login.html" class="btn btn-outline">Log in to message</a>`;
+        }
+    }
+}
+
+/* ── Message Modal ── */
+async function openMsgModal() {
+    if (!API.isLoggedIn()) {
+        window.location.href = '../login/login.html';
+        return;
+    }
+
+    // Reset state
+    _msgStep = 1;
+    _selectedListingId = null;
+    _activeConvoId = null;
+
+    // Set user info in header
+    const avatarEl = document.getElementById('msg-modal-avatar');
+    const usernameEl = document.getElementById('msg-modal-username');
+    if (usernameEl) usernameEl.textContent = _profileUser?.username || 'User';
+    if (avatarEl) {
+        if (_profileUser?.avatarUrl) {
+            avatarEl.innerHTML = `<img src="${_profileUser.avatarUrl}" alt="">`;
+        } else {
+            avatarEl.textContent = (_profileUser?.username || 'U')[0].toUpperCase();
+        }
+    }
+
+    // Show modal
+    document.getElementById('msg-modal-backdrop').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setMsgStep(1);
+
+    // Load listings
+    await loadListingsForPicker();
+}
+
+function closeMsgModal() {
+    document.getElementById('msg-modal-backdrop').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+function setMsgStep(step) {
+    _msgStep = step;
+    document.querySelectorAll('.msg-modal-step').forEach((s, i) => {
+        s.classList.toggle('active', i + 1 === step);
+    });
+
+    // Update step dots
+    for (let i = 1; i <= 3; i++) {
+        const dot = document.getElementById(`step-dot-${i}`);
+        if (dot) {
+            dot.classList.remove('active', 'done');
+            if (i < step) dot.classList.add('done');
+            if (i === step) dot.classList.add('active');
+        }
+    }
+
+    const stepLabel = document.getElementById('step-label');
+    const labels = ['Pick a listing', 'Write message', 'Sent!'];
+    if (stepLabel) {
+        stepLabel.textContent = labels[step - 1] || '';
+        stepLabel.classList.toggle('active', true);
+    }
+
+    const backBtn = document.getElementById('msg-back-btn');
+    const nextBtn = document.getElementById('msg-next-btn');
+    const footer = document.getElementById('msg-modal-footer');
+
+    if (step === 3) {
+        if (footer) footer.style.display = 'none';
+        return;
+    } else {
+        if (footer) footer.style.display = 'flex';
+    }
+
+    if (backBtn) backBtn.style.display = step > 1 ? 'flex' : 'none';
+
+    if (nextBtn) {
+        const btnText = nextBtn.querySelector('.btn-text');
+        if (step === 1) {
+            if (btnText) btnText.textContent = 'Next →';
+            nextBtn.disabled = !_selectedListingId;
+        } else if (step === 2) {
+            if (btnText) btnText.textContent = 'Send Message';
+        }
+    }
+}
+
+function msgGoBack() {
+    if (_msgStep > 1) setMsgStep(_msgStep - 1);
+}
+
+async function msgNextStep() {
+    if (_msgStep === 1) {
+        if (!_selectedListingId) return;
+        // Prefill step 2
+        const listing = _profileListings.find(l => String(l.id) === String(_selectedListingId));
+        if (listing) {
+            document.getElementById('msg-compose-listing-name').textContent = listing.title || 'Listing';
+            document.getElementById('msg-compose-listing-price').textContent =
+                listing.price ? `₱${Number(listing.price).toLocaleString('en-PH')}` : '—';
+
+            const thumbEl = document.getElementById('msg-compose-thumb');
+            const img = listing.images?.[0]?.imageUrl || listing.images?.[0];
+            if (img && thumbEl) {
+                thumbEl.innerHTML = `<img src="${img}" alt="" style="width:100%;height:100%;object-fit:cover;">`;
+            }
+
+            // Update quick messages based on type
+            updateQuickMessages(listing.type);
+        }
+        document.getElementById('msg-compose-text').value = '';
+        updateCharCount();
+        setMsgStep(2);
+    } else if (_msgStep === 2) {
+        await sendFirstMessage();
+    }
+}
+
+function updateQuickMessages(type) {
+    const container = document.getElementById('quick-msgs-container');
+    if (!container) return;
+    const msgs = type === 'RENT'
+        ? [
+            'Hi! Is this still available for rent?',
+            'What are the rental terms?',
+            'Can I pick it up at a convention?',
+            'Is the deposit negotiable?'
+          ]
+        : [
+            'Hi! Is this still available?',
+            'Can I see more photos?',
+            'Is the price negotiable?',
+            "What's your meetup location?"
+          ];
+    container.innerHTML = msgs.map(m =>
+        `<button class="quick-msg-btn" onclick="useQuickMsg(this)">${escH(m)}</button>`
+    ).join('');
+}
+
+function useQuickMsg(btn) {
+    const textarea = document.getElementById('msg-compose-text');
+    if (textarea) {
+        textarea.value = btn.textContent;
+        updateCharCount();
+        textarea.focus();
+    }
+}
+
+function updateCharCount() {
+    const textarea = document.getElementById('msg-compose-text');
+    const count = document.getElementById('msg-char-count');
+    if (textarea && count) count.textContent = textarea.value.length;
+
+    // Enable/disable send btn
+    const nextBtn = document.getElementById('msg-next-btn');
+    if (nextBtn && _msgStep === 2) {
+        const content = textarea?.value?.trim();
+        nextBtn.disabled = !content;
+    }
+}
+
+async function sendFirstMessage() {
+    const content = document.getElementById('msg-compose-text')?.value?.trim();
+    if (!content) return;
+
+    const nextBtn = document.getElementById('msg-next-btn');
+    const btnText = nextBtn?.querySelector('.btn-text');
+    const btnLoader = nextBtn?.querySelector('.btn-loader');
+
+    if (nextBtn) nextBtn.disabled = true;
+    if (btnText) btnText.style.display = 'none';
+    if (btnLoader) btnLoader.style.display = 'inline-block';
+
+    try {
+        const currentUser = API.getUser();
+        const listing = _profileListings.find(l => String(l.id) === String(_selectedListingId));
+
+        // 1. Start/get conversation
+        const convo = await API.post('/api/conversations', {
+            listingId: String(_selectedListingId),
+            buyerId: String(currentUser.id),
+            sellerId: String(userId),
+        }, true);
+
+        if (!convo?.conversationId) throw new Error('Could not start conversation');
+
+        _activeConvoId = convo.conversationId;
+
+        // 2. Send the message
+        await API.post('/api/conversations/messages/send', {
+            conversationId: _activeConvoId,
+            content,
+        }, true);
+
+        // 3. Show success
+        document.getElementById('msg-success-desc').textContent =
+            `Your message about "${listing?.title || 'the listing'}" has been sent to ${_profileUser?.username || 'the seller'}. Check your messages to continue the conversation!`;
+
+        const goToChatBtn = document.getElementById('msg-go-to-chat');
+        if (goToChatBtn) {
+            goToChatBtn.href = `../messages/messages.html?conversation=${_activeConvoId}`;
+        }
+
+        setMsgStep(3);
+
+    } catch (err) {
+        showToast(err?.data?.message || err?.message || 'Could not send message.', 'error');
+        if (nextBtn) nextBtn.disabled = false;
+    } finally {
+        if (btnText) btnText.style.display = 'inline';
+        if (btnLoader) btnLoader.style.display = 'none';
+    }
+}
+
+async function loadListingsForPicker() {
+    const container = document.getElementById('listing-picker-container');
+    if (!container) return;
+
+    try {
+        const listings = await API.get(`/api/users/${userId}/listings`, false) || [];
+        _profileListings = listings;
+
+        const available = listings.filter(l =>
+            l.isActive !== false && l.status === 'AVAILABLE'
+        );
+
+        if (!available.length) {
+            container.innerHTML = `
+                <div class="listing-pick-empty">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                    <p style="font-weight:700;color:var(--ink);margin-bottom:4px;">No active listings</p>
+                    <p style="font-size:0.82rem;">This seller doesn't have any active listings right now.</p>
+                </div>`;
+
+            const nextBtn = document.getElementById('msg-next-btn');
+            if (nextBtn) nextBtn.disabled = true;
             return;
         }
 
-        try {
-            const user = await API.get(`/api/users/${userId}`, true);
-            if (!user) throw new Error('User not found.');
-            renderPublicProfile(user);
-            await loadPublicListings(userId);
-        } catch (err) {
-            console.error(err);
-            showError(err?.message || 'Could not load this profile.');
-        }
-    });
+        container.innerHTML = `<div class="listing-picker-list" id="listing-picker-list">
+            ${available.map(l => buildListingPickItem(l)).join('')}
+        </div>`;
 
-    function renderPublicProfile(user) {
-        // Avatar
-        const avatarEl = document.getElementById('profile-avatar');
-        if (avatarEl) {
-            if (user.avatarUrl) {
-                avatarEl.innerHTML = `<img src="${user.avatarUrl}" alt="${user.username}">`;
-            } else {
-                const initial = user.username ? user.username[0].toUpperCase() : '?';
-                avatarEl.innerHTML = `<div class="profile-avatar-placeholder">${initial}</div>`;
-            }
-        }
+        // Wire click handlers
+        container.querySelectorAll('.listing-pick-item').forEach(item => {
+            item.addEventListener('click', () => {
+                container.querySelectorAll('.listing-pick-item').forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+                _selectedListingId = item.dataset.id;
 
-        const usernameEl = document.getElementById('profile-username');
-        if (usernameEl) { 
-            usernameEl.textContent = user.username || 'User'; 
-            usernameEl.style.opacity = '1'; 
-        }
-
-        const bioEl = document.getElementById('profile-bio');
-        if (bioEl) bioEl.textContent = user.bio || '';
-
-        // Stats
-        const updateStat = (id, val) => { 
-            const el = document.getElementById(id); 
-            if (el) el.textContent = val; 
-        };
-        updateStat('stat-listings', user.listingCount ?? '0');
-        updateStat('stat-rating',   user.ratingStars != null ? user.ratingStars.toFixed(1) : '—');
-
-        // Actions – only Edit if own profile, otherwise just Message
-        const actionsEl = document.getElementById('profile-actions');
-        if (actionsEl) {
-            const isOwn = API.isLoggedIn() && API.getUser()?.id === user.id;
-            if (isOwn) {
-                actionsEl.innerHTML = `<a href="profile.html" class="btn btn-primary">Edit Profile</a>`;
-            } else if (API.isLoggedIn()) {
-                actionsEl.innerHTML = `
-                    <button class="btn btn-primary" onclick="openMessage('${user.id}')">Message</button>
-                `;
-            } else {
-                actionsEl.innerHTML = `<a href="../login/login.html" class="btn btn-outline">Log in to message</a>`;
-            }
-        }
-    }
-
-    async function loadPublicListings(userId) {
-        const container = document.getElementById('profile-listings');
-        if (!container) return;
-        try {
-            const listings = await API.get(`/api/users/${userId}/listings`, true);
-            if (!listings || listings.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state" style="grid-column:1/-1">
-                        <div class="empty-state-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM16 3H8a2 2 0 00-2 2v2h12V5a2 2 0 00-2-2z"/>
-                            </svg>
-                        </div>
-                        <h3>No listings yet</h3>
-                        <p>This user has not listed anything yet.</p>
-                    </div>`;
-                return;
-            }
-
-            container.innerHTML = listings.map(l => {
-                let primaryImage = null;
-                if (l.images && l.images.length) {
-                    primaryImage = l.images[0].imageUrl;
-                }
-                const typeLabel = l.type === 'RENT' ? 'For Rent' : 'For Sale';
-                const typeClass = l.type === 'RENT' ? 'badge-rent' : 'badge-sell';
-                return `
-                    <article class="listing-card" data-listing-id="${l.id}">
-                        <div class="card-thumb">
-                            <img src="${primaryImage || 'https://picsum.photos/seed/' + l.id + '/400/300'}" alt="${l.title}">
-                            <div class="card-badges">
-                                <span class="badge ${typeClass}">${typeLabel}</span>
-                                ${l.condition ? `<span class="badge badge-condition">${l.condition}</span>` : ''}
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h4 class="card-name">${l.title}</h4>
-                            ${l.seriesName || l.characterName ? `<p style="font-size:0.75rem;color:var(--ink-faint);margin-bottom:var(--space-xs)">${[l.seriesName, l.characterName].filter(Boolean).join(' • ')}</p>` : ''}
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--space-sm);">
-                                <span style="font-weight:700;color:var(--accent);font-size:1.1rem;">${l.price ? '₱' + Number(l.price).toLocaleString('en-PH') : '—'}</span>
-                                ${l.size ? `<span style="font-size:0.75rem;color:var(--ink-muted);">${l.size}</span>` : ''}
-                            </div>
-                        </div>
-                    </article>
-                `;
-            }).join('');
-
-            // 绑定点击事件 —— 跳转到 view-listing.html
-            container.querySelectorAll('.listing-card').forEach(card => {
-                card.addEventListener('click', (e) => {
-                    // 避免点到 wishlist 按钮等内部元素干扰（这里没有按钮，但保留防护）
-                    const listingId = card.dataset.listingId;
-                    if (listingId) {
-                        window.location.href = `../listing/view-listing.html?id=${listingId}`;
-                    }
-                });
+                const nextBtn = document.getElementById('msg-next-btn');
+                if (nextBtn) nextBtn.disabled = false;
             });
+        });
 
-        } catch (err) {
+    } catch (err) {
+        container.innerHTML = `
+            <div class="listing-pick-empty">
+                <p>Could not load listings. Please try again.</p>
+                <button class="btn btn-outline" onclick="loadListingsForPicker()" style="margin-top:var(--space-md);font-size:0.8rem;">Retry</button>
+            </div>`;
+    }
+}
+
+function buildListingPickItem(listing) {
+    const img = listing.images?.[0]?.imageUrl || listing.images?.[0];
+    const isRent = listing.type === 'RENT';
+    const price = listing.price ? `₱${Number(listing.price).toLocaleString('en-PH')}${isRent ? '/day' : ''}` : '—';
+
+    return `
+        <div class="listing-pick-item" data-id="${listing.id}">
+            <div class="listing-pick-thumb">
+                ${img
+                    ? `<img src="${escH(img)}" alt="${escH(listing.title || '')}">`
+                    : `<div class="listing-pick-thumb-placeholder">
+                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                       </div>`
+                }
+            </div>
+            <div class="listing-pick-info">
+                <div class="listing-pick-title">${escH(listing.title || 'Untitled')}</div>
+                <div class="listing-pick-meta">
+                    <span class="listing-pick-price">${escH(price)}</span>
+                    <span class="listing-pick-type ${isRent ? 'rent' : 'sell'}">${isRent ? 'Rent' : 'Sale'}</span>
+                    ${listing.seriesName ? `<span style="font-size:0.68rem;color:var(--ink-faint);">${escH(listing.seriesName)}</span>` : ''}
+                </div>
+            </div>
+            <div class="listing-pick-radio">
+                <div class="listing-pick-radio-dot"></div>
+            </div>
+        </div>`;
+}
+
+/* ── Listings tab ── */
+async function loadPublicListings(uid) {
+    const container = document.getElementById('profile-listings');
+    if (!container) return;
+    try {
+        const listings = await API.get(`/api/users/${uid}/listings`, false);
+        _profileListings = listings || [];
+
+        if (!listings || !listings.length) {
             container.innerHTML = `
                 <div class="empty-state" style="grid-column:1/-1">
-                    <h3>Could not load listings</h3>
-                    <p>${err?.message || 'Please try again later.'}</p>
+                    <div class="empty-state-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM16 3H8a2 2 0 00-2 2v2h12V5a2 2 0 00-2-2z"/>
+                        </svg>
+                    </div>
+                    <h3>No listings yet</h3>
+                    <p>This user hasn't listed anything yet.</p>
                 </div>`;
+            return;
         }
+
+        container.innerHTML = listings.map(l => {
+            let primaryImage = null;
+            if (l.images && l.images.length) primaryImage = l.images[0]?.imageUrl || l.images[0];
+            const typeLabel = l.type === 'RENT' ? 'For Rent' : 'For Sale';
+            const typeClass = l.type === 'RENT' ? 'badge-rent' : 'badge-sell';
+            return `
+                <article class="listing-card" data-listing-id="${l.id}" tabindex="0">
+                    <div class="card-thumb">
+                        ${primaryImage
+                            ? `<img src="${escH(primaryImage)}" alt="${escH(l.title || '')}"`+ ` loading="lazy">`
+                            : `<div class="card-thumb-placeholder"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>`
+                        }
+                        <div class="card-badges">
+                            <span class="badge ${typeClass}">${typeLabel}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-name">${escH(l.title || 'Untitled')}</h3>
+                        ${l.seriesName ? `<p class="card-series">${escH(l.seriesName)}</p>` : ''}
+                        <div class="card-foot">
+                            <div class="card-price">${l.price ? '₱' + Number(l.price).toLocaleString('en-PH') : '—'}</div>
+                            ${l.size ? `<span style="font-size:0.72rem;color:var(--ink-muted);">Size ${escH(l.size)}</span>` : ''}
+                        </div>
+                    </div>
+                </article>`;
+        }).join('');
+
+        container.querySelectorAll('.listing-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const id = card.dataset.listingId;
+                if (id) window.location.href = `../listing/view-listing.html?id=${id}`;
+            });
+        });
+
+    } catch (err) {
+        container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h3>Could not load listings</h3><p>${err?.message || 'Please try again.'}</p></div>`;
     }
+}
 
 function switchTab(tabName) {
-        document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        const tab     = document.querySelector(`[data-tab="${tabName}"]`);
-        const content = document.getElementById(`${tabName}-content`);
-        if (tab)     tab.classList.add('active');
-        if (content) content.classList.add('active');
-        
-        // Load reviews when switching to reviews tab
-        if (tabName === 'reviews') {
-            loadUserReviews();
-        }
-    }
-    
-    let reviewsLoaded = false;
-    
-    async function loadUserReviews() {
-        if (reviewsLoaded) return;
-        reviewsLoaded = true;
-        
-        const container = document.getElementById('reviews-content');
-        if (!container) return;
-        
-        container.innerHTML = '<div style="text-align:center;padding:var(--space-2xl);color:var(--ink-faint);"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto var(--space-md)"></div>Loading reviews...</div>';
-        
-        try {
-            const reviews = await API.get(`/api/ratings/user/${userId}`, true);
-            const reviewsArr = Array.isArray(reviews) ? reviews : [];
-            
-            if (!reviewsArr.length) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                            </svg>
-                        </div>
-                        <h3>No reviews yet</h3>
-                        <p>Reviews will appear here after completed transactions.</p>
-                    </div>`;
-                return;
-            }
-            
-            container.innerHTML = `
-                <div style="display:flex;flex-direction:column;gap:var(--space-md);">
-                    ${reviewsArr.map(review => `
-                        <div class="review-card" style="background:var(--card);border:2px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-lg);">
-                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-sm);">
-                                <div style="display:flex;align-items:center;gap:var(--space-md);">
-                                    <div style="width:40px;height:40px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.1rem;">
-                                        ${(review.raterName || 'A')[0].toUpperCase()}
-                                    </div>
-                                    <div>
-                                        <div style="font-weight:700;color:var(--ink);">${review.raterName || 'Anonymous'}</div>
-                                        <div style="font-size:0.75rem;color:var(--ink-faint);">${review.createdAt ? new Date(review.createdAt).toLocaleDateString() : ''}</div>
-                                    </div>
-                                </div>
-                                ${review.transactionType ? `<span style="background:var(--accent);color:#fff;padding:2px 10px;border-radius:20px;font-size:0.7rem;font-weight:600;text-transform:uppercase;">${review.transactionType}</span>` : ''}
-                            </div>
-                            <div style="display:flex;gap:2px;margin-bottom:var(--space-sm);">
-                                ${[1,2,3,4,5].map(i => `<svg width="16" height="16" viewBox="0 0 24 24" fill="${i <= (review.stars || 0) ? 'var(--accent)' : 'none'}" stroke="${i <= (review.stars || 0) ? 'var(--accent)' : 'var(--border)'}"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`).join('')}
-                            </div>
-                            <p style="color:var(--ink);font-size:0.9rem;margin:0;">${review.comment || 'No comment'}</p>
-                        </div>
-                    `).join('')}
-                </div>`;
-        } catch (err) {
-            console.error('Failed to load reviews:', err);
-            container.innerHTML = '<div class="empty-state"><h3>Could not load reviews</h3><p>Please try again later.</p></div>';
-        }
-    }
-    
-    function showError(msg) {
-        document.getElementById('page-error').style.display = 'block';
-        document.querySelector('#page-error p').textContent = msg;
-        document.getElementById('profile-header-area').style.display = 'none';
-    }
+    document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    const tab = document.querySelector(`[data-tab="${tabName}"]`);
+    const content = document.getElementById(`${tabName}-content`);
+    if (tab) tab.classList.add('active');
+    if (content) content.classList.add('active');
 
-    function openMessage(userId) {
-        // 将来可替换为真正的聊天跳转
-        alert('Messaging coming soon!');
+    if (tabName === 'reviews') loadUserReviews();
+}
+
+let reviewsLoaded = false;
+async function loadUserReviews() {
+    if (reviewsLoaded) return;
+    reviewsLoaded = true;
+    const container = document.getElementById('reviews-content');
+    if (!container) return;
+    container.innerHTML = '<div style="text-align:center;padding:var(--space-2xl);color:var(--ink-faint);"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto var(--space-md)"></div>Loading reviews...</div>';
+    try {
+        const reviews = await API.get(`/api/ratings/user/${userId}`, false) || [];
+        if (!reviews.length) {
+            container.innerHTML = `<div class="empty-state"><div class="empty-state-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></div><h3>No reviews yet</h3><p>Reviews will appear after completed transactions.</p></div>`;
+            return;
+        }
+        container.innerHTML = `<div style="display:flex;flex-direction:column;gap:var(--space-md);">${reviews.map(r => `
+            <div style="background:var(--card);border:2px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-lg);">
+                <div style="display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-sm);">
+                    <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--beaver),var(--accent));color:white;font-weight:700;font-size:1rem;display:flex;align-items:center;justify-content:center;">${(r.raterName||'A')[0].toUpperCase()}</div>
+                    <div>
+                        <div style="font-weight:700;color:var(--ink);">${escH(r.raterName||'Anonymous')}</div>
+                        <div style="font-size:0.72rem;color:var(--ink-faint);">${r.createdAt?new Date(r.createdAt).toLocaleDateString():''}</div>
+                    </div>
+                    ${r.transactionType?`<span style="margin-left:auto;background:var(--accent);color:#fff;padding:2px 10px;border-radius:20px;font-size:0.68rem;font-weight:700;text-transform:uppercase;">${r.transactionType}</span>`:''}
+                </div>
+                <div style="display:flex;gap:2px;margin-bottom:var(--space-sm);">
+                    ${[1,2,3,4,5].map(i=>`<svg width="16" height="16" viewBox="0 0 24 24" fill="${i<=(r.stars||0)?'#f5a623':'none'}" stroke="${i<=(r.stars||0)?'#f5a623':'var(--border)'}"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`).join('')}
+                </div>
+                <p style="color:var(--ink);font-size:0.9rem;margin:0;">${escH(r.comment||'No comment')}</p>
+            </div>`).join('')}</div>`;
+    } catch {
+        container.innerHTML = '<div class="empty-state"><h3>Could not load reviews</h3></div>';
     }
+}
+
+function showError(msg) {
+    const errEl = document.getElementById('page-error');
+    if (errEl) { errEl.style.display = 'block'; errEl.querySelector('p').textContent = msg; }
+    const headerEl = document.getElementById('profile-header-area');
+    if (headerEl) headerEl.style.display = 'none';
+}
+
+function escH(str) {
+    return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 </script>
 </body>
 </html>
