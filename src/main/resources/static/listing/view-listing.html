@@ -14,6 +14,9 @@
     .view-listing-page{padding-top:calc(var(--nav-h) + var(--space-xl));padding-bottom:var(--space-3xl);}
     .back-link{display:inline-flex;align-items:center;gap:var(--space-sm);font-size:0.85rem;font-weight:700;color:var(--ink-muted);margin-bottom:var(--space-xl);transition:color var(--t-base);}
     .back-link:hover{color:var(--accent);}
+    @media(min-width:900px){
+      .back-link{position:fixed;top:calc(90px + 20px);left:24px;z-index:100;background:var(--card);padding:0.8rem 1.2rem;border-radius:var(--radius-lg);border:1.5px solid var(--border);box-shadow:var(--shadow-sm);}
+    }
     .listing-layout{display:block;}
     @media(min-width:900px){
       .listing-left-col{position:fixed;top:90px;left:20px;width:calc(50% - 40px);max-width:550px;}
@@ -563,8 +566,17 @@ function renderListing(l) {
   rebuildBadges();
 
   document.getElementById('listing-title').textContent = l.title || 'Untitled';
-  document.getElementById('listing-price').textContent = l.price ? `₱${Number(l.price).toLocaleString('en-PH')}` : '—';
-  document.getElementById('listing-price-note').textContent = l.type === 'RENT' ? '/ day' : '';
+  
+  const priceEl = document.getElementById('listing-price');
+  const priceNoteEl = document.getElementById('listing-price-note');
+  
+  if (l.priceNotes && l.priceNotes.length) {
+    priceNoteEl.innerHTML = l.priceNotes.map(n => `<div style="font-size:0.8rem;color:var(--ink-muted);margin-top:2px;">${escH(n)}</div>`).join('');
+  } else {
+    priceNoteEl.textContent = l.type === 'RENT' ? '/ day' : '';
+  }
+  
+  priceEl.textContent = l.price ? `₱${Number(l.price).toLocaleString('en-PH')}` : '—';
 
   const chips = [];
   if (l.size)             chips.push(`<div class="info-chip">Size ${l.size}</div>`);
@@ -1030,9 +1042,16 @@ function selectDate(dateStr) {
     const start = new Date(_selectedStart);
     const end = new Date(_selectedEnd);
     const days = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1);
-    const total = listing.price * days;
     
-    showToast(`Selected: ${days} day${days > 1 ? 's' : ''} - ₱${total.toLocaleString('en-PH')}`, 'info');
+    let total = listing.price * days;
+    let note = '';
+    
+    if (listing.priceNotes && listing.priceNotes.length) {
+      note = listing.priceNotes.map(n => `\n• ${n}`).join('');
+    }
+    
+    const toastMsg = `Selected: ${days} day${days > 1 ? 's' : ''} - ₱${total.toLocaleString('en-PH')}${note}`;
+    showToast(toastMsg, 'info');
   }
 }
 

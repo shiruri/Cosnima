@@ -224,8 +224,19 @@
       <!-- Injected by renderCalendar() -->
     </div>
  
-  </div>
 </div>
+    </div>
+
+    <!-- Rental Day Detail Modal -->
+    <div id="rental-day-modal" class="rental-modal-backdrop" onclick="if(event.target === this) closeRentalDayModal()">
+      <div class="rental-modal-content">
+        <button class="rental-modal-close" onclick="closeRentalDayModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        <div id="rental-day-modal-header"></div>
+        <div id="rental-day-modal-body"></div>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -626,11 +637,27 @@ function renderCalendar() {
     let classes = 'calendar-day';
     if (isPast && !rentalsHere.length) classes += ' disabled';
     if (isToday) classes += ' today';
-    if (statusStyle.bg) classes += ` ${statusStyle.bg}`;
+if (statusStyle.bg) classes += ` ${statusStyle.bg}`;
     if (rentalsHere.length) classes += ' has-rental';
- 
-    // Status dots (max 3)
-    const dotsHtml = rentalsHere.length
+  
+    // Hover card HTML (shows rental count or first rental info)
+    let hoverCardHtml = '';
+    if (rentalsHere.length) {
+      if (rentalsHere.length === 1) {
+        hoverCardHtml = `<div class="rental-hover-card">
+          <div class="rental-hover-card-title">${escH(rentalsHere[0].listingTitle || 'Rental')}</div>
+          <div class="rental-hover-card-info">${rentalsHere[0].renterUsername || ''}</div>
+        </div>`;
+      } else {
+        hoverCardHtml = `<div class="rental-hover-card">
+          <div class="rental-hover-card-count">${rentalsHere.length} rentals</div>
+          <div class="rental-hover-card-info">Click to see all</div>
+        </div>`;
+      }
+    }
+  
+    // Status dots (max 3) - only show when multiple rentals
+    const dotsHtml = rentalsHere.length > 1
       ? `<div style="display:flex;gap:2px;position:absolute;bottom:4px;left:50%;transform:translateX(-50%);">${
           rentalsHere.slice(0, 3).map(r => {
             const sc = STATUS_STYLES[r.status] || {};
@@ -638,8 +665,8 @@ function renderCalendar() {
           }).join('')
         }</div>`
       : '';
- 
-    gridHtml += `<div class="${classes}">${day}${dotsHtml}</div>`;
+  
+    gridHtml += `<div class="${classes}" onclick="${rentalsHere.length ? `openRentalDayModal('${dateKey}')` : ''}">${day}${dotsHtml}${hoverCardHtml}</div>`;
   }
  
   const gridEl = document.getElementById('rental-calendar-grid');
@@ -709,7 +736,79 @@ function renderCalendar() {
       </div>`;
   }).join('');
 }
- 
+
+function openRentalDayModal(dateKey) {
+  const allRentals = [...(_myRentals || []), ...(_incomingRentals || [])];
+  const rentalsOnDay = [];
+  
+  allRentals.forEach(r => {
+    if (!r.startDate || !r.endDate) return;
+    const start = new Date(r.startDate);
+    const end = new Date(r.endDate);
+    const checkDate = new Date(dateKey);
+    if (checkDate >= start && checkDate <= end) {
+      rentalsOnDay.push(r);
+    }
+  });
+  
+  if (!rentalsOnDay.length) return;
+  
+  const modal = document.getElementById('rental-day-modal');
+  const headerEl = document.getElementById('rental-day-modal-header');
+  const bodyEl = document.getElementById('rental-day-modal-body');
+  
+  const displayDate = new Date(dateKey).toLocaleDateString('en-PH', { 
+    weekday: 'long', 
+    month: 'long', 
+    day: 'numeric', 
+    year: 'numeric' 
+  });
+  
+  headerEl.innerHTML = `
+    <div class="rental-day-modal-date">${displayDate}</div>
+    <div class="rental-day-modal-summary">${rentalsOnDay.length} rental${rentalsOnDay.length > 1 ? 's' : ''} on this day</div>
+  `;
+  
+  bodyEl.innerHTML = rentalsOnDay.map(r => {
+    const sc = STATUS_STYLES[r.status] || {};
+    const fmtP = p => p != null ? '₱' + Number(p).toLocaleString('en-PH', { minimumFractionDigits: 0 }) : '';
+    const imgHtml = r.listingImageUrl 
+      ? `<img src="${escH(r.listingImageUrl)}" alt="${escH(r.listingTitle || '')}">`
+      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--ink-faint);">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+         </div>`;
+    
+    const statusClass = r.status ? r.status.toLowerCase() : '';
+    
+    return `
+      <div class="rental-day-item ${statusClass}">
+        <div class="rental-day-item-header">
+          <div class="rental-day-item-thumb">${imgHtml}</div>
+          <div class="rental-day-item-title">${escH(r.listingTitle || 'Listing')}</div>
+          <span class="rental-day-item-status ${statusClass}">${r.status}</span>
+        </div>
+        <div class="rental-day-item-details">
+          <p><strong>Total Price</strong> <span>${fmtP(r.totalPrice)}</span></p>
+          ${r.startDate && r.endDate ? `<p><strong>Period</strong> <span>${new Date(r.startDate).toLocaleDateString('en-PH', {month:'short',day:'numeric'})} - ${new Date(r.endDate).toLocaleDateString('en-PH', {month:'short',day:'numeric'})}</span></p>` : ''}
+        </div>
+        <a href="../listing/view-listing.html?id=${escH(String(r.listingId))}" class="rental-day-item-link">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          View Listing
+        </a>
+      </div>
+    `;
+  }).join('');
+  
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeRentalDayModal() {
+  const modal = document.getElementById('rental-day-modal');
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
 </script>
 </body>
 </html>

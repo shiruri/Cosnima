@@ -746,3 +746,324 @@
   color: #1a7a40;
   line-height: 1.4;
 }
+
+/* Offer Modal */
+.offer-modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(42,26,14,0.7);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.offer-modal-backdrop.open {
+  display: flex;
+  opacity: 1;
+}
+
+.offer-modal-content {
+  background: var(--card);
+  border-radius: var(--radius-xl);
+  width: min(520px, 90vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: var(--shadow-lg);
+  animation: modalSlideUp 0.3s ease;
+}
+
+.offer-modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.offer-modal-content::-webkit-scrollbar-track {
+  background: var(--bg-alt);
+  border-radius: 4px;
+}
+
+.offer-modal-content::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 4px;
+}
+
+.offer-modal-content::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-dark);
+}
+
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.offer-modal-close {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-alt);
+  border: 1.5px solid var(--border);
+  color: var(--ink-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--t-fast);
+  z-index: 10;
+}
+
+.offer-modal-close:hover {
+  background: var(--error);
+  border-color: var(--error);
+  color: white;
+}
+
+.offer-modal-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.offer-modal-header {
+  padding: var(--space-xl);
+  border-bottom: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.offer-modal-thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-alt);
+  flex-shrink: 0;
+  border: 2px solid var(--border);
+}
+
+.offer-modal-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.offer-modal-title {
+  font-size: 1.15rem;
+  color: var(--ink);
+  margin-bottom: var(--space-xs);
+}
+
+.offer-modal-link {
+  font-size: 0.8rem;
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.offer-modal-body {
+  padding: var(--space-xl);
+}
+
+.offer-modal-section {
+  margin-bottom: var(--space-lg);
+}
+
+.offer-modal-section-title {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+  margin-bottom: var(--space-sm);
+}
+
+.offer-modal-price {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.offer-modal-listed {
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+  text-decoration: line-through;
+}
+
+.offer-modal-message {
+  font-size: 0.9rem;
+  color: var(--ink);
+  font-style: italic;
+  padding: var(--space-md);
+  background: var(--bg-alt);
+  border-radius: var(--radius);
+  border-left: 3px solid var(--accent);
+}
+
+.offer-modal-meta {
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}
+
+.offer-modal-actions {
+  display: flex;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  border-top: 1.5px solid var(--border);
+  background: var(--bg-alt);
+}
+
+/* Analytics Dashboard */
+.analytics-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.analytics-stat-card {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  text-align: center;
+  transition: all var(--t-fast);
+}
+
+.analytics-stat-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.analytics-stat-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto var(--space-sm);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.analytics-stat-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.analytics-stat-icon.pending { background: rgba(230,126,34,0.15); color: #e67e22; }
+.analytics-stat-icon.accepted { background: rgba(39,174,96,0.15); color: #27ae60; }
+.analytics-stat-icon.rejected { background: rgba(192,57,43,0.15); color: var(--error); }
+.analytics-stat-icon.total { background: rgba(240,98,146,0.15); color: var(--accent); }
+
+.analytics-stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.analytics-stat-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.analytics-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-lg);
+}
+
+.analytics-chart-card {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+}
+
+.analytics-chart-card h3 {
+  font-size: 1rem;
+  color: var(--ink);
+  margin-bottom: var(--space-md);
+  font-weight: 700;
+}
+
+.analytics-list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.analytics-list-item:last-child {
+  border-bottom: none;
+}
+
+.analytics-list-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-alt);
+  flex-shrink: 0;
+}
+
+.analytics-list-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.analytics-list-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.analytics-list-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.analytics-list-meta {
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+}
+
+.analytics-list-value {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.status-bar {
+  display: flex;
+  height: 24px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: var(--space-md) 0;
+}
+
+.status-bar-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: white;
+  transition: all var(--t-fast);
+}
+
+.status-bar-segment:hover {
+  filter: brightness(1.1);
+}

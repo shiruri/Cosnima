@@ -9,6 +9,15 @@ public class RentalRequest {
 
     private LocalDate startDate;
     private LocalDate endDate;
+    private BigDecimal totalPrice;
+
+    public BigDecimal getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
+    }
 
     private BigDecimal deposit;
 

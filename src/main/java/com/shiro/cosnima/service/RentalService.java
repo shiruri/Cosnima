@@ -78,6 +78,10 @@ public class RentalService {
         User renter = userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        if(rentalRepo.findByRenterIdAndListingId(userId,rentRequest.getListingId()) != null) {
+            throw new RuntimeException("You have already requested on this item");
+
+        }
         // 3. Validate dates
         if (rentRequest.getStartDate().isAfter(rentRequest.getEndDate())) {
             throw new RuntimeException("Start date cannot be after end date");
@@ -103,8 +107,7 @@ public class RentalService {
                 rentRequest.getEndDate()
         );
 
-        rent.setTotalPrice(
-                listing.getPrice().multiply(BigDecimal.valueOf(days))
+        rent.setTotalPrice(rentRequest.getTotalPrice()
         );
 
         // 7. Save + return DTO
@@ -187,6 +190,25 @@ public class RentalService {
         }
         rent.setStatus(RentalStatus.CANCELLED);
         return RentalMapper.toDto(rentalRepo.save(rent));
+    }
+    public Boolean checkAvailability(String listingId, RentalRequest request) {
+        Listing listing = listingRepo.findById(listingId).orElseThrow();
+
+        Rental rent = rentalRepo.findByListingId(listingId);
+
+        if (rent == null) return true; // no existing rental = available
+
+        LocalDate existingStart = rent.getStartDate();
+        LocalDate existingEnd   = rent.getEndDate();
+
+        LocalDate requestStart  = request.getStartDate();
+        LocalDate requestEnd    = request.getEndDate();
+
+        boolean isOverlapping =
+                !requestStart.isAfter(existingEnd) &&
+                        !requestEnd.isBefore(existingStart);
+
+        return !isOverlapping; // available if NOT overlapping
     }
 
 

@@ -179,6 +179,18 @@ async function submitOffer(listingId, container) {
       message: msgInput?.value?.trim() || null,
     }, true);
 
+    // Send notification message
+    try {
+      const msgContent = `I've sent an offer for "${listingTitle}". Please check my offer.`;
+      await API.post('/api/conversations/messages/send', {
+        conversationId: conversationId,
+        content: msgContent,
+        messageType: 'TEXT'
+      }, true);
+    } catch (e) {
+      console.log('Failed to send notification message:', e);
+    }
+
     container.innerHTML = `
       <div class="offer-already-made">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -255,9 +267,9 @@ async function renderIncomingOffers(listingId, container) {
     if (list) {
       list.innerHTML = offers.map(offer => buildIncomingOfferRow(offer)).join('');
       list.querySelectorAll('[data-accept]').forEach(btn =>
-        btn.addEventListener('click', () => handleAcceptOffer(btn.dataset.accept, btn)));
+        btn.addEventListener('click', () => handleAcceptOffer(btn.dataset.accept, btn.dataset.buyerId, btn.dataset.listingId, btn.dataset.listingTitle, btn)));
       list.querySelectorAll('[data-reject]').forEach(btn =>
-        btn.addEventListener('click', () => handleRejectOffer(btn.dataset.reject, btn)));
+        btn.addEventListener('click', () => handleRejectOffer(btn.dataset.reject, btn.dataset.buyerId, btn.dataset.listingId, btn.dataset.listingTitle, btn)));
     }
   } catch (err) {
     const list  = document.getElementById('offers-list');
@@ -311,12 +323,25 @@ function buildIncomingOfferRow(offer) {
     </div>`;
 }
 
-async function handleAcceptOffer(offerId, btn) {
+async function handleAcceptOffer(offerId, buyerId, listingId, listingTitle, btn) {
 const row = document.getElementById(`offer-row-${offerId}`) || document.getElementById(`incoming-offer-card-${offerId}`);  const allBtns = row?.querySelectorAll('.offer-action-btn');
   allBtns?.forEach(b => { b.disabled = true; b.style.opacity = '0.6'; });
 
   try {
     await API.post(`/api/offers/${offerId}/accept`, null, true);
+    
+    // Send notification message to buyer
+    try {
+      const msgContent = `I've accepted your offer for "${listingTitle}". Let's arrange the exchange!`;
+      await API.post('/api/messages/messages/send/auto', {
+        senderId: buyerId,
+        listingId: listingId,
+        content: msgContent
+      }, true);
+    } catch (e) {
+      console.log('Failed to send notification message:', e);
+    }
+    
     if (row) {
       row.innerHTML = `
         <div style="display:flex;align-items:center;gap:var(--space-sm);width:100%;padding:var(--space-xs) 0;flex-wrap:wrap;">
@@ -332,13 +357,26 @@ const row = document.getElementById(`offer-row-${offerId}`) || document.getEleme
   }
 }
 
-async function handleRejectOffer(offerId, btn) {
+async function handleRejectOffer(offerId, buyerId, listingId, listingTitle, btn) {
   const row     = document.getElementById(`offer-row-${offerId}`);
   const allBtns = row?.querySelectorAll('.offer-action-btn');
   allBtns?.forEach(b => { b.disabled = true; b.style.opacity = '0.6'; });
 
   try {
     await API.post(`/api/offers/${offerId}/reject`, null, true);
+    
+    // Send notification message to buyer
+    try {
+      const msgContent = `I've declined your offer for "${listingTitle}".`;
+      await API.post('/api/messages/messages/send/auto', {
+        senderId: buyerId,
+        listingId: listingId,
+        content: msgContent
+      }, true);
+    } catch (e) {
+      console.log('Failed to send notification message:', e);
+    }
+    
     if (row) {
       row.style.transition = 'opacity 0.3s, transform 0.3s';
       row.style.opacity    = '0';
@@ -379,6 +417,7 @@ function offerSkeletonRow() {
    falls back to client-side filtering of allMyOffers
    ────────────────────────────────────────── */
 let allMyOffers    = [];
+let allIncomingOffers = [];
 let activeFilter   = 'ALL';
 let isLoadingFilter = false;
 
@@ -562,7 +601,7 @@ function buildMyOfferCard(offer) {
   const isAccepted = offer.status === 'ACCEPTED';
 
   return `
-    <div class="offer-card${isAccepted ? ' offer-card--accepted' : ''}" id="my-offer-card-${escHtml(String(offer.id))}">
+    <div class="offer-card${isAccepted ? ' offer-card--accepted' : ''}" id="my-offer-card-${escHtml(String(offer.id))}" data-offer-id="${escHtml(String(offer.id))}" onclick="openOfferModal('${escHtml(String(offer.id))}')" style="cursor:pointer;">
       <div class="offer-card-top">
         <div class="offer-card-listing-thumb">${listingThumb}</div>
         <div class="offer-card-listing-info">
@@ -691,6 +730,7 @@ async function loadIncomingOffersDashboard() {
     // Build HTML for each incoming offer as a card
     const cardsHtml = offers.map(offer => buildIncomingOfferCard(offer)).join('');
     container.innerHTML = `<div class="incoming-offers-list">${cardsHtml}</div>`;
+    allIncomingOffers = offers;
 
     // Attach accept/reject handlers
     container.querySelectorAll('[data-accept]').forEach(btn =>
@@ -731,13 +771,13 @@ function buildIncomingOfferCard(offer) {
   const isPending = offer.status === 'PENDING';
   const actionsHtml = isPending
     ? `<div class="offer-card-actions">
-        <button class="offer-action-btn accept" data-accept="${escHtml(String(offer.id))}">
+        <button class="offer-action-btn accept" data-accept="${escHtml(String(offer.id))}" data-buyer-id="${offer.buyerId || ''}" data-listing-id="${escHtml(String(offer.listingId))}" data-listing-title="${escHtml(offer.listingTitle || '')}">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
           </svg>
           Accept
         </button>
-        <button class="offer-action-btn reject" data-reject="${escHtml(String(offer.id))}">
+        <button class="offer-action-btn reject" data-reject="${escHtml(String(offer.id))}" data-buyer-id="${offer.buyerId || ''}" data-listing-id="${escHtml(String(offer.listingId))}" data-listing-title="${escHtml(offer.listingTitle || '')}">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
           </svg>
@@ -747,7 +787,7 @@ function buildIncomingOfferCard(offer) {
     : `<div class="offer-card-actions">${offerStatusChip(offer.status)}</div>`;
 
   return `
-    <div class="incoming-offer-card" id="incoming-offer-card-${escHtml(String(offer.id))}">
+    <div class="incoming-offer-card" id="incoming-offer-card-${escHtml(String(offer.id))}" data-offer-id="${escHtml(String(offer.id))}" onclick="openIncomingOfferModal('${escHtml(String(offer.id))}')" style="cursor:pointer;">
       <div class="offer-card-top">
         <div class="offer-card-listing-thumb">${listingThumb}</div>
         <div class="offer-card-listing-info">
@@ -773,4 +813,239 @@ function buildIncomingOfferCard(offer) {
         ${actionsHtml}
       </div>
     </div>`;
+}
+
+function openOfferModal(offerId) {
+  const offer = allMyOffers.find(o => String(o.id) === String(offerId));
+  if (!offer) return;
+  
+  const modal = document.getElementById('offer-modal');
+  const body = document.getElementById('offer-modal-body');
+  const isAccepted = offer.status === 'ACCEPTED';
+  const canCancel = offer.status === 'PENDING';
+  
+  const thumbHtml = offer.listingImageUrl 
+    ? `<img src="${escHtml(offer.listingImageUrl)}" alt="${escHtml(offer.listingTitle || '')}">`
+    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--ink-faint);">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="width:32px;height:32px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+       </div>`;
+  
+  body.innerHTML = `
+    <div class="offer-modal-header">
+      <div class="offer-modal-thumb">${thumbHtml}</div>
+      <div>
+        <div class="offer-modal-title">${escHtml(offer.listingTitle || 'Listing')}</div>
+        <a class="offer-modal-link" href="../listing/view-listing.html?id=${escHtml(String(offer.listingId))}">View Listing →</a>
+      </div>
+    </div>
+    <div class="offer-modal-body">
+      ${isAccepted ? `<div style="background:rgba(39,174,96,0.1);border:1px solid rgba(39,174,96,0.3);padding:var(--space-md);border-radius:var(--radius);margin-bottom:var(--space-lg);color:#1a7a40;font-weight:700;display:flex;align-items:center;gap:var(--space-sm);"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Offer Accepted!</div>` : ''}
+      
+      <div class="offer-modal-section">
+        <div class="offer-modal-section-title">Your Offer</div>
+        <div class="offer-modal-price">${formatPrice(offer.offeredPrice)}</div>
+        ${offer.listedPrice ? `<div class="offer-modal-listed">Listed: ${formatPrice(offer.listedPrice)}</div>` : ''}
+      </div>
+      
+      ${offer.message ? `
+      <div class="offer-modal-section">
+        <div class="offer-modal-section-title">Message</div>
+        <div class="offer-modal-message">"${escHtml(offer.message)}"</div>
+      </div>` : ''}
+      
+      <div class="offer-modal-section">
+        <div class="offer-modal-section-title">Details</div>
+        <div class="offer-modal-meta">
+          <p><strong>Seller:</strong> ${escHtml(offer.sellerUsername || 'Unknown')}</p>
+          <p><strong>Sent:</strong> ${offer.createdAt ? new Date(offer.createdAt).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Unknown'}</p>
+          <p><strong>Status:</strong> ${offerStatusChip(offer.status).replace('offer-status-chip ', '')}</p>
+        </div>
+      </div>
+    </div>
+    <div class="offer-modal-actions">
+      ${canCancel ? `<button class="offer-cancel-btn" onclick="handleCancelOffer('${escHtml(String(offer.id))}', this); closeOfferModal(); event.stopPropagation();">Cancel Offer</button>` : ''}
+      ${isAccepted && offer.sellerUsername ? `<a href="../listing/message-seller.html?listing=${escHtml(String(offer.listingId))}&seller=${offer.sellerId || ''}" class="btn btn-primary" style="padding:0.5rem 1rem;">Message Seller</a>` : ''}
+      <a href="../listing/view-listing.html?id=${escHtml(String(offer.listingId))}" class="btn btn-outline" style="padding:0.5rem 1rem;">View Listing</a>
+    </div>
+  `;
+  
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeOfferModal() {
+  const modal = document.getElementById('offer-modal');
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function loadOfferAnalytics() {
+  const container = document.getElementById('analytics-stats');
+  const topListings = document.getElementById('top-listings-chart');
+  const statusChart = document.getElementById('status-chart');
+  
+  container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink-faint);">Loading analytics...</div>';
+  
+  try {
+    const offers = await API.get('/api/offers/incoming', true);
+    const myOffers = await API.get('/api/offers/mine', true);
+    
+    const allOffers = [...(offers || []), ...(myOffers || [])];
+    
+    const total = allOffers.length;
+    const pending = allOffers.filter(o => o.status === 'PENDING').length;
+    const accepted = allOffers.filter(o => o.status === 'ACCEPTED').length;
+    const rejected = allOffers.filter(o => o.status === 'REJECTED' || o.status === 'CANCELLED').length;
+    
+    container.innerHTML = `
+      <div class="analytics-stat-card">
+        <div class="analytics-stat-icon total">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        </div>
+        <div class="analytics-stat-value">${total}</div>
+        <div class="analytics-stat-label">Total Offers</div>
+      </div>
+      <div class="analytics-stat-card">
+        <div class="analytics-stat-icon pending">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div class="analytics-stat-value">${pending}</div>
+        <div class="analytics-stat-label">Pending</div>
+      </div>
+      <div class="analytics-stat-card">
+        <div class="analytics-stat-icon accepted">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <div class="analytics-stat-value">${accepted}</div>
+        <div class="analytics-stat-label">Accepted</div>
+      </div>
+      <div class="analytics-stat-card">
+        <div class="analytics-stat-icon rejected">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </div>
+        <div class="analytics-stat-value">${rejected}</div>
+        <div class="analytics-stat-label">Declined</div>
+      </div>
+    `;
+    
+    const listingCounts = {};
+    allOffers.forEach(o => {
+      if (o.listingId) {
+        listingCounts[o.listingId] = listingCounts[o.listingId] || { count: 0, title: o.listingTitle, image: o.listingImageUrl };
+        listingCounts[o.listingId].count++;
+      }
+    });
+    
+    const sortedListings = Object.entries(listingCounts)
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 5);
+    
+    if (sortedListings.length) {
+      topListings.innerHTML = sortedListings.map(([id, data]) => `
+        <div class="analytics-list-item">
+          <div class="analytics-list-thumb">
+            ${data.image ? `<img src="${escHtml(data.image)}" alt="">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--ink-faint);"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>`}
+          </div>
+          <div class="analytics-list-info">
+            <div class="analytics-list-title">${escHtml(data.title || 'Listing')}</div>
+            <div class="analytics-list-meta">ID: ${id}</div>
+          </div>
+          <div class="analytics-list-value">${data.count}</div>
+        </div>
+      `).join('');
+    } else {
+      topListings.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-faint);">No data yet</div>';
+    }
+    
+    const pendingPct = total ? Math.round((pending / total) * 100) : 0;
+    const acceptedPct = total ? Math.round((accepted / total) * 100) : 0;
+    const rejectedPct = total ? Math.round((rejected / total) * 100) : 0;
+    
+    statusChart.innerHTML = total ? `
+      <div class="status-bar">
+        <div class="status-bar-segment" style="flex:${pendingPct || 1};background:#e67e22;">${pendingPct > 10 ? pendingPct + '%' : ''}</div>
+        <div class="status-bar-segment" style="flex:${acceptedPct || 1};background:#27ae60;">${acceptedPct > 10 ? acceptedPct + '%' : ''}</div>
+        <div class="status-bar-segment" style="flex:${rejectedPct || 1};background:var(--error);">${rejectedPct > 10 ? rejectedPct + '%' : ''}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--ink-faint);">
+        <span><span style="display:inline-block;width:10px;height:10px;background:#e67e22;border-radius:50%;margin-right:4px;"></span>Pending (${pending})</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:#27ae60;border-radius:50%;margin-right:4px;"></span>Accepted (${accepted})</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:var(--error);border-radius:50%;margin-right:4px;"></span>Declined (${rejected})</span>
+      </div>
+    ` : '<div style="text-align:center;padding:20px;color:var(--ink-faint);">No offers yet</div>';
+    
+  } catch (err) {
+    console.error('Analytics load error:', err);
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--error);">Failed to load analytics</div>';
+  }
+}
+
+function openIncomingOfferModal(offerId) {
+  const offer = allIncomingOffers.find(o => String(o.id) === String(offerId));
+  if (!offer) return;
+  
+  const modal = document.getElementById('offer-modal');
+  const body = document.getElementById('offer-modal-body');
+  const isPending = offer.status === 'PENDING';
+  const isAccepted = offer.status === 'ACCEPTED';
+  const isRejected = offer.status === 'REJECTED';
+  
+  const thumbHtml = offer.listingImageUrl 
+    ? `<img src="${escHtml(offer.listingImageUrl)}" alt="${escHtml(offer.listingTitle || '')}">`
+    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--ink-faint);">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="width:32px;height:32px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+       </div>`;
+  
+  let statusBanner = '';
+  if (isAccepted) statusBanner = `<div style="background:rgba(39,174,96,0.1);border:1px solid rgba(39,174,96,0.3);padding:var(--space-md);border-radius:var(--radius);margin-bottom:var(--space-lg);color:#1a7a40;font-weight:700;display:flex;align-items:center;gap:var(--space-sm);"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Offer Accepted</div>`;
+  else if (isRejected) statusBanner = `<div style="background:rgba(192,57,43,0.1);border:1px solid rgba(192,57,43,0.3);padding:var(--space-md);border-radius:var(--radius);margin-bottom:var(--space-lg);color:var(--error);font-weight:700;display:flex;align-items:center;gap:var(--space-sm);"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> Offer Declined</div>`;
+  
+  body.innerHTML = `
+    <div class="offer-modal-header">
+      <div class="offer-modal-thumb">${thumbHtml}</div>
+      <div>
+        <div class="offer-modal-title">${escHtml(offer.listingTitle || 'Listing')}</div>
+        <a class="offer-modal-link" href="../listing/view-listing.html?id=${escHtml(String(offer.listingId))}">View Listing →</a>
+      </div>
+    </div>
+    <div class="offer-modal-body">
+      ${statusBanner}
+      
+      <div class="offer-modal-section">
+        <div class="offer-modal-section-title">Offer Amount</div>
+        <div class="offer-modal-price">${formatPrice(offer.offeredPrice)}</div>
+        ${offer.listedPrice ? `<div class="offer-modal-listed">Listed: ${formatPrice(offer.listedPrice)}</div>` : ''}
+      </div>
+      
+      ${offer.message ? `
+      <div class="offer-modal-section">
+        <div class="offer-modal-section-title">Message from Buyer</div>
+        <div class="offer-modal-message">"${escHtml(offer.message)}"</div>
+      </div>` : ''}
+      
+      <div class="offer-modal-section">
+        <div class="offer-modal-section-title">Buyer Info</div>
+        <div class="offer-modal-meta">
+          <p><strong>Buyer:</strong> ${escHtml(offer.buyerUsername || 'Unknown')}</p>
+          <p><strong>Received:</strong> ${offer.createdAt ? new Date(offer.createdAt).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Unknown'}</p>
+          <p><strong>Status:</strong> ${offerStatusChip(offer.status).replace('offer-status-chip ', '')}</p>
+        </div>
+      </div>
+    </div>
+    <div class="offer-modal-actions">
+      ${isPending ? `
+      <button class="offer-action-btn accept" onclick="handleAcceptOffer('${escHtml(String(offer.id))}', this); closeOfferModal(); event.stopPropagation();" style="display:flex;align-items:center;gap:6px;padding:0.5rem 1rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        Accept
+      </button>
+      <button class="offer-action-btn reject" onclick="handleRejectOffer('${escHtml(String(offer.id))}', this); closeOfferModal(); event.stopPropagation();" style="display:flex;align-items:center;gap:6px;padding:0.5rem 1rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        Decline
+      </button>` : ''}
+      <a href="../listing/view-listing.html?id=${escHtml(String(offer.listingId))}" class="btn btn-outline" style="padding:0.5rem 1rem;">View Listing</a>
+    </div>
+  `;
+  
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
 }

@@ -63,7 +63,6 @@ public class SecurityConfig {
                 "http://localhost:3000",
                 "http://127.0.0.1:3000"
         ));
-        // TODO OFER AND RATINGS CGECK THERE SHOULD BE PRIMPT README IN CLAUDE
 
         config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

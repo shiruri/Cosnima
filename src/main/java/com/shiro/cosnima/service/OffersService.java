@@ -94,19 +94,6 @@ public class OffersService {
         accepted.setUpdatedAt(LocalDateTime.now());
 
         try {
-            Optional<Conversation> convo = conversationRepo.findExistingConversation(
-                    accepted.getListing().getId(),
-                    accepted.getBuyer().getId()
-            );
-            if (convo.isPresent()) {
-                MessageRequest autoMsg = new MessageRequest();
-                autoMsg.setConversationId(convo.get().getId());
-                autoMsg.setContent("Great news! I've accepted your offer of ₱" +
-                        accepted.getOfferedPrice() + " for \"" +
-                        accepted.getListing().getTitle() + "\". " +
-                        "Let's arrange the exchange! Feel free to message me here.");
-                messageServ.sendMessage(autoMsg, accepted.getListing().getSeller().getId());
-            }
 
             offerRepo.saveAll(others);
 
@@ -133,6 +120,10 @@ public class OffersService {
     public OfferResponse makeOffer(String listingId, UUID userId, CreateOfferRequest offerRequest) {
         Listing listing = listingRepo.findById(listingId).orElseThrow();
         Offer offer = new Offer();
+        if(offerRepo.findByBuyerIdAndListingId(userId,listing.getId()) != null) {
+            throw new RuntimeException("You have already requested on this item");
+        }
+
         offer.setListing(listing);
         offer.setBuyer(userRepo.findUserById(userId).orElseThrow());
         offer.setOfferedPrice(offerRequest.getOfferedPrice());

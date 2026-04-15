@@ -122,6 +122,38 @@ public class MessageService {
         messageRepo.markConversationAsRead(convo.getId(), userId);
     }
 
+
+
+    public MessageResponse sendAutoMessage(UUID senderId, String listingId, String content) {
+
+        Conversation convo = conversationRepo
+                .findByBuyerIdAndListingId(senderId, listingId);
+
+        if (convo == null) {
+            throw new RuntimeException("Conversation not found");
+        }
+
+        boolean isParticipant =
+                convo.getBuyer().getId().equals(senderId) ||
+                        convo.getSeller().getId().equals(senderId);
+
+        if (!isParticipant) {
+            throw new RuntimeException("Not part of conversation");
+        }
+
+        User sender = new User();
+        sender.setId(senderId);
+
+        Message message = new Message();
+        message.setConversation(convo);
+        message.setSender(sender);
+        message.setContent(content);
+        message.setRead(false);
+
+        return MessageMapper.toDto(messageRepo.save(message));
+    }
+
+
 }
 
 

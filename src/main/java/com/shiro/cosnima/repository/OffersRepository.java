@@ -14,7 +14,7 @@ import java.util.UUID;
 @Repository
 public interface OffersRepository extends JpaRepository<Offer, UUID> {
 
-
+    Offer findByBuyerIdAndListingId(UUID buyerId, String listingId);
 
     // Buyer: get own offers filtered by status
     @Query("""

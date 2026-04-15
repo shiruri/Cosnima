@@ -107,7 +107,7 @@ public class RentalController {
 
 
     @PostMapping("/{rentalId}/approve")
-    public ResponseEntity<RentalResponse> approveRental(@PathVariable("id") long rentalId) {
+    public ResponseEntity<RentalResponse> approveRental(@PathVariable long rentalId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
             RentalResponse rental = rentalServ.approveRental(rentalId,UUID.fromString(auth.getName()));
@@ -155,13 +155,23 @@ public class RentalController {
     public ResponseEntity<RentalResponse> cancelRental(@PathVariable("id") long rentalId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
-            RentalResponse rental = rentalServ.approveRental(rentalId,UUID.fromString(auth.getName()));
+            RentalResponse rental = rentalServ.cancelRental(rentalId,UUID.fromString(auth.getName()));
             if(rental != null) {
                 return ResponseEntity.ok().body(rental);
 
             }
             return ResponseEntity.badRequest().build();
 
+        }
+        return ResponseEntity.status(401).build();
+    }
+
+    @GetMapping("/{listingId}/availability") ResponseEntity<Boolean>
+    checkAvailability(@PathVariable String listingId,
+                                                        RentalRequest requestl) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+            return ResponseEntity.ok().body(rentalServ.checkAvailability(listingId,requestl));
         }
         return ResponseEntity.status(401).build();
     }

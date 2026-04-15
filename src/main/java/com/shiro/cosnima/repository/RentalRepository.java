@@ -14,6 +14,8 @@ import java.util.UUID;
 
 public interface RentalRepository extends JpaRepository<Rental, Long> {
 
+    Rental findByRenterIdAndListingId(UUID userId, String listingId);
+
     // ─────────────────────────────
     // RENTER SIDE (my rentals)
     // ─────────────────────────────
@@ -21,7 +23,7 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
 
     List<Rental> findByRenterIdAndStatus(UUID userId, RentalStatus status);
 
-
+    Rental findByListingId(String listingId);
     // ─────────────────────────────
     // SELLER SIDE (requests on my listings)
     // ─────────────────────────────

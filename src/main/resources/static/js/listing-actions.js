@@ -169,6 +169,51 @@ let _rentListing = null;
 
 function openRentModal(listing) {
   _rentListing = listing;
+  const today = getTodayStr();
+  
+  // Parse price notes and min days from description
+  let priceNotes = [];
+  let minDays = null;
+  
+  if (listing.description) {
+    const lines = listing.description.split('\n');
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
+        const note = trimmed.replace(/^[•\-]\s*/, '');
+        if (note.includes('=') || note.toLowerCase().includes('day')) {
+          priceNotes.push(note);
+        }
+      }
+      const minMatch = trimmed.match(/minimum\s*rental:\s*(\d+)\s*day/i);
+      if (minMatch) {
+        minDays = parseInt(minMatch[1]);
+      }
+    });
+  }
+  
+  if (listing.priceNotes && listing.priceNotes.length) {
+    priceNotes = listing.priceNotes;
+  }
+  
+  const hasPriceNotes = priceNotes && priceNotes.length > 0;
+  const dailyPrice = listing.price || listing.dailyPrice || listing.rentalPrice || 0;
+  
+  let priceOptionsHtml = '';
+  if (hasPriceNotes) {
+    priceOptionsHtml = `
+      <div class="rental-field" id="rent-pricing-field">
+        <label>Select Pricing Option *</label>
+        <select id="rent-pricing-select" style="width:100%;padding:0.75rem;border:1.5px solid var(--border);border-radius:var(--radius);font-size:0.9rem;color:var(--ink);background:var(--bg);outline:none;">
+          <option value="">Choose a pricing option...</option>
+          <option value="daily">Daily Rate - ₱${Number(dailyPrice).toLocaleString()}/day</option>
+          ${priceNotes.map(note => `<option value="${escH(note)}">${escH(note)}</option>`).join('')}
+        </select>
+        <div class="rental-field-error">Please select a pricing option.</div>
+      </div>`;
+  } else {
+    priceOptionsHtml = `<input type="hidden" id="rent-pricing-select" value="daily">`;
+  }
 
   // Remove existing if any
   document.getElementById('rent-modal-backdrop')?.remove();
@@ -190,15 +235,17 @@ function openRentModal(listing) {
       <div class="rental-modal-body">
         <div id="rent-modal-status" style="display:none;padding:0.75rem 1rem;border-radius:var(--radius);font-size:0.84rem;font-weight:700;margin-bottom:var(--space-md);"></div>
 
+        ${priceOptionsHtml}
+
         <div class="rental-field" id="rent-start-field">
-          <label>Start Date *</label>
-          <input type="date" id="rent-start-date" min="${getTodayStr()}">
-          <div class="rental-field-error">Please select a valid start date.</div>
+          <label>Start Date *${minDays ? ` (Min: ${minDays} days)` : ''}</label>
+          <input type="date" id="rent-start-date" min="${today}">
+          <div class="rental-field-error">Please select a valid start date (today or later).</div>
         </div>
 
         <div class="rental-field" id="rent-end-field">
           <label>End Date *</label>
-          <input type="date" id="rent-end-date" min="${getTodayStr()}">
+          <input type="date" id="rent-end-date" min="${today}">
           <div class="rental-field-error">End date must be after start date.</div>
         </div>
 
@@ -247,7 +294,7 @@ function openRentModal(listing) {
   const endInput   = document.getElementById('rent-end-date');
   const depositInput = document.getElementById('rent-deposit');
 
-  const recalc = () => calculateRentalPrice(listing.price);
+  const recalc = () => calculateRentalPrice(listing.price, listing.priceNotes);
   startInput?.addEventListener('change', () => { updateEndDateMin(); recalc(); });
   endInput?.addEventListener('change', recalc);
   depositInput?.addEventListener('input', recalc);
@@ -280,7 +327,7 @@ function updateEndDateMin() {
   }
 }
 
-function calculateRentalPrice(pricePerDay) {
+function calculateRentalPrice(pricePerDay, priceNotes) {
   const start   = document.getElementById('rent-start-date')?.value;
   const end     = document.getElementById('rent-end-date')?.value;
   const deposit = parseFloat(document.getElementById('rent-deposit')?.value) || 0;
@@ -293,7 +340,22 @@ function calculateRentalPrice(pricePerDay) {
   const days = Math.max(1, Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)));
 
   const daily = parseFloat(pricePerDay) || 0;
-  const total = daily * days;
+  let total = daily * days;
+  let noteDisplay = '';
+
+  if (priceNotes && priceNotes.length && days > 1) {
+    priceNotes.forEach(note => {
+      const match = note.match(/(\d+)\s*(?:days?|d)\s*(?:=|for)\s*₱?(\d+)/i);
+      if (match) {
+        const noteDays = parseInt(match[1]);
+        const notePrice = parseInt(match[2]);
+        if (noteDays === days) {
+          total = notePrice;
+          noteDisplay = note;
+        }
+      }
+    });
+  }
 
   if (summary) summary.style.display = 'block';
   const fmt = (n) => '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -302,7 +364,7 @@ function calculateRentalPrice(pricePerDay) {
   if (el('rent-daily-rate'))      el('rent-daily-rate').textContent      = fmt(daily) + ' / day';
   if (el('rent-duration'))        el('rent-duration').textContent        = `${days} day${days !== 1 ? 's' : ''}`;
   if (el('rent-deposit-preview')) el('rent-deposit-preview').textContent = fmt(deposit);
-  if (el('rent-total-price'))     el('rent-total-price').textContent     = fmt(total);
+  if (el('rent-total-price'))     el('rent-total-price').textContent     = fmt(total) + (noteDisplay ? ` (${noteDisplay})` : '');
 }
 
 async function submitRentRequest() {
@@ -312,16 +374,21 @@ async function submitRentRequest() {
   const start   = document.getElementById('rent-start-date')?.value;
   const end     = document.getElementById('rent-end-date')?.value;
   const deposit = parseFloat(document.getElementById('rent-deposit')?.value) || 0;
+  const pricingSelect = document.getElementById('rent-pricing-select');
+  const pricingValue = pricingSelect?.value || '';
 
   // Validate
   let valid = true;
+  const today = getTodayStr();
 
   const startField   = document.getElementById('rent-start-field');
   const endField     = document.getElementById('rent-end-field');
   const depositField = document.getElementById('rent-deposit-field');
+  const pricingField = document.getElementById('rent-pricing-field');
 
-  [startField, endField, depositField].forEach(f => f?.classList.remove('has-error'));
+  [startField, endField, depositField, pricingField].forEach(f => f?.classList.remove('has-error'));
 
+  if (pricingField && !pricingValue) { pricingField.classList.add('has-error'); valid = false; }
   if (!start) { startField?.classList.add('has-error'); valid = false; }
   if (!end)   { endField?.classList.add('has-error'); valid = false; }
   if (start && end && end <= start) {
@@ -329,6 +396,12 @@ async function submitRentRequest() {
     endField.querySelector('.rental-field-error').textContent = 'End date must be after start date.';
     valid = false;
   }
+  if (start && start < today) {
+    startField?.classList.add('has-error');
+    startField.querySelector('.rental-field-error').textContent = 'Start date cannot be in the past.';
+    valid = false;
+  }
+  
   if (!valid) return;
 
   // Check availability
@@ -389,6 +462,9 @@ function escH(str) {
 
 /* ── Redirect to Chat with Rental Intent ── */
 async function redirectToChatWithRental(listing) {
+  // Store listing in sessionStorage so messages page can use it on reload
+  sessionStorage.setItem('pendingRentalListing', JSON.stringify(listing));
+  
   try {
     const currentUser = API.getUser();
     if (!currentUser?.id) throw new Error('Not logged in');

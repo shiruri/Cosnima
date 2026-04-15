@@ -717,7 +717,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!userId) { showError('No user specified.'); return; }
 
     try {
-        const user = await API.get(`/api/users/${userId}`, false);
+        const user = await API.get(`/api/users/${userId}`, true);
         if (!user) throw new Error('User not found.');
         _profileUser = user;
         renderPublicProfile(user);
@@ -991,7 +991,7 @@ async function loadListingsForPicker() {
     if (!container) return;
 
     try {
-        const listings = await API.get(`/api/users/${userId}/listings`, false) || [];
+        const listings = await API.get(`/api/users/${userId}/listings`, true) || [];
         _profileListings = listings;
 
         const available = listings.filter(l =>
@@ -1072,7 +1072,7 @@ async function loadPublicListings(uid) {
     const container = document.getElementById('profile-listings');
     if (!container) return;
     try {
-        const listings = await API.get(`/api/users/${uid}/listings`, false);
+        const listings = await API.get(`/api/users/${uid}/listings`, true);
         _profileListings = listings || [];
 
         if (!listings || !listings.length) {
@@ -1147,7 +1147,7 @@ async function loadUserReviews() {
     if (!container) return;
     container.innerHTML = '<div style="text-align:center;padding:var(--space-2xl);color:var(--ink-faint);"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto var(--space-md)"></div>Loading reviews...</div>';
     try {
-        const reviews = await API.get(`/api/ratings/user/${userId}`, false) || [];
+        const reviews = await API.get(`/api/ratings/user/${userId}`, true) || [];
         if (!reviews.length) {
             container.innerHTML = `<div class="empty-state"><div class="empty-state-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></div><h3>No reviews yet</h3><p>Reviews will appear after completed transactions.</p></div>`;
             return;

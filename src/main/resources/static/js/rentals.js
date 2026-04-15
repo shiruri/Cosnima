@@ -2,12 +2,12 @@
    COSNIMA — Rentals Dashboard Module
    Endpoints:
      GET  /api/rental/mine              → renter sees own rentals
-     GET  /api/rental/incoming          → owner sees rentals for their listings
+     GET  /api/rental/my-listings       → owner sees rentals for their listings
      GET  /api/rental/{id}              → single rental details
-     POST /api/rental/{id}/accept       → owner accepts
-     POST /api/rental/{id}/reject       → owner rejects
-     POST /api/rental/{id}/complete     → owner marks complete
-     POST /api/rental/{id}/cancel       → renter cancels
+     POST /api/rental/{id}/approve     → owner approves
+     POST /api/rental/{id}/reject      → owner rejects
+     POST /api/rental/{id}/complete    → owner marks complete
+     POST /api/rental/{id}/cancel      → renter cancels
    ============================================ */
 
 function formatPrice(p) {
@@ -160,7 +160,7 @@ async function loadIncomingRentalsDashboard() {
     </div>`;
 
   try {
-    const rentals = await API.get('/api/rental/incoming', true) || [];
+    const rentals = await API.get('/api/rental/my-listings', true) || [];
     renderIncomingRentals(rentals, container);
   } catch (err) {
     container.innerHTML = `
@@ -193,7 +193,10 @@ function renderIncomingRentals(rentals, container) {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const rentalId = btn.dataset.rentalId;
-      await handleRentalAccept(rentalId, btn);
+      const listingId = btn.dataset.listingId;
+      const renterId = btn.dataset.renterId;
+      const listingTitle = btn.dataset.listingTitle;
+      await handleRentalAccept(rentalId, listingId, renterId, listingTitle, btn);
     });
   });
 
@@ -201,7 +204,10 @@ function renderIncomingRentals(rentals, container) {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const rentalId = btn.dataset.rentalId;
-      await handleRentalReject(rentalId, btn);
+      const listingId = btn.dataset.listingId;
+      const renterId = btn.dataset.renterId;
+      const listingTitle = btn.dataset.listingTitle;
+      await handleRentalReject(rentalId, listingId, renterId, listingTitle, btn);
     });
   });
 }
@@ -248,22 +254,35 @@ function buildIncomingRentalCard(r) {
       </div>
       ${canRespond ? `
       <div style="padding:0 var(--space-lg) var(--space-lg);display:flex;gap:var(--space-sm);">
-        <button class="btn accept-rental-btn" data-rental-id="${escHtml(r.id)}" style="flex:1;justify-content:center;background:var(--success);color:white;border-color:var(--success);">
+        <button class="btn accept-rental-btn" data-rental-id="${escHtml(r.id)}" data-listing-id="${escHtml(r.listingId)}" data-renter-id="${renterId}" data-listing-title="${escHtml(listingTitle)}" style="flex:1;justify-content:center;background:var(--success);color:white;border-color:var(--success);">
           Accept
         </button>
-        <button class="btn reject-rental-btn" data-rental-id="${escHtml(r.id)}" style="flex:1;justify-content:center;background:transparent;color:var(--error);border-color:var(--error);">
+        <button class="btn reject-rental-btn" data-rental-id="${escHtml(r.id)}" data-listing-id="${escHtml(r.listingId)}" data-renter-id="${renterId}" data-listing-title="${escHtml(listingTitle)}" style="flex:1;justify-content:center;background:transparent;color:var(--error);border-color:var(--error);">
           Decline
         </button>
       </div>` : ''}
     </div>`;
 }
 
-async function handleRentalAccept(rentalId, btn) {
+async function handleRentalAccept(rentalId, listingId, renterId, listingTitle, btn) {
   const allBtns = btn.parentElement.querySelectorAll('.btn');
   allBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
 
   try {
-    await API.post(`/api/rental/${rentalId}/accept`, null, true);
+    await API.post(`/api/rental/${rentalId}/approve`, null, true);
+    
+    // Send notification message to renter
+    try {
+      const msgContent = `I've accepted your rental request for "${listingTitle}". Let's arrange the exchange!`;
+      await API.post('/api/messages/messages/send/auto', {
+        senderId: renterId,
+        listingId: listingId,
+        content: msgContent
+      }, true);
+    } catch (e) {
+      console.log('Failed to send notification message:', e);
+    }
+    
     showToast('Rental accepted!', 'success');
     loadIncomingRentalsDashboard();
   } catch (err) {
@@ -273,12 +292,25 @@ async function handleRentalAccept(rentalId, btn) {
   }
 }
 
-async function handleRentalReject(rentalId, btn) {
+async function handleRentalReject(rentalId, listingId, renterId, listingTitle, btn) {
   const allBtns = btn.parentElement.querySelectorAll('.btn');
   allBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
 
   try {
     await API.post(`/api/rental/${rentalId}/reject`, null, true);
+    
+    // Send notification message to renter
+    try {
+      const msgContent = `I've declined your rental request for "${listingTitle}".`;
+      await API.post('/api/messages/messages/send/auto', {
+        senderId: renterId,
+        listingId: listingId,
+        content: msgContent
+      }, true);
+    } catch (e) {
+      console.log('Failed to send notification message:', e);
+    }
+    
     showToast('Rental declined.', 'success');
     loadIncomingRentalsDashboard();
   } catch (err) {

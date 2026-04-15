@@ -148,6 +148,8 @@
   width: min(480px, 90vw);
   max-height: 90vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   box-shadow: var(--shadow-lg);
   transform: scale(0.96);
   transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
@@ -174,6 +176,8 @@
 .rental-modal-body {
   padding: var(--space-lg);
   overflow-y: auto;
+  min-height: 150px;
+  max-height: 50vh;
 }
 
 .rental-field {
@@ -262,4 +266,22 @@
   padding: var(--space-lg);
   border-top: 1.5px solid var(--border);
   justify-content: flex-end;
+}
+
+/* Scrollbar styling */
+.rental-modal-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.rental-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rental-modal-body::-webkit-scrollbar-thumb {
+  background-color: var(--beaver);
+  border-radius: 4px;
+}
+
+.rental-modal-body::-webkit-scrollbar-thumb:hover {
+  background-color: var(--beaver-dark);
 }

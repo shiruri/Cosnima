@@ -14,6 +14,9 @@ import java.util.UUID;
 @Repository
 public interface ConversationRepository extends JpaRepository<Conversation, String> {
 
+    Conversation findByBuyerIdAndListingId(UUID buyerId, String listingId);
+    Conversation findBySellerIdAndListingId(UUID sellerId, String listingId);
+
     @Query("""
 
             SELECT c FROM Conversation c

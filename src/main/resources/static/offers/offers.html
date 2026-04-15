@@ -261,8 +261,9 @@
 
     <!-- Dashboard Tabs -->
     <div class="offers-dashboard-tabs">
-      <button class="dashboard-tab active" data-dashboard-tab="my-offers">My Offers (as buyer)</button>
-      <button class="dashboard-tab" data-dashboard-tab="incoming-offers">Incoming Offers (as seller)</button>
+      <button class="dashboard-tab active" data-dashboard-tab="my-offers">My Offers</button>
+      <button class="dashboard-tab" data-dashboard-tab="incoming-offers">Incoming</button>
+      <button class="dashboard-tab" data-dashboard-tab="dashboard">Analytics</button>
     </div>
 
     <!-- Panel 1: My Offers (sent offers) -->
@@ -299,6 +300,33 @@
       </div>
     </div>
 
+    <!-- Panel 3: Analytics Dashboard -->
+    <div id="dashboard-panel" class="offers-panel-section">
+      <div class="analytics-stats" id="analytics-stats">
+        <!-- Stats loaded by JS -->
+      </div>
+      <div class="analytics-charts">
+        <div class="analytics-chart-card">
+          <h3>Top Listings by Offers</h3>
+          <div id="top-listings-chart"></div>
+        </div>
+        <div class="analytics-chart-card">
+          <h3>Offer Status Breakdown</h3>
+          <div id="status-chart"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Offer Detail Modal -->
+    <div id="offer-modal" class="offer-modal-backdrop" onclick="if(event.target === this) closeOfferModal()">
+      <div class="offer-modal-content">
+        <button class="offer-modal-close" onclick="closeOfferModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        <div id="offer-modal-body"></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -323,18 +351,27 @@
     const tabs = document.querySelectorAll('.dashboard-tab');
     const myPanel = document.getElementById('my-offers-panel');
     const incomingPanel = document.getElementById('incoming-offers-panel');
+    const dashboardPanel = document.getElementById('dashboard-panel');
 
     function switchTab(tabId) {
       tabs.forEach(t => t.classList.remove('active'));
       document.querySelector(`.dashboard-tab[data-dashboard-tab="${tabId}"]`).classList.add('active');
+      
+      myPanel.classList.remove('active');
+      incomingPanel.classList.remove('active');
+      dashboardPanel.classList.remove('active');
+      
       if (tabId === 'my-offers') {
         myPanel.classList.add('active');
-        incomingPanel.classList.remove('active');
-      } else {
-        myPanel.classList.remove('active');
+      } else if (tabId === 'incoming-offers') {
         incomingPanel.classList.add('active');
         if (typeof loadIncomingOffersDashboard === 'function') {
           loadIncomingOffersDashboard();
+        }
+      } else if (tabId === 'dashboard') {
+        dashboardPanel.classList.add('active');
+        if (typeof loadOfferAnalytics === 'function') {
+          loadOfferAnalytics();
         }
       }
     }

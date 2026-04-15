@@ -269,6 +269,70 @@
   transform: scale(1.05);
 }
 
+.rental-calendar-grid .calendar-day.has-rental {
+  position: relative;
+}
+
+.rental-calendar-grid .calendar-day.has-rental .rental-hover-card {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-sm) var(--space-md);
+  min-width: 160px;
+  max-width: 220px;
+  box-shadow: var(--shadow-lg), 0 4px 20px rgba(0,0,0,0.15);
+  z-index: 100;
+  font-size: 0.75rem;
+}
+
+.rental-calendar-grid .calendar-day.has-rental .rental-hover-card::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--card);
+}
+
+.rental-calendar-grid .calendar-day.has-rental:hover .rental-hover-card {
+  display: block;
+}
+
+.rental-hover-card-count {
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.rental-hover-card-title {
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rental-hover-card-info {
+  color: var(--ink-muted);
+  font-size: 0.7rem;
+}
+
+.rental-hover-card-status {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
 .rental-calendar-grid .calendar-day.today {
   border-color: var(--accent);
   color: var(--accent);
@@ -420,4 +484,212 @@
     flex-wrap: wrap;
     gap: var(--space-md);
   }
+}
+
+/* Rental Day Modal */
+.rental-modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.rental-modal-backdrop.open {
+  display: flex;
+  opacity: 1;
+}
+
+.rental-modal-content {
+  background: var(--card);
+  border-radius: var(--radius-xl);
+  width: min(420px, 90vw);
+  max-height: 70vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  animation: modalSlideUp 0.3s ease;
+  border: 1px solid var(--border);
+}
+
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.rental-modal-close {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-alt);
+  border: 1.5px solid var(--border);
+  color: var(--ink-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--t-fast);
+  z-index: 10;
+}
+
+.rental-modal-close:hover {
+  background: var(--error);
+  border-color: var(--error);
+  color: white;
+}
+
+.rental-modal-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.rental-day-modal-header {
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+  position: relative;
+}
+
+.rental-day-modal-date {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: var(--space-xs);
+}
+
+.rental-day-modal-summary {
+  font-size: 0.9rem;
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+.rental-day-modal-body {
+  padding: var(--space-md);
+}
+
+.rental-day-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  margin-bottom: var(--space-sm);
+  transition: all var(--t-fast);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.rental-day-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--accent);
+}
+
+.rental-day-item:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(240,98,146,0.15);
+}
+
+.rental-day-item.pending::before { background: #e67e22; }
+.rental-day-item.active::before { background: var(--accent); }
+.rental-day-item.completed::before { background: #27ae60; }
+.rental-day-item.approved::before { background: #27ae60; }
+.rental-day-item.rejected::before { background: var(--error); }
+
+.rental-day-item-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.rental-day-item-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--card);
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+}
+
+.rental-day-item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rental-day-item-title {
+  flex: 1;
+  font-weight: 700;
+  color: var(--ink);
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rental-day-item-status {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.05em;
+}
+
+.rental-day-item-status.pending { background: rgba(230,126,34,0.15); color: #e67e22; border: 1px solid rgba(230,126,34,0.3); }
+.rental-day-item-status.active { background: rgba(240,98,146,0.15); color: var(--accent); border: 1px solid rgba(240,98,146,0.3); }
+.rental-day-item-status.completed, .rental-day-item-status.approved { background: rgba(39,174,96,0.15); color: #27ae60; border: 1px solid rgba(39,174,96,0.3); }
+.rental-day-item-status.rejected { background: rgba(192,57,43,0.15); color: var(--error); border: 1px solid rgba(192,57,43,0.3); }
+
+.rental-day-item-details {
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+  background: var(--card);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius);
+  margin-bottom: var(--space-sm);
+}
+
+.rental-day-item-details p {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.rental-day-item-details strong {
+  color: var(--ink);
+}
+
+.rental-day-item-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius);
+  background: rgba(240,98,146,0.08);
+  transition: all var(--t-fast);
+}
+
+.rental-day-item-link:hover {
+  background: var(--accent);
+  color: white;
 }
