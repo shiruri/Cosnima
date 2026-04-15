@@ -640,24 +640,8 @@ function renderCalendar() {
 if (statusStyle.bg) classes += ` ${statusStyle.bg}`;
     if (rentalsHere.length) classes += ' has-rental';
   
-    // Hover card HTML (shows rental count or first rental info)
-    let hoverCardHtml = '';
-    if (rentalsHere.length) {
-      if (rentalsHere.length === 1) {
-        hoverCardHtml = `<div class="rental-hover-card">
-          <div class="rental-hover-card-title">${escH(rentalsHere[0].listingTitle || 'Rental')}</div>
-          <div class="rental-hover-card-info">${rentalsHere[0].renterUsername || ''}</div>
-        </div>`;
-      } else {
-        hoverCardHtml = `<div class="rental-hover-card">
-          <div class="rental-hover-card-count">${rentalsHere.length} rentals</div>
-          <div class="rental-hover-card-info">Click to see all</div>
-        </div>`;
-      }
-    }
-  
-    // Status dots (max 3) - only show when multiple rentals
-    const dotsHtml = rentalsHere.length > 1
+    // Always show dots as indicators
+    const dotsHtml = rentalsHere.length
       ? `<div style="display:flex;gap:2px;position:absolute;bottom:4px;left:50%;transform:translateX(-50%);">${
           rentalsHere.slice(0, 3).map(r => {
             const sc = STATUS_STYLES[r.status] || {};
@@ -666,7 +650,7 @@ if (statusStyle.bg) classes += ` ${statusStyle.bg}`;
         }</div>`
       : '';
   
-    gridHtml += `<div class="${classes}" onclick="${rentalsHere.length ? `openRentalDayModal('${dateKey}')` : ''}">${day}${dotsHtml}${hoverCardHtml}</div>`;
+    gridHtml += `<div class="${classes}" onclick="${rentalsHere.length ? `openRentalDayModal('${dateKey}')` : ''}">${day}${dotsHtml}</div>`;
   }
  
   const gridEl = document.getElementById('rental-calendar-grid');

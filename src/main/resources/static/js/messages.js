@@ -511,8 +511,21 @@ async function openRentalRequestInChat(convoId, listingId, preloadedListing) {
   
   if (!listing) return;
   
-// Use openRentModalFromChat which has the full modal with pricing dropdown
-openRentModalFromChat(listing, convoId);
+  const myId = String(_currentUser?.id || '');
+  
+  // Validate listing type is RENT
+  if (listing.type !== 'RENT') {
+    showToast('Rental requests are only for rent listings', 'error');
+    return;
+  }
+  
+  // Check if user is the seller
+  if (listing.sellerId === myId || listing.seller?.id === myId) {
+    showToast("You can't request to rent your own listing", 'error');
+    return;
+  }
+  
+  openRentModalFromChat(listing, convoId);
 }
 
 /* ── Rental modal from chat ── */
@@ -1109,6 +1122,19 @@ function openOfferInChat() {
   if (!_currentConvoListing) return;
   
   const listing = _currentConvoListing;
+  const myId = String(_currentUser?.id || '');
+  
+  // Check if listing is for sale (not rent)
+  if (listing.type !== 'SALE') {
+    showToast('Offers are only for sale listings', 'error');
+    return;
+  }
+  
+  // Check if user is the seller
+  if (listing.sellerId === myId || listing.seller?.id === myId) {
+    showToast("You can't make an offer on your own listing", 'error');
+    return;
+  }
   
   // Remove existing modal
   document.getElementById('offer-modal-backdrop')?.remove();
@@ -1255,8 +1281,17 @@ function openRentInChat() {
   if (!_currentConvoListing) return;
   
   const listing = _currentConvoListing;
+  const myId = String(_currentUser?.id || '');
+  
+  // Check if listing is for rent
   if (listing.type !== 'RENT') {
-    showToast('This listing is not available for rent', 'error');
+    showToast('Rental requests are only for rent listings', 'error');
+    return;
+  }
+  
+  // Check if user is the seller
+  if (listing.sellerId === myId || listing.seller?.id === myId) {
+    showToast("You can't request to rent your own listing", 'error');
     return;
   }
   

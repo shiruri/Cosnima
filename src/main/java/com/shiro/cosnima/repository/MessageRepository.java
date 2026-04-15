@@ -14,6 +14,8 @@ import java.util.UUID;
 @Repository
 public interface MessageRepository extends JpaRepository<Message, String> {
 
+    long countUnreadMessage(boolean isRead);
+
     @Query("""
     SELECT m FROM Message m
     WHERE m.conversation.id = :conversationId

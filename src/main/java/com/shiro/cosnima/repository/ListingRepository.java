@@ -18,6 +18,11 @@ import java.util.UUID;
 @Repository
 public interface ListingRepository extends JpaRepository<Listing, String> {
 
+    List<Listing> findBySellerId(UUID sellerId);
+
+    long countSoldListings(Listing.Status status);
+    long countActiveListings(boolean isActive);
+
     @Query("SELECT l FROM Listing l WHERE l.id = :id")
     List<Listing> getListingsById(@Param("id") String id);
 

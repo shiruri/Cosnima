@@ -14,6 +14,19 @@ import java.util.UUID;
 
 public interface RentalRepository extends JpaRepository<Rental, Long> {
 
+
+    @Query("""
+    SELECT r FROM Rental r
+    WHERE r.renter.id = :userId
+       OR r.listing.seller.id = :userId
+    ORDER BY r.createdAt DESC
+""")
+    List<Rental> findUserRentalHistory(@Param("userId") UUID userId);
+
+    long countByStatus(RentalStatus status);
+
+    long countCompletedRental(RentalStatus status);
+
     Rental findByRenterIdAndListingId(UUID userId, String listingId);
 
     // ─────────────────────────────
