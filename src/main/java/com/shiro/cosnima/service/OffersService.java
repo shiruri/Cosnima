@@ -1,9 +1,8 @@
 package com.shiro.cosnima.service;
 
 import com.shiro.cosnima.dto.request.CreateOfferRequest;
-import com.shiro.cosnima.dto.request.MessageRequest;
 import com.shiro.cosnima.dto.response.OfferResponse;
-import com.shiro.cosnima.model.Conversation;
+import com.shiro.cosnima.model.ApiException;
 import com.shiro.cosnima.model.Listing;
 import com.shiro.cosnima.model.Offer;
 import com.shiro.cosnima.model.OfferStatus;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -119,9 +117,14 @@ public class OffersService {
 
     public OfferResponse makeOffer(String listingId, UUID userId, CreateOfferRequest offerRequest) {
         Listing listing = listingRepo.findById(listingId).orElseThrow();
+        
+        if (listing.getStatus() == Listing.Status.ARCHIVED) {
+            throw ApiException.badRequest("This listing is no longer available");
+        }
+        
         Offer offer = new Offer();
         if(offerRepo.findByBuyerIdAndListingId(userId,listing.getId()) != null) {
-            throw new RuntimeException("You have already requested on this item");
+            throw ApiException.conflict("You have already requested on this item");
         }
 
         offer.setListing(listing);

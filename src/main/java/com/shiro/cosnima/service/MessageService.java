@@ -1,11 +1,11 @@
 package com.shiro.cosnima.service;
 
-import com.mysql.cj.Messages;
 import com.shiro.cosnima.dto.request.AutoSendMessageRequest;
 import com.shiro.cosnima.dto.request.ConversationRequest;
 import com.shiro.cosnima.dto.request.MessageRequest;
 import com.shiro.cosnima.dto.response.ConversationResponse;
 import com.shiro.cosnima.dto.response.MessageResponse;
+import com.shiro.cosnima.model.ApiException;
 import com.shiro.cosnima.model.Conversation;
 import com.shiro.cosnima.model.Listing;
 import com.shiro.cosnima.model.Message;
@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -69,6 +68,10 @@ public class MessageService {
         // 2. Load entities
         Listing listing = listingRepo.findById(req.getListingId())
                 .orElseThrow(() -> new RuntimeException("Listing not found"));
+        
+        if (listing.getStatus() == Listing.Status.ARCHIVED) {
+            throw ApiException.badRequest("This listing is no longer available");
+        }
 
         User buyer = userRepo.findById(UUID.fromString(req.getBuyerId()))
                 .orElseThrow(() -> new RuntimeException("Buyer not found"));
@@ -94,7 +97,7 @@ public class MessageService {
                 .findById(messageReq.getConversationId()).orElseThrow();
         if (!convo.getBuyer().getId().equals(userId)
                 && !convo.getSeller().getId().equals(userId)) {
-            throw new RuntimeException("Not part of conversation");
+            throw ApiException.forbidden("Not part of conversation");
         }
 
         User user = userRepo.findUserById(userId).orElseThrow();
@@ -117,7 +120,7 @@ public class MessageService {
 
         if (!convo.getBuyer().getId().equals(userId)
                 && !convo.getSeller().getId().equals(userId)) {
-            throw new RuntimeException("Not part of conversation");
+            throw ApiException.forbidden("Not part of conversation");
         }
 
         messageRepo.markConversationAsRead(convo.getId(), userId);
@@ -131,7 +134,7 @@ public class MessageService {
                 .findByBuyerIdAndListingId(request.getSenderId(), request.getListingId());
 
         if (convo == null) {
-            throw new RuntimeException("Conversation not found");
+            throw ApiException.notFound("Conversation not found");
         }
 
         boolean isParticipant =
@@ -139,7 +142,7 @@ public class MessageService {
                         convo.getSeller().getId().equals(request.getSenderId());
 
         if (!isParticipant) {
-            throw new RuntimeException("Not part of conversation");
+            throw ApiException.forbidden("Not part of conversation");
         }
 
         User sender = new User();

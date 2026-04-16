@@ -3,11 +3,13 @@
    - Better 401/403 handling
    - Network timeout support
    - Consistent error shapes
+   - Automatic toast on API errors
    ============================================ */
 
 const API = (() => {
   const BASE_URL = 'http://localhost:8080';
   const TIMEOUT_MS = 15000;
+  const TOAST_ON_ERROR = false; // Set to true to auto-show toasts on errors
 
   function getToken() {
     return localStorage.getItem('cosnimaToken');
@@ -45,7 +47,15 @@ const API = (() => {
     ]);
   }
 
-  async function request(method, endpoint, body = null, auth = false, isMultipart = false) {
+  function getErrorMessage(err) {
+    // Extract message from various error formats
+    if (err?.data?.message) return err.data.message;
+    if (err?.message) return err.message;
+    if (typeof err === 'string') return err;
+    return 'An error occurred';
+  }
+
+  async function request(method, endpoint, body = null, auth = false, isMultipart = false, showToastOnError = TOAST_ON_ERROR) {
     const headers = {};
 
     if (!isMultipart) headers['Content-Type'] = 'application/json';
@@ -66,11 +76,11 @@ const API = (() => {
 
       if (res.status === 401) {
         clearSession();
-        // Don't redirect from auth pages
         const path = window.location.pathname;
         if (!path.includes('/login/') && !path.includes('/signup/')) {
           const prefix = (path.includes('/listing/') || path.includes('/profile/') ||
-                          path.includes('/offers/')) ? '../' : '';
+                          path.includes('/offers/') || path.includes('/messages/') ||
+                          path.includes('/rentals/') || path.includes('/error/')) ? '../' : '';
           window.location.href = prefix + 'login/login.html';
         }
         return null;
@@ -85,11 +95,20 @@ const API = (() => {
       }
 
       if (!res.ok) {
-        throw {
+        const error = {
           status: res.status,
           data,
           message: (typeof data === 'object' ? data?.message : data) || `Request failed (${res.status})`
         };
+        
+        // Auto-show toast for API errors
+        if (showToastOnError) {
+          const msg = getErrorMessage(error);
+          const type = res.status === 404 ? 'info' : 'error';
+          showToast(msg, type);
+        }
+        
+        throw error;
       }
 
       return data;
@@ -148,4 +167,64 @@ function showToast(message, type = 'info', duration = 3500) {
 
 function escapeToast(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ============================================
+   API Error Handler
+   ============================================ */
+function handleApiError(err, options = {}) {
+  const { 
+    showToast = true, 
+    defaultMsg = 'Something went wrong. Please try again.',
+    onAuthError = null 
+  } = options;
+  
+  const status = err?.status;
+  let rawMsg = err?.message || '';
+  
+  // Sanitize error message - don't show raw technical errors
+  let msg = rawMsg;
+  
+  // If message contains technical keywords, use default
+  const technicalKeywords = [
+    'java.', 'exception', 'trace', 'nullpointer', 
+    'sql', 'database', 'constraint', 'violation',
+    'hibernate', 'jpa', 'at com.', 'stacktrace'
+  ];
+  
+  const isTechnical = technicalKeywords.some(kw => 
+    rawMsg.toLowerCase().includes(kw.toLowerCase())
+  );
+  
+  if (isTechnical || rawMsg.length > 100) {
+    msg = defaultMsg;
+  }
+  
+  // Handle specific known errors
+  if (rawMsg.includes('username') && rawMsg.includes('already')) {
+    msg = 'Username is already taken. Please choose another.';
+  } else if (rawMsg.includes('email') && rawMsg.includes('already')) {
+    msg = 'Email is already in use. Please use another email.';
+  }
+  
+  // Handle 401 - Auth errors
+  if (status === 401) {
+    if (onAuthError) {
+      onAuthError();
+    }
+    return;
+  }
+  
+  // Map status to toast type
+  let toastType = 'error';
+  if (status === 404) toastType = 'info';
+  if (status === 403) toastType = 'error';
+  if (status === 409) toastType = 'error';
+  
+  // Show toast if enabled
+  if (showToast) {
+    showToast(msg, toastType);
+  }
+  
+  return { status, message: msg };
 }

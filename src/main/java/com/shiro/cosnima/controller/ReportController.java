@@ -34,7 +34,7 @@ public class ReportController {
             if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
                 try {
                     UUID reporterId = UUID.fromString(auth.getName());
-                    ReportResponse report = reportServ.submitRating(reporterId,reportReq);
+                    ReportResponse report = reportServ.submitReport(reporterId,reportReq);
                     if(report != null) {
                         return ResponseEntity.ok().body(report);
                     }

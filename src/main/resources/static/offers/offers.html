@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="../css/global.css">
   <link rel="stylesheet" href="../css/home.css">
   <link rel="stylesheet" href="../css/offers.css">
+  <link rel="stylesheet" href="../css/ratings.css">
   
   <script>(function(){var t=localStorage.getItem('cosnimaTheme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
   <style>
@@ -295,6 +296,24 @@
 
     <!-- Panel 2: Incoming Offers (received offers) -->
     <div id="incoming-offers-panel" class="offers-panel-section">
+      <div class="incoming-section-header">
+        <h2 style="margin:0;font-size:1.1rem;font-weight:700;">Incoming Offers</h2>
+        <div class="offers-filter-tabs incoming-filter-group">
+          <button class="incoming-filter-tab active" data-incoming-filter="ALL">All</button>
+          <button class="incoming-filter-tab" data-incoming-filter="PENDING">
+            <span class="status-dot" style="background:#e67e22;"></span>
+            Pending
+          </button>
+          <button class="incoming-filter-tab" data-incoming-filter="ACCEPTED">
+            <span class="status-dot" style="background:#27ae60;"></span>
+            Accepted
+          </button>
+          <button class="incoming-filter-tab" data-incoming-filter="REJECTED">
+            <span class="status-dot" style="background:var(--error);"></span>
+            Declined
+          </button>
+        </div>
+      </div>
       <div id="incoming-offers-container" class="incoming-offers-list">
         <!-- Loaded by JavaScript -->
       </div>
@@ -302,6 +321,20 @@
 
     <!-- Panel 3: Analytics Dashboard -->
     <div id="dashboard-panel" class="offers-panel-section">
+      <div class="analytics-section-header">
+        <h2 style="margin:0;font-size:1.1rem;font-weight:700;">Analytics</h2>
+        <div class="offers-filter-tabs dashboard-filter-group">
+          <button class="dashboard-filter-tab active" data-analytics-filter="ALL">All</button>
+          <button class="dashboard-filter-tab" data-analytics-filter="INCOMING">
+            <span class="status-dot" style="background:#e67e22;"></span>
+            Incoming
+          </button>
+          <button class="dashboard-filter-tab" data-analytics-filter="OUTGOING">
+            <span class="status-dot" style="background:#27ae60;"></span>
+            Outgoing
+          </button>
+        </div>
+      </div>
       <div class="analytics-stats" id="analytics-stats">
         <!-- Stats loaded by JS -->
       </div>
@@ -345,6 +378,8 @@
 <script src="../js/api.js"></script>
 <script src="../js/nav.js"></script>
 <script src="../js/offers.js"></script>
+<script src="../js/ratings.js"></script>
+<script src="../js/offers-ratings-patch.js"></script>
 <script>
   // Tab switching logic
   document.addEventListener('DOMContentLoaded', function() {

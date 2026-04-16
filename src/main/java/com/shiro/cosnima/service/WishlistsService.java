@@ -2,8 +2,8 @@ package com.shiro.cosnima.service;
 
 
 import com.shiro.cosnima.dto.response.WishlistResponse;
+import com.shiro.cosnima.model.ApiException;
 import com.shiro.cosnima.model.Listing;
-import com.shiro.cosnima.model.Report;
 import com.shiro.cosnima.model.User;
 import com.shiro.cosnima.model.Wishlist;
 import com.shiro.cosnima.repository.ListingRepository;
@@ -47,11 +47,15 @@ public class WishlistsService {
                 .findByUserIdAndListingId(userId, listingId);
 
         if (existing.isPresent()) {
-            throw new RuntimeException("Already wishlisted this listing.");
+            throw ApiException.conflict("Already wishlisted this listing.");
         }
 
         Listing listing = listingRepo.findById(listingId)
                 .orElseThrow(() -> new RuntimeException("Listing not found"));
+        
+        if (listing.getStatus() == Listing.Status.ARCHIVED) {
+            throw ApiException.badRequest("This listing is no longer available");
+        }
 
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -71,7 +75,7 @@ public class WishlistsService {
         Optional<Wishlist> existingReport = wishlistsRepo.findByListingId(listingId);
 
         if (existingReport.isEmpty()) {
-            throw new RuntimeException("No Wishist Found");
+            throw ApiException.notFound("No Wishlist Found");
         }
         wishlistsRepo.deleteByUser_IdAndListing_Id(userId,listingId);
 

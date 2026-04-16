@@ -10,57 +10,31 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-@Repository
 
+@Repository
 public interface RentalRepository extends JpaRepository<Rental, Long> {
 
-
-    @Query("""
-    SELECT r FROM Rental r
-    WHERE r.renter.id = :userId
-       OR r.listing.seller.id = :userId
-    ORDER BY r.createdAt DESC
-""")
+    @Query("SELECT r FROM Rental r WHERE r.renter.id = :userId OR r.listing.seller.id = :userId AND r.listing.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED ORDER BY r.startDate DESC")
     List<Rental> findUserRentalHistory(@Param("userId") UUID userId);
 
     long countByStatus(RentalStatus status);
 
-    long countCompletedRental(RentalStatus status);
-
     Rental findByRenterIdAndListingId(UUID userId, String listingId);
 
-    // ─────────────────────────────
-    // RENTER SIDE (my rentals)
-    // ─────────────────────────────
-    List<Rental> findByRenterId(UUID userId);
+    @Query("SELECT r FROM Rental r JOIN FETCH r.listing l WHERE r.renter.id = :userId AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED")
+    List<Rental> findByRenterId(@Param("userId") UUID userId);
 
-    List<Rental> findByRenterIdAndStatus(UUID userId, RentalStatus status);
+    @Query("SELECT r FROM Rental r JOIN FETCH r.listing l WHERE r.renter.id = :userId AND r.status = :status AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED")
+    List<Rental> findByRenterIdAndStatus(@Param("userId") UUID userId, @Param("status") RentalStatus status);
 
     Rental findByListingId(String listingId);
-    // ─────────────────────────────
-    // SELLER SIDE (requests on my listings)
-    // ─────────────────────────────
-    @Query("""
-        SELECT r FROM Rental r
-        JOIN FETCH r.listing l
-        JOIN FETCH r.renter
-        WHERE l.seller.id = :userId
-    """)
+
+    @Query("SELECT r FROM Rental r JOIN FETCH r.listing l JOIN FETCH r.renter WHERE l.seller.id = :userId AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED")
     List<Rental> findRequestsBySellerId(@Param("userId") UUID userId);
 
-    @Query("""
-SELECT r FROM Rental r
-WHERE r.listing.id = :listingId
-AND r.status IN ('APPROVED', 'ACTIVE')
-AND (
-    r.startDate <= :endDate AND r.endDate >= :startDate
-)
-""")
-    List<Rental> findConflictingRentals(
-            @Param("listingId") String listingId,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate
-    );
+    @Query("SELECT r FROM Rental r WHERE r.listing.id = :listingId AND r.status IN ('APPROVED', 'ACTIVE') AND (r.startDate <= :endDate AND r.endDate >= :startDate)")
+    List<Rental> findConflictingRentals(@Param("listingId") String listingId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
-    List<Rental> findByListingSellerIdAndStatus(UUID userId, RentalStatus status);
+    @Query("SELECT r FROM Rental r JOIN FETCH r.listing l WHERE l.seller.id = :userId AND r.status = :status AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED")
+    List<Rental> findByListingSellerIdAndStatus(@Param("userId") UUID userId, @Param("status") RentalStatus status);
 }

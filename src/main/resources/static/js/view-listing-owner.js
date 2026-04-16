@@ -103,14 +103,27 @@ function renderOwnerBar(listing, containerSelector = '.listing-main') {
 
 /* ── Update listing status ── */
 async function updateListingStatus(listingId, newStatus, clickedBtn) {
+  console.log('Function called:', listingId, newStatus);
   const picker = document.getElementById('status-picker');
-  if (!picker) return;
+  console.log('Picker found:', picker);
+  if (!picker) {
+    console.error('Status picker not found in DOM');
+    return;
+  }
 
   // Disable all while saving
   picker.querySelectorAll('.status-btn').forEach(b => b.classList.add('saving'));
 
   try {
-    await API.patch(`/api/listings/${listingId}/status?status=${newStatus}`, null);
+    const url = `/api/listings/${listingId}/status?status=${newStatus}`;
+    console.log('=== STATUS UPDATE DEBUG ===');
+    console.log('URL:', url);
+    console.log('Method: POST');
+    console.log('Token exists:', !!API.getToken());
+    console.log('================================');
+    
+    const result = await API.post(url, null, true);
+    console.log('Status update success:', result);
 
     // Update active state
     picker.querySelectorAll('.status-btn').forEach(b => {
@@ -129,8 +142,9 @@ async function updateListingStatus(listingId, newStatus, clickedBtn) {
 
   } catch (err) {
     picker.querySelectorAll('.status-btn').forEach(b => b.classList.remove('saving'));
-    showToast('Failed to update status. Please try again.', 'error');
     console.error('Status update error:', err);
+    console.error('Status update response:', err.data);
+    showToast(err?.data?.message || 'Failed to update status. Please try again.', 'error');
   }
 }
 

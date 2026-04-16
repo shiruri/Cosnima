@@ -13,9 +13,11 @@ public interface ReportRepository extends JpaRepository<Report, UUID> {
 
     Optional<Report> findByReporter_IdAndTargetIdAndTargetType(
             UUID reporterId,
-            UUID targetId,
+            String targetId,
             Report.TargetType targetType
     );
+
+
 
     List<Report> findByReporterId(UUID reporterId);
 

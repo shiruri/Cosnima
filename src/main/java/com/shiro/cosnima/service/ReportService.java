@@ -1,9 +1,9 @@
 package com.shiro.cosnima.service;
 
-import com.mysql.cj.xdevapi.Type;
 import com.shiro.cosnima.dto.request.ReportRequest;
 import com.shiro.cosnima.dto.response.ReportResponse;
-import com.shiro.cosnima.model.Rating;
+import com.shiro.cosnima.model.ApiException;
+import com.shiro.cosnima.model.Listing;
 import com.shiro.cosnima.model.Report;
 import com.shiro.cosnima.repository.ListingRepository;
 import com.shiro.cosnima.repository.MessageRepository;
@@ -36,46 +36,79 @@ public class ReportService {
     }
 
 
-    public ReportResponse submitRating(UUID reporterId, ReportRequest request) {
+    public ReportResponse submitReport(UUID reporterId, ReportRequest request) {
 
-        UUID targetId;
-        try {
-            targetId = UUID.fromString(request.getTargetId());
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid target ID");
-        }
-
+        // ─────────────────────────────
+        // 1. Parse target type
+        // ─────────────────────────────
         Report.TargetType type =
                 Report.TargetType.valueOf(request.getTargetType().toUpperCase());
 
-        Optional<Report> existingReport = reportRepo
-                .findByReporter_IdAndTargetIdAndTargetType(
+        String targetId = request.getTargetId();
+
+        // ─────────────────────────────
+        // 2. Validate + normalize input
+        // ─────────────────────────────
+        switch (type) {
+
+            case USER -> {
+                // validate UUID format
+                UUID.fromString(targetId);
+            }
+
+            case LISTING, MESSAGE -> {
+                // no parsing needed (String IDs)
+                if (targetId == null || targetId.isBlank()) {
+                    throw ApiException.badRequest("Invalid target ID");
+                }
+            }
+        }
+
+        // ─────────────────────────────
+        // 3. Check duplicate report
+        // ─────────────────────────────
+        Optional<Report> existingReport =
+                reportRepo.findByReporter_IdAndTargetIdAndTargetType(
                         reporterId,
                         targetId,
                         type
                 );
 
         if (existingReport.isPresent()) {
-            throw new RuntimeException("You already reported this target.");
+            throw ApiException.conflict("You already reported this target.");
         }
 
-        // ===== VALIDATE TARGET EXISTS =====
+        // ─────────────────────────────
+        // 4. Validate target exists
+        // ─────────────────────────────
         switch (type) {
 
-            case USER -> userRepo.findById(targetId)
+            case USER -> userRepo.findById(UUID.fromString(targetId))
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            case LISTING -> listingRepo.findById(targetId.toString())
-                    .orElseThrow(() -> new RuntimeException("Listing not found"));
+            case LISTING -> {
+                Listing listing = listingRepo.findById(targetId)
+                        .orElseThrow(() -> new RuntimeException("Listing not found"));
+                if (listing.getStatus() == Listing.Status.ARCHIVED) {
+                    throw ApiException.badRequest("This listing is no longer available");
+                }
+            }
 
-            case MESSAGE -> messageRepo.findById(targetId.toString())
+            case MESSAGE -> messageRepo.findById(targetId)
                     .orElseThrow(() -> new RuntimeException("Message not found"));
         }
 
+        // ─────────────────────────────
+        // 5. Create report
+        // ─────────────────────────────
         Report report = new Report();
 
-        report.setReporter(userRepo.findById(reporterId).orElseThrow());
-        report.setTargetId(targetId.toString());
+        report.setReporter(
+                userRepo.findById(reporterId)
+                        .orElseThrow(() -> new RuntimeException("Reporter not found"))
+        );
+
+        report.setTargetId(targetId);
         report.setTargetType(type);
         report.setReason(Report.Reason.valueOf(request.getReason().toUpperCase()));
         report.setDescription(request.getDescription());

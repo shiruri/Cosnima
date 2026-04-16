@@ -5,6 +5,7 @@ import com.shiro.cosnima.dto.request.AdminReviewReportRequest;
 import com.shiro.cosnima.dto.request.UpdateListingRequest;
 import com.shiro.cosnima.dto.request.UserDto;
 import com.shiro.cosnima.dto.response.*;
+import com.shiro.cosnima.model.ApiException;
 import com.shiro.cosnima.service.AdminService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
+import org.springframework.security.access.AccessDeniedException;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,7 +34,7 @@ public class AdminController {
         if (auth == null ||
                 !auth.isAuthenticated() ||
                 "anonymousUser".equals(auth.getName())) {
-            throw new RuntimeException("Unauthorized");
+            throw ApiException.forbidden("Unauthorized");
         }
     }
 

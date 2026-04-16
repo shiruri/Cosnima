@@ -140,7 +140,12 @@ async function handleMessageSeller(listing) {
 
   try {
     const currentUser = API.getUser();
-    if (!currentUser?.id) throw new Error('Not logged in');
+    if (!currentUser?.id) {
+      showToast('Please log in to message the seller.', 'info');
+      if (btn) btn.disabled = false;
+      if (btnText) btnText.style.display = 'inline';
+      return;
+    }
 
     const conversation = await API.post('/api/conversations', {
       listingId: listing.id,
@@ -148,7 +153,12 @@ async function handleMessageSeller(listing) {
       sellerId:  String(listing.sellerId),
     }, true);
 
-    if (!conversation?.conversationId) throw new Error('Could not start conversation');
+    if (!conversation?.conversationId) {
+      showToast('Could not start conversation. Please try again.', 'error');
+      if (btn) btn.disabled = false;
+      if (btnText) btnText.style.display = 'inline';
+      return;
+    }
 
     showToast('Opening conversation…', 'success', 1500);
     setTimeout(() => {
@@ -156,10 +166,9 @@ async function handleMessageSeller(listing) {
     }, 600);
 
   } catch (err) {
-    const msg = err?.data?.message || err?.message || 'Could not start conversation.';
-    showToast(msg, 'error');
+    showToast('Could not start conversation. Please try again.', 'error');
     if (btn) btn.disabled = false;
-    if (btnText)   btnText.style.display   = 'inline';
+    if (btnText) btnText.style.display = 'inline';
     if (btnLoader) btnLoader.style.display = 'none';
   }
 }
@@ -432,7 +441,7 @@ async function submitRentRequest() {
     closeRentModal();
 
   } catch (err) {
-    const msg = err?.data?.message || err?.message || 'Could not submit rental request.';
+    const msg = err?.message || 'Could not submit rental request.';
     showRentModalStatus(msg, 'error');
     if (btn) btn.disabled = false;
     if (btnText)   btnText.style.display   = 'inline';
@@ -467,7 +476,10 @@ async function redirectToChatWithRental(listing) {
   
   try {
     const currentUser = API.getUser();
-    if (!currentUser?.id) throw new Error('Not logged in');
+    if (!currentUser?.id) {
+      showToast('Please log in to request rental.', 'info');
+      return;
+    }
 
     const conversation = await API.post('/api/conversations', {
       listingId: listing.id,
@@ -475,7 +487,10 @@ async function redirectToChatWithRental(listing) {
       sellerId:  String(listing.sellerId),
     }, true);
 
-    if (!conversation?.conversationId) throw new Error('Could not start conversation');
+    if (!conversation?.conversationId) {
+      showToast('Could not start conversation. Please try again.', 'error');
+      return;
+    }
 
     showToast('Opening chat to discuss rental…', 'success', 1500);
     setTimeout(() => {
@@ -483,7 +498,7 @@ async function redirectToChatWithRental(listing) {
     }, 600);
 
   } catch (err) {
-    const msg = err?.data?.message || err?.message || 'Could not start conversation.';
+    const msg = err?.message || 'Could not start conversation.';
     showToast(msg, 'error');
   }
 }

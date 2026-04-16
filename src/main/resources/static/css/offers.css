@@ -464,6 +464,163 @@
 .offers-filter-tab:hover { color: var(--ink); }
 .offers-filter-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
+.dashboard-filter-tab {
+  background: none;
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--t-base);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.dashboard-filter-tab:hover { color: var(--ink); }
+.dashboard-filter-tab.active { 
+  color: var(--accent); 
+  border-bottom-color: var(--accent); 
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dashboard-filter-group {
+  display: flex;
+  gap: var(--space-xs);
+  padding: 0;
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+#dashboard-panel .offers-filter-tabs {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.incoming-section-header, .analytics-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.incoming-section-header h2, .analytics-section-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.incoming-section-header h2, .analytics-section-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.incoming-filter-group, .dashboard-filter-group {
+  display: flex;
+  gap: var(--space-xs);
+  padding: 0;
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.incoming-filter-tab, .dashboard-filter-tab {
+  background: none;
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--t-base);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 1;
+}
+
+.incoming-filter-tab:hover, .dashboard-filter-tab:hover { 
+  color: var(--ink); 
+}
+
+.incoming-filter-tab.active, .dashboard-filter-tab.active { 
+  color: var(--accent); 
+  border-bottom-color: var(--accent); 
+}
+
+/* Smooth loading animation for filters */
+.filter-loading {
+  opacity: 0.6;
+  pointer-events: none;
+  position: relative;
+}
+
+.filter-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: filterSpin 0.8s linear infinite;
+}
+
+@keyframes filterSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Fade animation for content */
+.fade-in {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Skeleton loading for cards */
+.skeleton-card {
+  background: linear-gradient(90deg, var(--bg-alt) 25%, var(--border) 50%, var(--bg-alt) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Analytics section */
+.analytics-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.analytics-section-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
 /* Offer card (my-offers page) */
 .offer-card {
   background: var(--card);

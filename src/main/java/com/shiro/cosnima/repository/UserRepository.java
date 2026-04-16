@@ -21,7 +21,8 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
 
     long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
-    long countActiveUsers(boolean isActive);
+
+    long countByIsActive(Boolean isActive);
 
     @Transactional
     @Modifying

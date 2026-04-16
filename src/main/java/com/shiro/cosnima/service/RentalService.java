@@ -2,6 +2,7 @@ package com.shiro.cosnima.service;
 
 import com.shiro.cosnima.dto.request.RentalRequest;
 import com.shiro.cosnima.dto.response.RentalResponse;
+import com.shiro.cosnima.model.ApiException;
 import com.shiro.cosnima.model.Listing;
 import com.shiro.cosnima.model.Rental;
 import com.shiro.cosnima.model.RentalStatus;
@@ -14,7 +15,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -73,22 +73,26 @@ public class RentalService {
         // 1. Get listing safely
         Listing listing = listingRepo.findById(rentRequest.getListingId())
                 .orElseThrow(() -> new RuntimeException("Listing not found"));
+        
+        if (listing.getStatus() == Listing.Status.ARCHIVED) {
+            throw ApiException.badRequest("This listing is no longer available");
+        }
 
         // 2. Get user safely
         User renter = userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if(rentalRepo.findByRenterIdAndListingId(userId,rentRequest.getListingId()) != null) {
-            throw new RuntimeException("You have already requested on this item");
+            throw ApiException.conflict("You have already requested on this item");
 
         }
         // 3. Validate dates
         if (rentRequest.getStartDate().isAfter(rentRequest.getEndDate())) {
-            throw new RuntimeException("Start date cannot be after end date");
+            throw ApiException.badRequest("Start date cannot be after end date");
         }
 
         if (rentRequest.getStartDate().isBefore(LocalDate.now())) {
-            throw new RuntimeException("Start date cannot be in the past");
+            throw ApiException.badRequest("Start date cannot be in the past");
         }
 
 
@@ -122,12 +126,12 @@ public class RentalService {
 
         // ownership check (better way)
         if (!rent.getListing().getSeller().getId().equals(userId)) {
-            throw new RuntimeException("Not allowed");
+            throw ApiException.forbidden("Not allowed");
         }
 
         // status check
         if (rent.getStatus() != RentalStatus.PENDING) {
-            throw new RuntimeException("Only pending rentals can be approved");
+            throw ApiException.badRequest("Only pending rentals can be approved");
         }
 
         List<Rental> conflicts = rentalRepo.findConflictingRentals(
@@ -137,7 +141,7 @@ public class RentalService {
         );
 
         if (!conflicts.isEmpty()) {
-            throw new RuntimeException("Listing is already booked for this date range");
+            throw ApiException.conflict("Listing is already booked for this date range");
         }
 
         //update listing status
@@ -157,10 +161,10 @@ public class RentalService {
         Rental rent = rentalRepo.findById(rentalId)
                 .orElseThrow(() -> new RuntimeException("Rental not found"));
         if (!rent.getListing().getSeller().getId().equals(userRepo.findById(userId).get().getId())) {
-            throw new RuntimeException("Not allowed");
+            throw ApiException.forbidden("Not allowed");
         }
         if (rent.getStatus() != RentalStatus.PENDING) {
-            throw new RuntimeException("Only pending rentals can be approved");
+            throw ApiException.badRequest("Only pending rentals can be approved");
         }
         rent.setStatus(RentalStatus.REJECTED);
         return RentalMapper.toDto(rentalRepo.save(rent));
@@ -170,10 +174,10 @@ public class RentalService {
         Rental rent = rentalRepo.findById(rentalId)
                 .orElseThrow(() -> new RuntimeException("Rental not found"));
         if (!rent.getListing().getSeller().getId().equals(userRepo.findById(userId).get().getId())) {
-            throw new RuntimeException("Not allowed");
+            throw ApiException.forbidden("Not allowed");
         }
         if (rent.getStatus() != RentalStatus.COMPLETED) {
-            throw new RuntimeException("Rental Already Completed");
+            throw ApiException.badRequest("Rental Already Completed");
         }
         rent.setStatus(RentalStatus.COMPLETED);
         return RentalMapper.toDto(rentalRepo.save(rent));
@@ -183,10 +187,10 @@ public class RentalService {
         Rental rent = rentalRepo.findById(rentalId)
                 .orElseThrow(() -> new RuntimeException("Rental not found"));
         if (!rent.getListing().getSeller().getId().equals(userRepo.findById(userId).get().getId())) {
-            throw new RuntimeException("Not allowed");
+            throw ApiException.forbidden("Not allowed");
         }
         if (rent.getStatus() != RentalStatus.PENDING) {
-            throw new RuntimeException("Only pending rentals can be approved");
+            throw ApiException.badRequest("Only pending rentals can be approved");
         }
         rent.setStatus(RentalStatus.CANCELLED);
         return RentalMapper.toDto(rentalRepo.save(rent));
