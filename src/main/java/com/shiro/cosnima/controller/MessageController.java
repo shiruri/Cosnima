@@ -1,5 +1,6 @@
 package com.shiro.cosnima.controller;
 
+import com.shiro.cosnima.dto.request.AutoSendMessageRequest;
 import com.shiro.cosnima.dto.request.ConversationRequest;
 import com.shiro.cosnima.dto.request.MessageRequest;
 import com.shiro.cosnima.dto.response.ConversationResponse;
@@ -104,11 +105,11 @@ public class MessageController {
 
 
     @PostMapping("/messages/send/auto") ResponseEntity<MessageResponse> sendAutoMessage(
-            UUID senderId, String listingId, String content) {
+            @RequestBody AutoSendMessageRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
             try {
-                MessageResponse messages = messageServ.sendAutoMessage(senderId,listingId,content);
+                MessageResponse messages = messageServ.sendAutoMessage(request);
                 return ResponseEntity.ok(messages);
             } catch (IllegalArgumentException e) {
                 return ResponseEntity.status(401).build();

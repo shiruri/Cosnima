@@ -70,7 +70,7 @@ public class RatingService {
 
         } else if (type == Rating.TransactionType.RENTAL) {
 
-            Rental rental = rentalRepo.findById(Long.getLong(request.getTransactionId()))
+            Rental rental = rentalRepo.findById(Long.parseLong(request.getTransactionId()))
                     .orElseThrow(() -> new RuntimeException("Rental not found"));
 
             // Must be completed

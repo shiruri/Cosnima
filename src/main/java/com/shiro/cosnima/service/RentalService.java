@@ -172,8 +172,8 @@ public class RentalService {
         if (!rent.getListing().getSeller().getId().equals(userRepo.findById(userId).get().getId())) {
             throw new RuntimeException("Not allowed");
         }
-        if (rent.getStatus() != RentalStatus.PENDING) {
-            throw new RuntimeException("Only pending rentals can be approved");
+        if (rent.getStatus() != RentalStatus.COMPLETED) {
+            throw new RuntimeException("Rental Already Completed");
         }
         rent.setStatus(RentalStatus.COMPLETED);
         return RentalMapper.toDto(rentalRepo.save(rent));

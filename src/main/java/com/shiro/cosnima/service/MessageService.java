@@ -1,6 +1,7 @@
 package com.shiro.cosnima.service;
 
 import com.mysql.cj.Messages;
+import com.shiro.cosnima.dto.request.AutoSendMessageRequest;
 import com.shiro.cosnima.dto.request.ConversationRequest;
 import com.shiro.cosnima.dto.request.MessageRequest;
 import com.shiro.cosnima.dto.response.ConversationResponse;
@@ -124,30 +125,30 @@ public class MessageService {
 
 
 
-    public MessageResponse sendAutoMessage(UUID senderId, String listingId, String content) {
+    public MessageResponse sendAutoMessage(AutoSendMessageRequest request) {
 
         Conversation convo = conversationRepo
-                .findByBuyerIdAndListingId(senderId, listingId);
+                .findByBuyerIdAndListingId(request.getSenderId(), request.getListingId());
 
         if (convo == null) {
             throw new RuntimeException("Conversation not found");
         }
 
         boolean isParticipant =
-                convo.getBuyer().getId().equals(senderId) ||
-                        convo.getSeller().getId().equals(senderId);
+                convo.getBuyer().getId().equals(request.getSenderId()) ||
+                        convo.getSeller().getId().equals(request.getSenderId());
 
         if (!isParticipant) {
             throw new RuntimeException("Not part of conversation");
         }
 
         User sender = new User();
-        sender.setId(senderId);
+        sender.setId(request.getSenderId());
 
         Message message = new Message();
         message.setConversation(convo);
         message.setSender(sender);
-        message.setContent(content);
+        message.setContent(request.getContent());
         message.setRead(false);
 
         return MessageMapper.toDto(messageRepo.save(message));
