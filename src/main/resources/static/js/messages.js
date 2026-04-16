@@ -278,6 +278,8 @@ async function loadMessages(convoId) {
 
   try {
     _messages = await API.get(`/api/conversations/${convoId}`, true) || [];
+    // Sort messages by date (oldest first for display, newest at bottom)
+    _messages.sort((a, b) => new Date(a.sentAt) - new Date(b.sentAt));
     renderMessages();
     scrollToBottom();
   } catch {
@@ -437,17 +439,120 @@ function renderRentalCard(msg, isOwn, initial, time) {
     </div>`;
 }
 
+/* ── Rejection Reason Modal ── */
+let _pendingRejectType = null; // 'offer' or 'rental'
+let _pendingRejectId = null;
+
+function openRejectModal(type, messageId) {
+  _pendingRejectType = type;
+  _pendingRejectId = messageId;
+  
+  // Remove existing modal if any
+  document.getElementById('reject-modal-backdrop')?.remove();
+  
+  const backdrop = document.createElement('div');
+  backdrop.id = 'reject-modal-backdrop';
+  backdrop.style.cssText = `
+    position:fixed;inset:0;background:rgba(42,26,14,0.65);
+    backdrop-filter:blur(6px);z-index:1000;display:flex;
+    align-items:center;justify-content:center;animation:fadeIn 0.2s ease;
+  `;
+  backdrop.innerHTML = `
+    <div style="
+      background:var(--card);border-radius:var(--radius-xl);
+      width:min(420px,94vw);padding:var(--space-xl);
+      border:2px solid var(--border);box-shadow:0 24px 60px rgba(42,26,14,0.25);
+    ">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-lg);">
+        <h3 style="font-size:1.15rem;color:var(--ink);margin:0;">Reject ${type === 'offer' ? 'Offer' : 'Rental Request'}</h3>
+        <button onclick="closeRejectModal()" style="
+          width:32px;height:32px;border-radius:var(--radius);
+          display:flex;align-items:center;justify-content:center;
+          color:var(--ink-muted);border:1.5px solid var(--border);
+          background:var(--card);cursor:pointer;
+        ">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <p style="font-size:0.88rem;color:var(--ink-muted);margin-bottom:var(--space-md);">
+        Would you like to provide a reason for rejecting this ${type === 'offer' ? 'offer' : 'rental request'}? (Optional)
+      </p>
+      <textarea id="reject-reason-input" placeholder="e.g. Item is no longer available, Price too low, Dates don't work..." style="
+        width:100%;min-height:80px;padding:0.85rem 1rem;
+        border:1.5px solid var(--border);border-radius:var(--radius);
+        font-size:0.9rem;font-family:var(--font-body);
+        color:var(--ink);background:var(--bg-alt);
+        outline:none;resize:vertical;box-sizing:border-box;
+      " onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+      <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;margin-top:var(--space-lg);">
+        <button class="btn btn-ghost" onclick="closeRejectModal()" style="padding:0.6rem 1.2rem;font-size:0.85rem;">Cancel</button>
+        <button class="btn" onclick="confirmReject()" style="
+          background:var(--error);color:white;border-color:var(--error);
+          padding:0.6rem 1.2rem;font-size:0.85rem;
+        ">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          Reject
+        </button>
+      </div>
+    </div>
+    <style>
+      @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    </style>
+  `;
+  document.body.appendChild(backdrop);
+  backdrop.onclick = (e) => { if (e.target === backdrop) closeRejectModal(); };
+  document.getElementById('reject-reason-input')?.focus();
+}
+
+function closeRejectModal() {
+  document.getElementById('reject-modal-backdrop')?.remove();
+  _pendingRejectType = null;
+  _pendingRejectId = null;
+}
+
+async function confirmReject() {
+  const reason = document.getElementById('reject-reason-input')?.value.trim() || '';
+  const type = _pendingRejectType;
+  const messageId = _pendingRejectId;
+  
+  closeRejectModal();
+  
+  if (type === 'offer') {
+    await executeOfferAction(messageId, 'REJECT', reason);
+  } else if (type === 'rental') {
+    await executeRentalAction(messageId, 'REJECT', reason);
+  }
+}
+
 /* ── Handle Offer/Rental Actions ── */
 async function handleOfferAction(messageId, action) {
-  const card = document.querySelector(`.offer-card[data-msg-id="${messageId}"]`);
+  if (action === 'REJECT') {
+    openRejectModal('offer', messageId);
+    return;
+  }
+  await executeOfferAction(messageId, action, '');
+}
+
+async function executeOfferAction(messageId, action, reason) {
+  const card = document.querySelector(`.offer-card[data-offer-id="${messageId}"]`);
   if (!card) return;
 
   const btns = card.querySelectorAll('.btn');
   btns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
 
   try {
-    await API.post(`/api/messages/offer/${messageId}/respond`, { action }, true);
+    await API.post(`/api/messages/offer/${messageId}/respond`, { action, reason }, true);
     showToast(`Offer ${action.toLowerCase()}ed!`, 'success');
+    
+    // Send auto-message if rejected with reason
+    if (action === 'REJECT' && reason && _activeConvoId) {
+      try {
+        await API.post('/api/conversations/messages/send/auto', {
+          conversationId: _activeConvoId,
+          content: `Offer rejected: ${reason}`
+        }, true);
+      } catch {}
+    }
     
     // Update local message status
     const msg = _messages.find(m => m.id === messageId);
@@ -459,13 +564,21 @@ async function handleOfferAction(messageId, action) {
     renderMessages();
     scrollToBottom();
   } catch (err) {
-    const msg = err?.message || 'Could not update offer.';
-    showToast(msg, 'error');
+    const errMsg = err?.message || 'Could not update offer.';
+    showToast(errMsg, 'error');
     btns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
   }
 }
 
 async function handleRentalAction(messageId, action) {
+  if (action === 'REJECT') {
+    openRejectModal('rental', messageId);
+    return;
+  }
+  await executeRentalAction(messageId, action, '');
+}
+
+async function executeRentalAction(messageId, action, reason) {
   const card = document.querySelector(`.rental-card[data-rental-id="${messageId}"]`);
   if (!card) return;
 
@@ -473,8 +586,18 @@ async function handleRentalAction(messageId, action) {
   btns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
 
   try {
-    await API.post(`/api/messages/rental/${messageId}/respond`, { action }, true);
+    await API.post(`/api/messages/rental/${messageId}/respond`, { action, reason }, true);
     showToast(`Rental request ${action.toLowerCase()}ed!`, 'success');
+    
+    // Send auto-message if rejected with reason
+    if (action === 'REJECT' && reason && _activeConvoId) {
+      try {
+        await API.post('/api/conversations/messages/send/auto', {
+          conversationId: _activeConvoId,
+          content: `Rental request rejected: ${reason}`
+        }, true);
+      } catch {}
+    }
     
     // Update local message status
     const msg = _messages.find(m => m.id === messageId);
@@ -486,8 +609,8 @@ async function handleRentalAction(messageId, action) {
     renderMessages();
     scrollToBottom();
   } catch (err) {
-    const msg = err?.message || 'Could not update rental.';
-    showToast(msg, 'error');
+    const errMsg = err?.message || 'Could not update rental.';
+    showToast(errMsg, 'error');
     btns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
   }
 }

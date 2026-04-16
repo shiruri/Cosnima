@@ -99,10 +99,23 @@ function validateStep(step) {
     if (!title || title.length < 3)       errors.push({ field: 'title',       msg: 'Title must be at least 3 characters.' });
     if (title && title.length > 200)      errors.push({ field: 'title',       msg: 'Title must be under 200 characters.' });
     if (!description || description.length < 10) errors.push({ field: 'description', msg: 'Description must be at least 10 characters.' });
-    if (!price || isNaN(Number(price)))   errors.push({ field: 'price',       msg: 'Please enter a valid price.' });
-    if (Number(price) <= 0)               errors.push({ field: 'price',       msg: 'Price must be greater than ₱0.' });
-    if (Number(price) > 999999)           errors.push({ field: 'price',       msg: 'Price seems too high. Max ₱999,999.' });
     if (!type)                            errors.push({ field: 'type',        msg: 'Please select a listing type.' });
+    
+    // Type-specific price validation
+    if (type === 'SELL') {
+      if (!price || isNaN(Number(price)))   errors.push({ field: 'price',       msg: 'Please enter a valid price.' });
+      if (Number(price) <= 0)               errors.push({ field: 'price',       msg: 'Price must be greater than ₱0.' });
+      if (Number(price) > 100000)           errors.push({ field: 'price',       msg: 'Sale price cannot exceed ₱100,000.' });
+    } else if (type === 'RENT') {
+      // For rentals, validate price as daily rate
+      if (!price || isNaN(Number(price)))   errors.push({ field: 'price',       msg: 'Please enter a valid daily rate.' });
+      if (Number(price) <= 0)               errors.push({ field: 'price',       msg: 'Daily rate must be greater than ₱0.' });
+      if (Number(price) > 10000)            errors.push({ field: 'price',       msg: 'Daily rate cannot exceed ₱10,000.' });
+      if (!Number.isInteger(Number(price))) errors.push({ field: 'price',       msg: 'Daily rate must be a whole number.' });
+    } else {
+      if (!price || isNaN(Number(price)))   errors.push({ field: 'price',       msg: 'Please enter a valid price.' });
+      if (Number(price) <= 0)               errors.push({ field: 'price',       msg: 'Price must be greater than ₱0.' });
+    }
   }
 
   if (step === 2) {

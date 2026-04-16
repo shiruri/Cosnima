@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Ratings — Cosnima</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/home.css">
+  <link rel="stylesheet" href="../css/profile.css">
+  <script>(function(){var t=localStorage.getItem('cosnimaTheme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    .ratings-page { padding-top: calc(var(--nav-h) + var(--space-xl)); padding-bottom: var(--space-3xl); }
+
+    .page-header {
+      margin-bottom: var(--space-xl);
+    }
+    .page-header h1 {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      color: var(--ink);
+      margin-bottom: var(--space-xs);
+    }
+    .page-header p {
+      color: var(--ink-muted);
+      font-size: 0.9rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--ink-muted);
+      margin-bottom: var(--space-lg);
+      transition: color var(--t-base);
+    }
+    .back-link:hover { color: var(--accent); }
+
+    /* Tabs */
+    .ratings-tabs {
+      display: flex;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-lg);
+      border-bottom: 2px solid var(--border);
+      padding-bottom: var(--space-xs);
+    }
+    .ratings-tab {
+      padding: 0.75rem 1.5rem;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--ink-muted);
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-radius: var(--radius) var(--radius) 0 0;
+      transition: all var(--t-base);
+      position: relative;
+    }
+    .ratings-tab::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 3px 3px 0 0;
+      transform: scaleX(0);
+      transition: transform var(--t-base);
+    }
+    .ratings-tab:hover { color: var(--accent); }
+    .ratings-tab.active {
+      color: var(--accent);
+      background: rgba(240,98,146,0.06);
+    }
+    .ratings-tab.active::after { transform: scaleX(1); }
+
+    /* Filters */
+    .filters-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+      padding: var(--space-md) var(--space-lg);
+      background: var(--bg-alt);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+    .filter-group label {
+      font-size: 0.7rem;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+    .filter-group select {
+      padding: 0.5rem 2rem 0.5rem 0.75rem;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--ink);
+      background: var(--card);
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23b89a86' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.5rem center;
+      background-size: 14px;
+      cursor: pointer;
+      transition: border-color var(--t-base);
+    }
+    .filter-group select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    /* Ratings list with pink scrollbar */
+    .ratings-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+      max-height: 70vh;
+      overflow-y: auto;
+      padding-right: var(--space-sm);
+    }
+    .ratings-list::-webkit-scrollbar { width: 6px; }
+    .ratings-list::-webkit-scrollbar-track { background: var(--bg-alt); border-radius: 4px; }
+    .ratings-list::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+    .ratings-list::-webkit-scrollbar-thumb:hover { background: #e91e63; }
+
+    /* Rating card */
+    .rating-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      animation: fadeIn 0.3s ease forwards;
+      transition: border-color var(--t-base), box-shadow var(--t-base);
+    }
+    .rating-card:hover {
+      border-color: rgba(240,98,146,0.3);
+      box-shadow: 0 4px 16px rgba(240,98,146,0.08);
+    }
+    .rating-card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-md);
+    }
+    .rating-card-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--beaver), var(--accent));
+      color: white;
+      font-weight: 700;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .rating-card-info { flex: 1; min-width: 0; }
+    .rating-card-name {
+      font-weight: 700;
+      color: var(--ink);
+      font-size: 0.95rem;
+    }
+    .rating-card-meta {
+      font-size: 0.72rem;
+      color: var(--ink-faint);
+      margin-top: 2px;
+    }
+    .rating-card-badges {
+      display: flex;
+      gap: var(--space-xs);
+    }
+    .type-badge {
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .type-badge.sale { background: rgba(240,98,146,0.15); color: var(--accent); }
+    .type-badge.rental { background: rgba(200,122,80,0.15); color: var(--beaver); }
+
+    .rating-card-stars {
+      display: flex;
+      gap: 2px;
+      margin-bottom: var(--space-sm);
+    }
+    .rating-card-stars svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .rating-card-comment {
+      color: var(--ink);
+      font-size: 0.92rem;
+      line-height: 1.65;
+      margin-bottom: var(--space-md);
+    }
+
+    .rating-card-listing {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      background: var(--bg-alt);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8rem;
+      color: var(--ink-muted);
+      text-decoration: none;
+      transition: all var(--t-fast);
+    }
+    .rating-card-listing:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .rating-card-listing svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    /* Skeleton */
+    .skeleton-rating-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+    }
+    .skeleton-line {
+      height: 12px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, var(--bg-alt) 25%, var(--border) 50%, var(--bg-alt) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      margin-bottom: var(--space-sm);
+    }
+    .skeleton-line.w-60 { width: 60%; }
+    .skeleton-line.w-40 { width: 40%; }
+    .skeleton-line.w-80 { width: 80%; }
+    .skeleton-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(90deg, var(--bg-alt) 25%, var(--border) 50%, var(--bg-alt) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .empty-state {
+      text-align: center;
+      padding: var(--space-3xl);
+      color: var(--ink-muted);
+    }
+    .empty-state-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto var(--space-md);
+      color: var(--border-dark);
+    }
+    .empty-state h3 {
+      color: var(--ink);
+      margin-bottom: var(--space-xs);
+    }
+  </style>
+</head>
+<body>
+
+<div id="toast-container" aria-live="polite"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar" role="navigation" aria-label="Main navigation">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo" aria-label="Cosnima home">
+      <svg class="nav-logo-beaver" viewBox="0 0 36 36" fill="none">
+        <ellipse cx="18" cy="21" rx="9" ry="8" fill="#c87a50"/>
+        <ellipse cx="18" cy="22.5" rx="5.5" ry="5" fill="#e8a878"/>
+        <ellipse cx="18" cy="13" rx="7.5" ry="6.5" fill="#c87a50"/>
+        <ellipse cx="14.5" cy="14.5" rx="2.5" ry="2" fill="#e8a878"/>
+        <ellipse cx="21.5" cy="14.5" rx="2.5" ry="2" fill="#e8a878"/>
+        <circle cx="15.5" cy="12" r="1.8" fill="#2a1a1f"/>
+        <circle cx="20.5" cy="12" r="1.8" fill="#2a1a1f"/>
+        <circle cx="16" cy="11.5" r="0.7" fill="white"/>
+        <circle cx="21" cy="11.5" r="0.7" fill="white"/>
+        <ellipse cx="12.5" cy="7.5" rx="2.5" ry="3" fill="#c87a50"/>
+        <ellipse cx="23.5" cy="7.5" rx="2.5" ry="3" fill="#c87a50"/>
+        <rect x="16" y="15.5" width="2" height="2.5" rx="0.5" fill="#f8f0e0"/>
+        <rect x="18.5" y="15.5" width="2" height="2.5" rx="0.5" fill="#f8f0e0"/>
+        <ellipse cx="18" cy="31" rx="7" ry="3.5" fill="#8b4c30"/>
+        <path d="M17.5 9 C17.5 8 16 7 15 8 C14 9 15 10.5 17.5 12 C20 10.5 21 9 20 8 C19 7 17.5 8 17.5 9Z" fill="#f06292"/>
+      </svg>
+      <span class="nav-logo-name">COS<span>NIMA</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="../index.html">Home</a>
+      <a href="../listing/listings.html">Browse</a>
+      <a href="../messages/messages.html" id="messages-link" style="display:none;">Messages</a>
+      <a href="../listing/create-listing.html" id="sell-link" style="display:none;">+ Sell / Rent</a>
+    </div>
+    <div class="nav-right">
+      <button class="theme-btn" id="theme-btn" aria-label="Toggle dark mode">
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="5"/><path stroke-linecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+      <div id="nav-auth"></div>
+      <button class="nav-hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="mobile-nav" id="mobile-nav" role="dialog" aria-label="Mobile menu">
+  <nav class="mobile-nav-links">
+    <a href="../index.html">Home</a>
+    <a href="../listing/listings.html">Browse</a>
+    <a href="../messages/messages.html" id="mobile-messages-link" style="display:none;">Messages</a>
+    <a href="../listing/create-listing.html" id="mobile-sell-link" style="display:none;">+ Sell / Rent</a>
+  </nav>
+  <div class="mobile-nav-actions" id="mobile-auth"></div>
+</div>
+<div class="mobile-overlay" id="mobile-overlay"></div>
+
+<!-- MAIN -->
+<main class="ratings-page">
+  <div class="container">
+    <a href="profile.html" class="back-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to Profile
+    </a>
+
+    <div class="page-header">
+      <h1>My Ratings</h1>
+      <p>View ratings you've received and given</p>
+    </div>
+
+    <div class="ratings-tabs" role="tablist">
+      <button class="ratings-tab active" role="tab" data-tab="received" onclick="switchRatingsTab('received')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Received
+      </button>
+      <button class="ratings-tab" role="tab" data-tab="given" onclick="switchRatingsTab('given')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Given
+      </button>
+    </div>
+
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label for="filter-type">Transaction Type</label>
+        <select id="filter-type" onchange="applyFilters()">
+          <option value="all">All Types</option>
+          <option value="SALE">Sale</option>
+          <option value="RENTAL">Rental</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-stars">Star Rating</label>
+        <select id="filter-stars" onchange="applyFilters()">
+          <option value="all">All Ratings</option>
+          <option value="5">5 Stars</option>
+          <option value="4">4 Stars</option>
+          <option value="3">3 Stars</option>
+          <option value="2">2 Stars</option>
+          <option value="1">1 Star</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Received Tab -->
+    <div id="received-content" class="tab-content active">
+      <div class="ratings-list" id="received-list"></div>
+    </div>
+
+    <!-- Given Tab -->
+    <div id="given-content" class="tab-content">
+      <div class="ratings-list" id="given-list"></div>
+    </div>
+  </div>
+</main>
+
+<script src="../js/api.js"></script>
+<script src="../js/nav.js"></script>
+<script>
+let receivedRatings = [];
+let givenRatings = [];
+let currentTab = 'received';
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!API.isLoggedIn()) {
+    window.location.href = '../login/login.html';
+    return;
+  }
+
+  // Show nav links for logged in users
+  ['messages-link', 'mobile-messages-link', 'sell-link', 'mobile-sell-link'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = '';
+  });
+
+  loadReceivedRatings();
+});
+
+function switchRatingsTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.ratings-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === `${tab}-content`));
+
+  if (tab === 'received' && !receivedRatings.length) {
+    loadReceivedRatings();
+  } else if (tab === 'given' && !givenRatings.length) {
+    loadGivenRatings();
+  } else {
+    applyFilters();
+  }
+}
+
+async function loadReceivedRatings() {
+  const container = document.getElementById('received-list');
+  if (!container) return;
+
+  container.innerHTML = renderSkeletons(3);
+
+  try {
+    receivedRatings = await API.get('/api/ratings/received', true) || [];
+    // Sort by date (newest first)
+    receivedRatings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    renderRatings('received', receivedRatings);
+  } catch (err) {
+    container.innerHTML = '<div class="empty-state"><h3>Could not load ratings</h3><p>Please try again later.</p></div>';
+  }
+}
+
+async function loadGivenRatings() {
+  const container = document.getElementById('given-list');
+  if (!container) return;
+
+  container.innerHTML = renderSkeletons(3);
+
+  try {
+    givenRatings = await API.get('/api/ratings/given', true) || [];
+    // Sort by date (newest first)
+    givenRatings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    renderRatings('given', givenRatings);
+  } catch (err) {
+    container.innerHTML = '<div class="empty-state"><h3>Could not load ratings</h3><p>Please try again later.</p></div>';
+  }
+}
+
+function applyFilters() {
+  const typeFilter = document.getElementById('filter-type').value;
+  const starsFilter = document.getElementById('filter-stars').value;
+
+  const ratings = currentTab === 'received' ? receivedRatings : givenRatings;
+
+  let filtered = [...ratings];
+
+  if (typeFilter !== 'all') {
+    filtered = filtered.filter(r => r.transactionType === typeFilter);
+  }
+
+  if (starsFilter !== 'all') {
+    filtered = filtered.filter(r => r.stars === parseInt(starsFilter));
+  }
+
+  renderRatings(currentTab, filtered);
+}
+
+function renderRatings(tab, ratings) {
+  const container = document.getElementById(`${tab}-list`);
+  if (!container) return;
+
+  if (!ratings.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+        </div>
+        <h3>No ratings ${tab === 'received' ? 'received' : 'given'} yet</h3>
+        <p>${tab === 'received' ? 'Complete transactions to receive ratings from buyers and renters.' : 'Rate your completed transactions to help the community.'}</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = ratings.map((r, idx) => renderRatingCard(r, tab, idx)).join('');
+}
+
+function renderRatingCard(rating, tab, idx) {
+  const isReceived = tab === 'received';
+  const name = isReceived ? (rating.raterName || 'Anonymous') : (rating.ratedUserName || 'User');
+  const initial = name.charAt(0).toUpperCase();
+  const date = rating.createdAt ? new Date(rating.createdAt).toLocaleDateString('en-PH', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  }) : '';
+
+  const starsHtml = [1,2,3,4,5].map(i =>
+    `<svg viewBox="0 0 24 24" fill="${i <= (rating.stars || 0) ? '#f5a623' : 'none'}" stroke="${i <= (rating.stars || 0) ? '#f5a623' : 'var(--border)'}"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`
+  ).join('');
+
+  const typeBadgeClass = rating.transactionType === 'RENTAL' ? 'rental' : 'sale';
+  const typeBadgeText = rating.transactionType === 'RENTAL' ? 'Rental' : 'Sale';
+
+  const listingLink = rating.listingId
+    ? `<a href="../listing/view-listing.html?id=${rating.listingId}" class="rating-card-listing">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+        ${escH(rating.listingTitle || 'View Listing')}
+       </a>`
+    : '';
+
+  return `
+    <div class="rating-card" style="animation-delay: ${idx * 0.05}s;">
+      <div class="rating-card-header">
+        <div class="rating-card-avatar">${initial}</div>
+        <div class="rating-card-info">
+          <div class="rating-card-name">${escH(name)}</div>
+          <div class="rating-card-meta">${date}</div>
+        </div>
+        <div class="rating-card-badges">
+          ${rating.transactionType ? `<span class="type-badge ${typeBadgeClass}">${typeBadgeText}</span>` : ''}
+        </div>
+      </div>
+      <div class="rating-card-stars">${starsHtml}</div>
+      <p class="rating-card-comment">${escH(rating.comment || 'No comment provided.')}</p>
+      ${listingLink}
+    </div>`;
+}
+
+function renderSkeletons(count) {
+  return Array(count).fill(`
+    <div class="skeleton-rating-card">
+      <div style="display:flex;gap:var(--space-md);margin-bottom:var(--space-md);">
+        <div class="skeleton-avatar"></div>
+        <div style="flex:1;">
+          <div class="skeleton-line w-40"></div>
+          <div class="skeleton-line w-60" style="height:8px;"></div>
+        </div>
+      </div>
+      <div class="skeleton-line w-40" style="height:18px;margin-bottom:var(--space-sm);"></div>
+      <div class="skeleton-line w-80"></div>
+      <div class="skeleton-line w-60"></div>
+    </div>
+  `).join('');
+}
+
+function escH(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>

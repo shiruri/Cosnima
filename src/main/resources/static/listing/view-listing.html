@@ -207,8 +207,23 @@
       <div class="form-grid">
         <div class="form-field full"><label>Title</label><input type="text" id="u-title" placeholder="Title" maxlength="200"></div>
         <div class="form-field full"><label>Description</label><textarea id="u-description" rows="4"></textarea></div>
-        <div class="form-field"><label>Price (₱)</label><div class="price-field-wrap"><span>₱</span><input type="number" id="u-price" min="0" step="0.01"></div></div>
-        <div class="form-field"><label>Type</label><select id="u-type"><option value="SELL">For Sale</option><option value="RENT">For Rent</option></select></div>
+        <div class="form-field"><label>Type</label><select id="u-type" onchange="toggleTypeFields()"><option value="SELL">For Sale</option><option value="RENT">For Rent</option></select></div>
+        
+        <!-- Sale-specific fields -->
+        <div class="form-field" id="sale-price-field"><label>Price (₱)</label><div class="price-field-wrap"><span>₱</span><input type="number" id="u-price" min="0" max="100000" step="0.01" placeholder="Max 100,000"></div><span class="field-hint" style="font-size:0.72rem;color:var(--ink-faint);margin-top:4px;">Maximum: ₱100,000</span></div>
+        
+        <!-- Rent-specific fields -->
+        <div class="form-field" id="rent-daily-rate-field" style="display:none;"><label>Daily Rate (₱)</label><div class="price-field-wrap"><span>₱</span><input type="number" id="u-daily-rate" min="1" max="10000" step="1" placeholder="Max 10,000 (whole number)"></div><span class="field-hint" style="font-size:0.72rem;color:var(--ink-faint);margin-top:4px;">Maximum: ₱10,000/day (whole numbers only)</span></div>
+        <div class="form-field" id="rent-min-days-field" style="display:none;"><label>Minimum Rental Days</label><input type="number" id="u-min-days" min="1" max="30" step="1" placeholder="1-30 days"><span class="field-hint" style="font-size:0.72rem;color:var(--ink-faint);margin-top:4px;">Between 1 and 30 days</span></div>
+        <div class="form-field full" id="rent-price-notes-field" style="display:none;">
+          <label>Price Notes / Discounts</label>
+          <div id="price-notes-container" style="display:flex;flex-direction:column;gap:var(--space-sm);"></div>
+          <button type="button" class="btn btn-ghost" onclick="addPriceNote()" style="margin-top:var(--space-sm);font-size:0.8rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Add Price Note
+          </button>
+          <span class="field-hint" style="font-size:0.72rem;color:var(--ink-faint);margin-top:4px;">e.g. "10% off for 7+ days", "Deposit required"</span>
+        </div>
         <div class="form-field"><label>Condition</label><select id="u-condition"><option value="">Select…</option><option value="NEW">New</option><option value="LIKE_NEW">Like New</option><option value="USED">Used</option><option value="WORN">Worn</option></select></div>
         <div class="form-field"><label>Size</label><select id="u-size"><option value="">Not specified</option><option value="XS">XS</option><option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="XXL">XXL</option></select></div>
         <div class="form-field"><label>Character</label><input type="text" id="u-character"></div>
@@ -444,6 +459,8 @@ let conventionOn  = false;
 let imgMode       = 'ADD';
 let newFiles      = [];
 let currentStatus = 'AVAILABLE';
+let isWishlisted  = false;
+let wishlistCount = 0;
 
 const params    = new URLSearchParams(window.location.search);
 const listingId = params.get('id');
@@ -662,6 +679,97 @@ function renderListing(l) {
 
   document.getElementById('loading-state').style.display  = 'none';
   document.getElementById('listing-content').style.display = 'block';
+  
+  // Wishlist: Hide for own listing, check wishlisted state for others
+  const wishlistBtn = document.getElementById('view-wishlist-btn');
+  const wishlistCountEl = document.getElementById('wishlist-count');
+  
+  if (isOwner) {
+    // Hide wishlist button for own listing
+    if (wishlistBtn) wishlistBtn.style.display = 'none';
+    if (wishlistCountEl) wishlistCountEl.style.display = 'none';
+  } else {
+    // Show and check wishlist state
+    if (wishlistBtn) wishlistBtn.style.display = 'flex';
+    loadWishlistState();
+  }
+}
+
+async function loadWishlistState() {
+  if (!API.isLoggedIn()) return;
+  
+  try {
+    // Check if user has wishlisted this listing
+    const wishlistData = await API.get(`/api/wishlists/${listingId}/status`, true);
+    isWishlisted = wishlistData?.wishlisted || false;
+    wishlistCount = wishlistData?.count || 0;
+    updateWishlistUI();
+  } catch (err) {
+    // Fail silently - wishlist is not critical
+  }
+}
+
+function updateWishlistUI() {
+  const btn = document.getElementById('view-wishlist-btn');
+  const btnText = document.getElementById('wishlist-btn-text');
+  const countEl = document.getElementById('wishlist-count');
+  const countNum = document.getElementById('wishlist-count-num');
+  
+  if (btn) {
+    btn.classList.toggle('wishlisted', isWishlisted);
+    // Update heart icon fill
+    const svg = btn.querySelector('svg');
+    if (svg) {
+      svg.setAttribute('fill', isWishlisted ? 'currentColor' : 'none');
+    }
+  }
+  
+  if (btnText) {
+    btnText.textContent = isWishlisted ? 'Wishlisted' : 'Add to Wishlist';
+  }
+  
+  if (countEl && wishlistCount > 0) {
+    countEl.style.display = '';
+    if (countNum) countNum.textContent = wishlistCount;
+  }
+}
+
+async function toggleViewWishlist() {
+  // Check if logged in
+  if (!API.isLoggedIn()) {
+    showAuthModal();
+    return;
+  }
+  
+  // Prevent wishlisting own listing (should not happen but safety check)
+  if (listing?.isOwner) {
+    showToast('You cannot wishlist your own listing.', 'error');
+    return;
+  }
+  
+  // Optimistic update
+  const wasWishlisted = isWishlisted;
+  isWishlisted = !wasWishlisted;
+  wishlistCount = wasWishlisted ? Math.max(0, wishlistCount - 1) : wishlistCount + 1;
+  updateWishlistUI();
+  
+  try {
+    if (wasWishlisted) {
+      // Remove from wishlist
+      await API.delete(`/api/wishlists/${listingId}`, true);
+      showToast('Removed from wishlist', 'success');
+    } else {
+      // Add to wishlist
+      await API.post(`/api/wishlists/${listingId}/wishlist`, null, true);
+      showToast('Added to wishlist', 'success');
+    }
+  } catch (err) {
+    // Revert on error
+    isWishlisted = wasWishlisted;
+    wishlistCount = wasWishlisted ? wishlistCount + 1 : Math.max(0, wishlistCount - 1);
+    updateWishlistUI();
+    showToast(err?.message || 'Could not update wishlist. Please try again.', 'error');
+  }
 }
 
 function rebuildBadges() {
@@ -820,10 +928,72 @@ document.addEventListener('keydown', function(e) {
 /* Update modal */
 function prefillUpdateForm(l) {
   const set = (id, val) => { const el=document.getElementById(id); if(el&&val!=null) el.value=val; };
-  set('u-title',l.title); set('u-description',l.description); set('u-price',l.price);
+  set('u-title',l.title); set('u-description',l.description);
   set('u-type',l.type); set('u-condition',l.condition||''); set('u-size',l.size||'');
   set('u-character',l.characterName); set('u-series',l.seriesName); set('u-location',l.location);
   conventionOn = !!l.conventionPickup; updateConvToggle();
+  
+  // Handle Sale vs Rent fields
+  if (l.type === 'RENT') {
+    set('u-daily-rate', l.dailyRate || l.price);
+    set('u-min-days', l.minRentalDays || 1);
+    // Populate price notes
+    const notesContainer = document.getElementById('price-notes-container');
+    if (notesContainer) {
+      notesContainer.innerHTML = '';
+      if (l.priceNotes && l.priceNotes.length) {
+        l.priceNotes.forEach(note => addPriceNote(note));
+      }
+    }
+  } else {
+    set('u-price', l.price);
+  }
+  
+  toggleTypeFields();
+}
+
+function toggleTypeFields() {
+  const type = document.getElementById('u-type')?.value;
+  const isRent = type === 'RENT';
+  
+  // Sale fields
+  const salePriceField = document.getElementById('sale-price-field');
+  if (salePriceField) salePriceField.style.display = isRent ? 'none' : '';
+  
+  // Rent fields
+  const rentDailyField = document.getElementById('rent-daily-rate-field');
+  const rentMinDaysField = document.getElementById('rent-min-days-field');
+  const rentNotesField = document.getElementById('rent-price-notes-field');
+  if (rentDailyField) rentDailyField.style.display = isRent ? '' : 'none';
+  if (rentMinDaysField) rentMinDaysField.style.display = isRent ? '' : 'none';
+  if (rentNotesField) rentNotesField.style.display = isRent ? '' : 'none';
+}
+
+let priceNoteCounter = 0;
+function addPriceNote(value = '') {
+  const container = document.getElementById('price-notes-container');
+  if (!container) return;
+  
+  const noteId = `price-note-${priceNoteCounter++}`;
+  const noteEl = document.createElement('div');
+  noteEl.id = noteId;
+  noteEl.style.cssText = 'display:flex;gap:var(--space-sm);align-items:center;';
+  noteEl.innerHTML = `
+    <input type="text" class="price-note-input" value="${escH(value)}" placeholder="e.g. 10% off for 7+ days" style="flex:1;padding:0.6rem 0.9rem;border:1.5px solid var(--border);border-radius:var(--radius);font-size:0.85rem;">
+    <button type="button" onclick="removePriceNote('${noteId}')" style="background:none;border:none;color:var(--error);cursor:pointer;padding:4px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  `;
+  container.appendChild(noteEl);
+}
+
+function removePriceNote(noteId) {
+  document.getElementById(noteId)?.remove();
+}
+
+function getPriceNotes() {
+  const inputs = document.querySelectorAll('.price-note-input');
+  return Array.from(inputs).map(i => i.value.trim()).filter(v => v.length > 0);
 }
 
 function openModal() { document.getElementById('modal-backdrop').classList.add('open'); document.getElementById('update-modal').classList.add('open'); document.body.style.overflow='hidden'; }
@@ -874,16 +1044,72 @@ function setupDropZone() {
 async function submitUpdate() {
   const btn = document.getElementById('update-submit-btn');
   const btnText = btn.querySelector('.btn-text'); const loader = btn.querySelector('.btn-loader');
+  
+  const get = id => document.getElementById(id)?.value?.trim() || null;
+  const type = get('u-type');
+  
+  // Validate based on type
+  if (type === 'SELL') {
+    const price = parseFloat(get('u-price'));
+    if (isNaN(price) || price <= 0) {
+      showToast('Please enter a valid price.', 'error');
+      return;
+    }
+    if (price > 100000) {
+      showToast('Sale price cannot exceed ₱100,000.', 'error');
+      return;
+    }
+  } else if (type === 'RENT') {
+    const dailyRate = parseInt(get('u-daily-rate'));
+    const minDays = parseInt(get('u-min-days'));
+    
+    if (isNaN(dailyRate) || dailyRate <= 0) {
+      showToast('Please enter a valid daily rate.', 'error');
+      return;
+    }
+    if (dailyRate > 10000) {
+      showToast('Daily rate cannot exceed ₱10,000.', 'error');
+      return;
+    }
+    if (!Number.isInteger(parseFloat(get('u-daily-rate')))) {
+      showToast('Daily rate must be a whole number.', 'error');
+      return;
+    }
+    if (isNaN(minDays) || minDays < 1 || minDays > 30) {
+      showToast('Minimum rental days must be between 1 and 30.', 'error');
+      return;
+    }
+  }
+  
   btn.disabled=true; if(btnText) btnText.style.display='none'; if(loader) loader.style.display='flex';
   try {
-    const get = id => document.getElementById(id)?.value?.trim() || null;
     const formData = new FormData();
-    formData.append('value', new Blob([JSON.stringify({
-      title:get('u-title'), description:get('u-description'), price:get('u-price'),
-      type:get('u-type'), condition:get('u-condition'), size:get('u-size'),
-      characterName:get('u-character'), seriesName:get('u-series'), location:get('u-location'),
-      conventionPickup:conventionOn, imageMode:imgMode,
-    })], { type:'application/json' }));
+    
+    // Build payload based on type
+    const payload = {
+      title: get('u-title'),
+      description: get('u-description'),
+      type: type,
+      condition: get('u-condition'),
+      size: get('u-size'),
+      characterName: get('u-character'),
+      seriesName: get('u-series'),
+      location: get('u-location'),
+      conventionPickup: conventionOn,
+      imageMode: imgMode,
+    };
+    
+    if (type === 'SELL') {
+      payload.price = parseFloat(get('u-price'));
+    } else if (type === 'RENT') {
+      payload.dailyRate = parseInt(get('u-daily-rate'));
+      payload.minRentalDays = parseInt(get('u-min-days'));
+      payload.priceNotes = getPriceNotes();
+      // Use dailyRate as price for backward compatibility
+      payload.price = parseInt(get('u-daily-rate'));
+    }
+    
+    formData.append('value', new Blob([JSON.stringify(payload)], { type:'application/json' }));
     newFiles.forEach(f => formData.append('files', f));
     await API.patchForm(`/api/listings/update/${listingId}`, formData);
     showToast('Listing updated!', 'success');
