@@ -2,13 +2,20 @@ package com.shiro.cosnima.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
-@Table(name = "wishlists")
+@Table(
+        name = "wishlists",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"user_id", "listing_id"})
+        }
+)
 public class Wishlist {
 
-    @EmbeddedId
-    private WishlistId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -23,11 +30,11 @@ public class Wishlist {
 
     // ===== GETTERS & SETTERS =====
 
-    public WishlistId getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(WishlistId id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

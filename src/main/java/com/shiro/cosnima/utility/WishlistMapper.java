@@ -38,18 +38,5 @@ public class WishlistMapper {
     // =========================================================
     // REQUEST → ENTITY
     // =========================================================
-    public static Wishlist fromDto(
-            WishlistRequest dto,
-            Wishlist wishlist,
-            User user,
-            Listing listing
-    ) {
-        if (dto == null || wishlist == null) return null;
 
-        wishlist.setUser(user);
-        wishlist.setListing(listing);
-        wishlist.setId(new WishlistId(user.getId(), UUID.fromString(listing.getId())));
-
-        return wishlist;
-    }
 }
