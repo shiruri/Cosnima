@@ -558,25 +558,9 @@ function attachCardEvents() {
 }
 
 // ── Wishlist ──
-function getLocalWishlist() {
-  try { return JSON.parse(localStorage.getItem('cosnimaWishlist') || '[]'); } catch { return []; }
-}
-
-function isInWishlist(id) {
-  if (window.WishlistAPI?.isIn) return window.WishlistAPI.isIn(id);
-  return getLocalWishlist().includes(String(id));
-}
-
+function isInWishlist(id) { return window.WishlistAPI?.isIn(id) || false; }
 async function toggleWishlist(id, sellerId = null) {
-  if (window.WishlistAPI?.toggle) return window.WishlistAPI.toggle(id, sellerId);
-
-  const list = getLocalWishlist();
-  const sid = String(id);
-  const idx = list.indexOf(sid);
-  if (idx > -1) list.splice(idx, 1);
-  else list.push(sid);
-  localStorage.setItem('cosnimaWishlist', JSON.stringify(list));
-  return idx === -1;
+  return window.WishlistAPI?.toggle(id, sellerId);
 }
 
 // ── Pagination ──

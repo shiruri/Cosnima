@@ -565,7 +565,7 @@ function showAuthModal() {
 
 
 
-window.refreshWishlistCount = async function refreshWishlistCount() {
+async function refreshWishlistCount() {
   if (!listingId || !API.isLoggedIn()) return;
   try {
     const count = await WishlistAPI.getCount(listingId);
@@ -578,7 +578,7 @@ window.refreshWishlistCount = async function refreshWishlistCount() {
   } catch {}
 }
 
-window.syncWishlistButton = function syncWishlistButton() {
+function syncWishlistButton() {
   const btn = document.getElementById('view-wishlist-btn');
   const text = document.getElementById('wishlist-btn-text');
   if (!btn || !text || !listing) return;
@@ -588,7 +588,7 @@ window.syncWishlistButton = function syncWishlistButton() {
   text.textContent = wished ? 'Wishlisted' : 'Add to Wishlist';
 }
 
-window.toggleViewWishlist = async function toggleViewWishlist() {
+async function toggleViewWishlist() {
   if (!listing) return;
   if (!API.isLoggedIn()) {
     showToast('Log in to save to your wishlist', 'info');
