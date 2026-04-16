@@ -249,7 +249,7 @@ function renderChatHeader(convo) {
     banner.style.display = 'flex';
     
     // Fetch listing details for image
-    API.get(`/api/listings/${convo.listingId}`, true).then(listing => {
+    API.get(`/api/listings/${convo.listingId}?t=${Date.now()}`, true).then(listing => {
       if (listing && listing.images && listing.images.length > 0 && thumb) {
         thumb.innerHTML = `<img src="${listing.images[0].imageUrl}" alt="" style="width:100%;height:100%;object-fit:cover;">`;
       }
@@ -459,7 +459,7 @@ async function handleOfferAction(messageId, action) {
     renderMessages();
     scrollToBottom();
   } catch (err) {
-    const msg = err?.data?.message || err?.message || 'Could not update offer.';
+    const msg = err?.message || 'Could not update offer.';
     showToast(msg, 'error');
     btns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
   }
@@ -486,7 +486,7 @@ async function handleRentalAction(messageId, action) {
     renderMessages();
     scrollToBottom();
   } catch (err) {
-    const msg = err?.data?.message || err?.message || 'Could not update rental.';
+    const msg = err?.message || 'Could not update rental.';
     showToast(msg, 'error');
     btns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
   }
@@ -502,7 +502,7 @@ async function openRentalRequestInChat(convoId, listingId, preloadedListing) {
   
   if (!listing) {
     try {
-      listing = await API.get(`/api/listings/${listingId}`, true);
+      listing = await API.get(`/api/listings/${listingId}?t=${Date.now()}`, true);
     } catch (err) {
       showToast('Could not load listing details.', 'error');
       return;
@@ -803,8 +803,6 @@ function calculateRentalPriceChatFromChat(listing, priceNotes, minDays) {
 }
 
 async function submitRentFromChat(listingId, sellerId) {
-  console.log('submitRentFromChat called with listingId:', listingId);
-  
   const start   = document.getElementById('rent-start-date')?.value;
   const end     = document.getElementById('rent-end-date')?.value;
   const deposit = parseFloat(document.getElementById('rent-deposit')?.value) || 0;
@@ -857,7 +855,6 @@ async function submitRentFromChat(listingId, sellerId) {
   }
   
   if (!valid) {
-    console.log('Validation failed, not submitting');
     return;
   }
 
@@ -869,10 +866,8 @@ async function submitRentFromChat(listingId, sellerId) {
       return;
     }
   } catch (e) {
-    console.log('Availability check failed:', e);
+    // Availability check failed, continue anyway
   }
-
-  console.log('Submitting rental - listing:', listingId, 'start:', start, 'end:', end, 'deposit:', deposit);
 
   const btn = document.getElementById('rent-submit-btn');
   const btnText   = btn?.querySelector('.btn-text');
@@ -882,14 +877,6 @@ async function submitRentFromChat(listingId, sellerId) {
   if (btnLoader) btnLoader.style.display = 'inline-block';
   
 try {
-    console.log('Making API call to /api/rental with data:', {
-      listingId,
-      startDate: start,
-      endDate: end,
-      totalPrice: total,
-      deposit: deposit || null
-    });
-    
     const response = await API.post('/api/rental', {
       listingId,
       startDate: start,
@@ -897,8 +884,6 @@ try {
       totalPrice: total || null,
       deposit: deposit || null,
     }, true);
-    
-    console.log('Rental API response:', response);
 
     // Send notification message to conversation
     if (listing && listing.title) {
@@ -910,7 +895,8 @@ try {
           messageType: 'TEXT'
         }, true);
       } catch (e) {
-        console.log('Failed to send notification message:', e);
+        showToast('Could not send notification. Please try again.', 'error');
+        return;
       }
     }
 
@@ -923,7 +909,7 @@ try {
     }
 
   } catch (err) {
-    console.log('Rental submit caught error:', err);
+    console.error('Rental submit error:', err);
     showToast('Request failed - you may have already requested on this item', 'error');
     if (btn) btn.disabled = false;
     if (btnText)   btnText.style.display   = 'inline';
@@ -1003,7 +989,7 @@ async function sendMessage() {
     _messages = _messages.filter(m => m.id !== tempId);
     renderMessages();
 
-    const msg = err?.data?.message || err?.message || 'Could not send message.';
+    const msg = err?.message || 'Could not send message.';
     showToast(msg, 'error');
     if (textarea) {
       textarea.value = content;
@@ -1100,12 +1086,12 @@ async function showChatInputActions(convoId) {
     const myId = String(_currentUser?.id || '');
     const convo = _conversations.find(c => c.conversationId === convoId);
     if (convo && convo.listingId) {
-      const listing = await API.get(`/api/listings/${convo.listingId}`, true);
+      const listing = await API.get(`/api/listings/${convo.listingId}?t=${Date.now()}`, true);
       _currentConvoListing = listing;
       
       // Only show for BUYER (not seller) with available listing
       const isSeller = String(convo.sellerId) === myId;
-      if (listing && listing.status === 'AVAILABLE' && !isSeller) {
+      if (listing && listing.status !== 'ARCHIVED' && !isSeller) {
         actionsContainer.style.display = 'flex';
       } else {
         actionsContainer.style.display = 'none';
@@ -1125,7 +1111,7 @@ function openOfferInChat() {
   const myId = String(_currentUser?.id || '');
   
   // Check if listing is for sale (not rent)
-  if (listing.type !== 'SALE') {
+  if (listing.type !== 'SELL') {
     showToast('Offers are only for sale listings', 'error');
     return;
   }
@@ -1241,30 +1227,34 @@ async function submitOfferInChat() {
   if (btnLoader) btnLoader.style.display = 'inline-block';
   
   try {
-    const content = JSON.stringify({
-      type: 'OFFER',
-      listingId: _currentConvoListing.id,
-      price: price,
+    const response = await API.post(`/api/offers/listing/${_currentConvoListing.id}`, {
+      offeredPrice: price,
       message: message
-    });
-    
-    await API.post('/api/conversations/messages/send', {
-      conversationId: _activeConvoId,
-      content: content,
-      messageType: 'OFFER'
     }, true);
+    
+    // Send notification message to conversation
+    if (_currentConvoListing && _currentConvoListing.title) {
+      try {
+        const msgContent = `I've made an offer of ₱${Number(price).toLocaleString()} for "${_currentConvoListing.title}". Please review my offer.`;
+        await API.post('/api/conversations/messages/send', {
+          conversationId: _activeConvoId,
+          content: msgContent
+        }, true);
+      } catch (e) {
+        showToast('Could not send notification. Please try again.', 'error');
+        return;
+      }
+    }
     
     showToast('Offer sent!', 'success');
     closeOfferModalInChat();
     loadMessages(_activeConvoId);
     
-    // Check if should show rating prompt
-    checkForRatingPrompt();
-    
   } catch (err) {
+    handleApiError(err, { showToast: true });
     const statusEl = document.getElementById('offer-status');
     if (statusEl) {
-      statusEl.textContent = err?.message || 'Could not send offer. Try again.';
+      statusEl.textContent = err?.message || 'Error submitting offer';
       statusEl.style.display = 'block';
       statusEl.style.background = 'rgba(192,57,43,0.08)';
       statusEl.style.color = 'var(--error)';
@@ -1544,8 +1534,6 @@ function calculateRentalPriceChat(pricePerDay, priceNotes) {
 }
 
 async function submitRentInChat() {
-  console.log('submitRentInChat called');
-  
   const startInput = document.getElementById('rent-start-date');
   const endInput = document.getElementById('rent-end-date');
   const depositInput = document.getElementById('rent-deposit');
@@ -1607,7 +1595,6 @@ async function submitRentInChat() {
   }
   
   if (!valid) { 
-    console.log('submitRentInChat validation failed');
     return; 
   }
   
@@ -1622,10 +1609,8 @@ async function submitRentInChat() {
       }
     }
   } catch (e) {
-    console.log('Availability check failed:', e);
+    // Availability check failed, continue anyway
   }
-  
-  console.log('submitRentInChat - listing:', _currentConvoListing?.id, 'start:', start, 'end:', end, 'deposit:', deposit);
   
   if (btn) btn.disabled = true;
   if (btnText) btnText.style.display = 'none';
@@ -1648,14 +1633,6 @@ async function submitRentInChat() {
       }
     }
     
-    console.log('Sending rental via /api/rental with:', {
-      listingId: _currentConvoListing.id,
-      startDate: start,
-      endDate: end,
-      totalPrice: rentalTotal,
-      deposit: deposit
-    });
-    
     const response = await API.post('/api/rental', {
       listingId: _currentConvoListing.id,
       startDate: start,
@@ -1664,19 +1641,17 @@ async function submitRentInChat() {
       deposit: deposit || null
     }, true);
     
-    console.log('Rental created via /api/rental, response:', response);
-    
     // Send notification message to conversation
     if (_currentConvoListing && _currentConvoListing.title) {
       try {
         const msgContent = `I've sent a rental request for "${_currentConvoListing.title}". Please check your rental requests.`;
         await API.post('/api/conversations/messages/send', {
           conversationId: _activeConvoId,
-          content: msgContent,
-          messageType: 'TEXT'
+          content: msgContent
         }, true);
       } catch (e) {
-        console.log('Failed to send notification message:', e);
+        showToast('Could not send notification. Please try again.', 'error');
+        return;
       }
     }
     
@@ -1685,79 +1660,12 @@ async function submitRentInChat() {
     loadMessages(_activeConvoId);
     
   } catch (err) {
-    console.log('Rental send caught error:', err);
+    console.error('Rental send error:', err);
     showToast('Request failed - you may have already requested on this item', 'error');
   } finally {
     if (btn) btn.disabled = false;
     if (btnText) btnText.style.display = 'inline';
     if (btnLoader) btnLoader.style.display = 'none';
-  }
-}
-
-/* ── Rating Prompt After Offer ── */
-function checkForRatingPrompt() {
-  // This would typically check if the offer was accepted
-  // For now, we'll show a prompt after successful offer send
-  setTimeout(() => {
-    const shouldRate = confirm('Would you like to rate this seller now?');
-    if (shouldRate) {
-      openRatingModal();
-    }
-  }, 1500);
-}
-
-function openRatingModal() {
-  document.getElementById('rating-modal')?.remove();
-  
-  const modal = document.createElement('div');
-  modal.id = 'rating-modal';
-  modal.innerHTML = `
-    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;">
-      <div style="background:var(--card);border-radius:var(--radius-xl);width:min(380px,90%);padding:var(--space-xl);box-shadow:var(--shadow-lg);">
-        <h3 style="margin:0 0 var(--space-md);color:var(--ink);text-align:center;">Rate Your Experience</h3>
-        <div id="star-rating" style="display:flex;justify-content:center;gap:var(--space-xs);margin-bottom:var(--space-lg);">
-          ${[1,2,3,4,5].map(i => `<button onclick="selectRating(${i})" class="star-btn" data-rating="${i}" style="background:none;border:none;cursor:pointer;font-size:2rem;color:var(--border);transition:color 0.2s;">★</button>`).join('')}
-        </div>
-        <textarea id="rating-comment" placeholder="Write a review (optional)..." rows="3" style="width:100%;padding:0.75rem;border:2px solid var(--border);border-radius:var(--radius);font-size:0.9rem;margin-bottom:var(--space-md);resize:vertical;"></textarea>
-        <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;">
-          <button class="btn btn-ghost" onclick="document.getElementById('rating-modal').remove()">Skip</button>
-          <button class="btn btn-primary" onclick="submitRating()">Submit</button>
-        </div>
-      </div>
-    </div>`;
-  
-  document.body.appendChild(modal);
-}
-
-function selectRating(rating) {
-  document.querySelectorAll('.star-btn').forEach((btn, i) => {
-    btn.style.color = i < rating ? '#fbbf24' : 'var(--border)';
-  });
-  window._selectedRating = rating;
-}
-
-async function submitRating() {
-  const rating = window._selectedRating;
-  if (!rating) {
-    showToast('Please select a rating', 'error');
-    return;
-  }
-  
-  // Get conversation info for listing
-  const convo = _conversations.find(c => c.conversationId === _activeConvoId);
-  if (!convo) return;
-  
-  try {
-    await API.post('/api/ratings', {
-      listingId: convo.listingId,
-      rating: rating,
-      comment: document.getElementById('rating-comment')?.value || ''
-    }, true);
-    
-    showToast('Thank you for your rating!', 'success');
-    document.getElementById('rating-modal')?.remove();
-  } catch (err) {
-    showToast(err?.message || 'Could not submit rating', 'error');
   }
 }
 
@@ -1816,7 +1724,7 @@ async function submitReport(type, id) {
     showToast('Report submitted. Thank you!', 'success');
     document.getElementById('report-modal')?.remove();
   } catch (err) {
-    showToast(err?.message || 'Could not submit report', 'error');
+    handleApiError(err, { showToast: true });
   }
 }
 

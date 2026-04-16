@@ -118,7 +118,8 @@ async function loadUserListings(userId) {
 
   try {
     const listings = await API.get(`/api/users/${userId}/listings`);
-    if (!listings || !listings.length) {
+    const activeListings = (listings || []).filter(l => l.status !== 'ARCHIVED');
+    if (!activeListings.length) {
       container.innerHTML = `
         <div class="empty-state" style="grid-column:1/-1">
           <div class="empty-state-icon">
@@ -138,7 +139,7 @@ async function loadUserListings(userId) {
       return;
     }
 
-    container.innerHTML = listings.map(listing => buildProfileListingCard(listing)).join('');
+    container.innerHTML = activeListings.map(listing => buildProfileListingCard(listing)).join('');
 
     // Cards click → go to view-listing (OWN listing, so show owner controls)
     container.querySelectorAll('.listing-card').forEach(card => {
@@ -197,11 +198,11 @@ function buildProfileListingCard(listing) {
       <div class="card-thumb">
         ${imgHtml}
         <div class="card-badges">${typeBadge}</div>
-        <!-- Quick edit button -->
+        <!-- View listing (edit is available there) -->
         <a class="card-action-btn"
-           href="../listing/update-listing.html?id=${listing.id}"
+           href="../listing/view-listing.html?id=${listing.id}"
            onclick="event.stopPropagation()"
-           aria-label="Edit listing"
+           aria-label="View listing"
            style="
              position:absolute;bottom:var(--space-sm);right:var(--space-sm);
              width:32px;height:32px;border-radius:50%;
@@ -383,7 +384,7 @@ async function handleSettingsSave(e) {
     });
 
   } catch (err) {
-    const msg = err?.data?.message || err?.message || 'Failed to save. Please try again.';
+    const msg = err?.message || 'Failed to save. Please try again.';
     showSettingsBanner(msg, 'error');
   } finally {
     if (btn) btn.disabled = false;

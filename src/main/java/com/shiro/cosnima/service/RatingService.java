@@ -3,6 +3,7 @@ package com.shiro.cosnima.service;
 
 import com.shiro.cosnima.dto.request.RatingRequest;
 import com.shiro.cosnima.dto.response.RatingResponse;
+import com.shiro.cosnima.model.ApiException;
 import com.shiro.cosnima.model.*;
 import com.shiro.cosnima.repository.OffersRepository;
 import com.shiro.cosnima.repository.RatingRepository;
@@ -41,7 +42,7 @@ public class RatingService {
 
         // Prevent self-rating
         if (request.getRatedUserId().equals(raterId)) {
-            throw new RuntimeException("You cannot rate yourself.");
+            throw ApiException.forbidden("You cannot rate yourself.");
         }
 
         UUID validRatedUserId = null;
@@ -54,7 +55,7 @@ public class RatingService {
 
             // Must be accepted
             if (offer.getStatus() != OfferStatus.ACCEPTED) {
-                throw new RuntimeException("Offer is not accepted.");
+                throw ApiException.badRequest("Offer is not accepted.");
             }
 
             UUID buyerId = offer.getBuyer().getId();
@@ -62,7 +63,7 @@ public class RatingService {
 
             // Must be part of transaction
             if (!buyerId.equals(raterId) && !sellerId.equals(raterId)) {
-                throw new RuntimeException("You are not part of this transaction.");
+                throw ApiException.forbidden("You are not part of this transaction.");
             }
 
             // Determine correct rated user
@@ -75,7 +76,7 @@ public class RatingService {
 
             // Must be completed
             if (rental.getStatus() != RentalStatus.COMPLETED) {
-                throw new RuntimeException("Rental is not completed.");
+                throw ApiException.badRequest("Rental is not completed.");
             }
 
             UUID renterId = rental.getRenter().getId();
@@ -83,7 +84,7 @@ public class RatingService {
 
             // Must be part of transaction
             if (!renterId.equals(raterId) && !sellerId.equals(raterId)) {
-                throw new RuntimeException("You are not part of this rental.");
+                throw ApiException.forbidden("You are not part of this rental.");
             }
 
             validRatedUserId = renterId.equals(raterId) ? sellerId : renterId;
@@ -91,7 +92,7 @@ public class RatingService {
 
         // Ensure correct rated user
         if (!request.getRatedUserId().equals(validRatedUserId)) {
-            throw new RuntimeException("Invalid rated user.");
+            throw ApiException.badRequest("Invalid rated user.");
         }
 
         // Prevent duplicate rating
@@ -103,7 +104,7 @@ public class RatingService {
                 );
 
         if (existingRating.isPresent()) {
-            throw new RuntimeException("You already rated this transaction.");
+            throw ApiException.conflict("You already rated this transaction.");
         }
 
         // Create rating

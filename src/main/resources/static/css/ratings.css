@@ -1,0 +1,447 @@
+/* ============================================
+   COSNIMA — Ratings System Styles
+   Phase 1: Leave Review Modal
+   ============================================ */
+
+/* ── Rating Modal Backdrop ── */
+.rating-modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(42, 26, 14, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 9998;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.rating-modal-backdrop.open {
+  display: flex;
+  opacity: 1;
+}
+
+/* ── Rating Modal ── */
+.rating-modal {
+  background: var(--card);
+  border-radius: var(--radius-xl);
+  width: min(460px, 94vw);
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 32px 80px rgba(42, 26, 14, 0.28);
+  border: 2px solid var(--border);
+  animation: ratingModalIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+@keyframes ratingModalIn {
+  from { opacity: 0; transform: translateY(28px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* scrollbar */
+.rating-modal::-webkit-scrollbar { width: 5px; }
+.rating-modal::-webkit-scrollbar-track { background: var(--bg-alt); border-radius: 4px; }
+.rating-modal::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+
+/* ── Modal Header ── */
+.rating-modal-header {
+  padding: var(--space-xl) var(--space-xl) var(--space-md);
+  background: linear-gradient(135deg, rgba(240, 98, 146, 0.06), var(--card));
+  border-bottom: 1.5px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.rating-modal-header-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.rating-modal-user-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--beaver), var(--accent));
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(240, 98, 146, 0.3);
+}
+.rating-modal-user-avatar img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.rating-modal-header-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--ink);
+  margin: 0 0 3px;
+  line-height: 1.2;
+}
+.rating-modal-header-sub {
+  font-size: 0.76rem;
+  color: var(--ink-muted);
+  font-weight: 600;
+  margin: 0;
+}
+
+.rating-modal-close {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-muted);
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: all var(--t-fast);
+  background: var(--card);
+  flex-shrink: 0;
+}
+.rating-modal-close:hover {
+  background: var(--error);
+  color: white;
+  border-color: var(--error);
+}
+.rating-modal-close svg { width: 14px; height: 14px; }
+
+/* ── Modal Body ── */
+.rating-modal-body {
+  padding: var(--space-xl);
+}
+
+/* Transaction context banner */
+.rating-txn-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: linear-gradient(135deg, rgba(240, 98, 146, 0.07), rgba(200, 122, 80, 0.05));
+  border: 1.5px solid rgba(240, 98, 146, 0.2);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-xl);
+}
+.rating-txn-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-alt);
+  flex-shrink: 0;
+  border: 1.5px solid var(--border);
+}
+.rating-txn-thumb img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.rating-txn-info { flex: 1; min-width: 0; }
+.rating-txn-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+.rating-txn-type {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* ── Star Selector ── */
+.star-selector-section {
+  margin-bottom: var(--space-xl);
+  text-align: center;
+}
+.star-selector-label {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: var(--space-md);
+  display: block;
+}
+
+.star-selector {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  transition: transform var(--t-fast);
+  line-height: 0;
+}
+.star-btn:hover { transform: scale(1.15); }
+.star-btn:active { transform: scale(0.95); }
+
+.star-btn svg {
+  width: 38px;
+  height: 38px;
+  transition: fill 0.15s ease, stroke 0.15s ease;
+}
+
+.star-btn.filled svg,
+.star-btn.hovered svg {
+  fill: #f5a623;
+  stroke: #f5a623;
+}
+
+.star-btn:not(.filled):not(.hovered) svg {
+  fill: none;
+  stroke: var(--border-dark);
+}
+
+/* Star rating text label */
+.star-rating-label {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--ink-muted);
+  margin-top: var(--space-sm);
+  min-height: 1.4em;
+  transition: color 0.15s ease;
+}
+.star-rating-label.has-rating { color: #f5a623; }
+
+/* ── Comment Field ── */
+.rating-comment-section { margin-bottom: var(--space-lg); }
+.rating-comment-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: var(--space-xs);
+}
+.rating-comment-field {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--bg-alt);
+  outline: none;
+  resize: none;
+  min-height: 90px;
+  line-height: 1.65;
+  transition: border-color var(--t-base), box-shadow var(--t-base), background var(--t-base);
+}
+.rating-comment-field:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(240, 98, 146, 0.1);
+  background: var(--card);
+}
+.rating-comment-hint {
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+  margin-top: 4px;
+  text-align: right;
+}
+
+/* ── Status / Error Banner ── */
+.rating-status-banner {
+  display: none;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: var(--space-md);
+  align-items: center;
+  gap: var(--space-sm);
+}
+.rating-status-banner.show { display: flex; }
+.rating-status-banner.error {
+  background: rgba(192, 57, 43, 0.08);
+  border: 1.5px solid rgba(192, 57, 43, 0.2);
+  color: var(--error);
+}
+.rating-status-banner.success {
+  background: rgba(39, 174, 96, 0.08);
+  border: 1.5px solid rgba(39, 174, 96, 0.25);
+  color: #1a7a40;
+}
+
+/* ── Modal Footer ── */
+.rating-modal-footer {
+  padding: var(--space-lg) var(--space-xl);
+  border-top: 1.5px solid var(--border);
+  background: var(--bg-alt);
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* ── Success State ── */
+.rating-success-state {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-xl);
+}
+.rating-success-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f5a623, var(--accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-lg);
+  box-shadow: 0 8px 24px rgba(245, 166, 35, 0.35);
+  animation: successBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes successBounce {
+  from { transform: scale(0) rotate(-15deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.rating-success-icon svg { width: 34px; height: 34px; color: white; }
+.rating-success-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--ink);
+  margin-bottom: var(--space-sm);
+}
+.rating-success-stars {
+  color: #f5a623;
+  font-size: 1.6rem;
+  letter-spacing: 2px;
+  margin-bottom: var(--space-sm);
+}
+.rating-success-desc {
+  font-size: 0.9rem;
+  color: var(--ink-muted);
+  max-width: 300px;
+  margin: 0 auto;
+  line-height: 1.65;
+}
+
+/* ── "Leave Review" button ── */
+.leave-review-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 0.45rem 1rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all var(--t-base);
+  background: rgba(245, 166, 35, 0.1);
+  border: 1.5px solid rgba(245, 166, 35, 0.35);
+  color: #c47c00;
+}
+.leave-review-btn:hover {
+  background: #f5a623;
+  border-color: #f5a623;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 166, 35, 0.3);
+}
+.leave-review-btn svg { width: 13px; height: 13px; }
+.leave-review-btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ── "Already Rated" badge ── */
+.already-rated-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.3rem 0.8rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: rgba(245, 166, 35, 0.12);
+  border: 1.5px solid rgba(245, 166, 35, 0.25);
+  color: #c47c00;
+  letter-spacing: 0.02em;
+}
+.already-rated-badge svg { width: 12px; height: 12px; }
+
+/* ── Offer Card — "Leave Review" banner ── */
+.offer-card-review-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 0.65rem var(--space-lg);
+  background: rgba(245, 166, 35, 0.07);
+  border-top: 1px solid rgba(245, 166, 35, 0.18);
+  flex-wrap: wrap;
+}
+.offer-card-review-banner-text {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #c47c00;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+.offer-card-review-banner-text svg { width: 14px; height: 14px; }
+
+/* ── Rental Card — "Complete + Review" banner ── */
+.rental-card-complete-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 0.65rem var(--space-lg);
+  background: rgba(39, 174, 96, 0.06);
+  border-top: 1px solid rgba(39, 174, 96, 0.15);
+  flex-wrap: wrap;
+}
+.mark-complete-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.4rem 0.9rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all var(--t-base);
+  background: rgba(39, 174, 96, 0.1);
+  border: 1.5px solid rgba(39, 174, 96, 0.3);
+  color: #1a7a40;
+}
+.mark-complete-btn:hover {
+  background: #27ae60;
+  border-color: #27ae60;
+  color: white;
+  transform: translateY(-1px);
+}
+.mark-complete-btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}

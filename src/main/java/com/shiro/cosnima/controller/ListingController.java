@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
+import org.springframework.security.access.AccessDeniedException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -58,7 +58,7 @@ public class ListingController {
     }
 
 
-    @PatchMapping("/{id}/status")
+    @PostMapping("/{id}/status")
     public ResponseEntity<ListingResponse> updateStatus(
             @PathVariable String id,
             @RequestParam String status
@@ -70,6 +70,21 @@ public class ListingController {
 
         return ResponseEntity.ok(
                 listingServ.updateStatus(id, userId, status)
+        );
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ListingResponse> updateStatusBody(
+            @PathVariable String id,
+            @RequestBody StatusUpdateRequest request
+    ) throws AccessDeniedException {
+
+        UUID userId = UUID.fromString(
+                SecurityContextHolder.getContext().getAuthentication().getName()
+        );
+
+        return ResponseEntity.ok(
+                listingServ.updateStatus(id, userId, request.getStatus())
         );
     }
     @GetMapping("/{id}/user-details")

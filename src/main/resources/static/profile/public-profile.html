@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/home.css">
     <link rel="stylesheet" href="../css/profile.css">
+    <link rel="stylesheet" href="../css/reports.css">
     <script>
         (function() {
             var t = localStorage.getItem('cosnimaTheme') || 'light';
@@ -699,6 +700,8 @@
 
 <script src="../js/api.js"></script>
 <script src="../js/nav.js"></script>
+<script src="../js/reports.js"></script>
+<script src="../js/report-buttons-patch.js"></script>
 <script>
 /* ============================================
    PUBLIC PROFILE PAGE
@@ -995,7 +998,7 @@ async function loadListingsForPicker() {
         _profileListings = listings;
 
         const available = listings.filter(l =>
-            l.isActive !== false && l.status === 'AVAILABLE'
+            l.isActive !== false && l.status !== 'ARCHIVED'
         );
 
         if (!available.length) {
@@ -1073,9 +1076,10 @@ async function loadPublicListings(uid) {
     if (!container) return;
     try {
         const listings = await API.get(`/api/users/${uid}/listings`, true);
-        _profileListings = listings || [];
+        const activeListings = (listings || []).filter(l => l.status !== 'ARCHIVED');
+        _profileListings = activeListings;
 
-        if (!listings || !listings.length) {
+        if (!activeListings.length) {
             container.innerHTML = `
                 <div class="empty-state" style="grid-column:1/-1">
                     <div class="empty-state-icon">
@@ -1089,7 +1093,7 @@ async function loadPublicListings(uid) {
             return;
         }
 
-        container.innerHTML = listings.map(l => {
+        container.innerHTML = activeListings.map(l => {
             let primaryImage = null;
             if (l.images && l.images.length) primaryImage = l.images[0]?.imageUrl || l.images[0];
             const typeLabel = l.type === 'RENT' ? 'For Rent' : 'For Sale';

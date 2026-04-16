@@ -273,20 +273,28 @@ async function handleRentalAccept(rentalId, listingId, renterId, listingTitle, b
     
     // Send notification message to renter
     try {
+      const currentUser = API.getUser();
+      const sellerId = currentUser?.id;
+      if (!sellerId) {
+        showToast('Please log in to send notification.', 'error');
+        return;
+      }
       const msgContent = `I've accepted your rental request for "${listingTitle}". Let's arrange the exchange!`;
-      await API.post('/api/messages/messages/send/auto', {
-        senderId: renterId,
-        listingId: listingId,
+      await API.post('/api/conversations/messages/send/auto', {
+        senderId: sellerId,
+        listingId: String(listingId),
         content: msgContent
       }, true);
     } catch (e) {
-      console.log('Failed to send notification message:', e);
+      console.error('Failed to send notification:', e);
+      showToast('Could not send notification. Please try again.', 'error');
+      return;
     }
     
     showToast('Rental accepted!', 'success');
     loadIncomingRentalsDashboard();
   } catch (err) {
-    const msg = err?.data?.message || err?.message || 'Could not accept rental.';
+    const msg = err?.message || 'Could not accept rental.';
     showToast(msg, 'error');
     allBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
   }
@@ -301,20 +309,28 @@ async function handleRentalReject(rentalId, listingId, renterId, listingTitle, b
     
     // Send notification message to renter
     try {
+      const currentUser = API.getUser();
+      const sellerId = currentUser?.id;
+      if (!sellerId) {
+        showToast('Please log in to send notification.', 'error');
+        return;
+      }
       const msgContent = `I've declined your rental request for "${listingTitle}".`;
-      await API.post('/api/messages/messages/send/auto', {
-        senderId: renterId,
-        listingId: listingId,
+      await API.post('/api/conversations/messages/send/auto', {
+        senderId: sellerId,
+        listingId: String(listingId),
         content: msgContent
       }, true);
     } catch (e) {
-      console.log('Failed to send notification message:', e);
+      console.error('Failed to send notification:', e);
+      showToast('Could not send notification. Please try again.', 'error');
+      return;
     }
     
     showToast('Rental declined.', 'success');
     loadIncomingRentalsDashboard();
   } catch (err) {
-    const msg = err?.data?.message || err?.message || 'Could not decline rental.';
+    const msg = err?.message || 'Could not decline rental.';
     showToast(msg, 'error');
     allBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
   }

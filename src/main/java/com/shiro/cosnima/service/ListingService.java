@@ -9,6 +9,7 @@ import com.shiro.cosnima.dto.response.ImageResponse;
 import com.shiro.cosnima.dto.response.ListingResponse;
 import com.shiro.cosnima.dto.response.StatsResponse;
 import com.shiro.cosnima.dto.response.UserDetailsDto;
+import com.shiro.cosnima.model.ApiException;
 import com.shiro.cosnima.model.*;
 import com.shiro.cosnima.repository.ListingRepository;
 import com.shiro.cosnima.repository.ListingViewRepository;
@@ -24,7 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
+import org.springframework.security.access.AccessDeniedException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -259,7 +260,7 @@ public class ListingService {
 
         // 2. OWNERSHIP CHECK
         if (!listing.getSeller().getId().equals(userId)) {
-            throw new RuntimeException("Not allowed");
+            throw ApiException.forbidden("Not allowed");
         }
 
         // 3. UPDATE BASIC FIELDS (PATCH STYLE)
@@ -336,12 +337,14 @@ public class ListingService {
 
     public void deleteListing(String id, UUID userId) {
         Listing listing = listingRepo.findByIdWithImages(id)
-                .orElseThrow(() -> new RuntimeException("Listing not found"));
+                .orElseThrow(() -> ApiException.notFound("Listing not found"));
 
         if(!listing.getSeller().getId().equals(userId)) {
-            throw new RuntimeException("No Permission To Delete");
+            throw ApiException.forbidden("No Permission To Delete");
         }
-        listingRepo.deleteById(id);
+
+        listing.setStatus(Listing.Status.ARCHIVED);
+        listingRepo.save(listing);
 
 
     }
@@ -354,8 +357,9 @@ public class ListingService {
         if (!listing.getSeller().getId().equals(userId)) {
             throw new AccessDeniedException("Not owner");
         }
+        Listing.Status newStatus =  Listing.Status .valueOf(status.trim().toUpperCase());
 
-        listing.setStatus(Listing.Status.valueOf(status.toUpperCase()));
+        listing.setStatus(newStatus);
 
         Listing saved = listingRepo.save(listing);
 

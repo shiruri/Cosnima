@@ -17,19 +17,10 @@ public interface ConversationRepository extends JpaRepository<Conversation, Stri
     Conversation findByBuyerIdAndListingId(UUID buyerId, String listingId);
     Conversation findBySellerIdAndListingId(UUID sellerId, String listingId);
 
-    @Query("""
-
-            SELECT c FROM Conversation c
-WHERE c.buyer.id = :userId
-   OR c.seller.id = :userId
-""")
+    @Query("SELECT c FROM Conversation c WHERE (c.buyer.id = :userId OR c.seller.id = :userId) AND c.listing.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED")
     List<Conversation> findAllByUserId(@Param("userId") UUID userId);
 
-    @Query("""
-    SELECT c FROM Conversation c
-    WHERE c.listing.id = :listingId
-      AND c.buyer.id = :buyerId
-""")
+    @Query("SELECT c FROM Conversation c WHERE c.listing.id = :listingId AND c.buyer.id = :buyerId")
     Optional<Conversation> findExistingConversation(
             @Param("listingId") String listingId,
             @Param("buyerId") UUID buyerId

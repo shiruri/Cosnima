@@ -6,6 +6,7 @@ import com.shiro.cosnima.dto.request.ImageUpdateMode;
 import com.shiro.cosnima.dto.request.UpdateListingRequest;
 import com.shiro.cosnima.dto.request.UserDto;
 import com.shiro.cosnima.dto.response.*;
+import com.shiro.cosnima.model.ApiException;
 import com.shiro.cosnima.model.*;
 import com.shiro.cosnima.repository.*;
 import com.shiro.cosnima.utility.AdminListingMapper;
@@ -19,7 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
+import org.springframework.security.access.AccessDeniedException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -31,15 +32,13 @@ public class AdminService {
 
     private final UserRepository userRepo;
     private final ReportRepository reportRepository;
-    private final ConversationRepository conversationRepo;
     private final ListingRepository listingRepo;
     private final RentalRepository rentalRepo;
     private final MessageRepository messageRepo;
     private final CloudinaryService cloudinaryService;
 
-    public AdminService(UserRepository userRepo , ConversationRepository conversationRepo, ListingRepository listingRepo, RentalRepository rentalRepo, ReportRepository reportRepository, MessageRepository messageRepo, CloudinaryService cloudinaryService) {
+    public AdminService(UserRepository userRepo  , ListingRepository listingRepo, RentalRepository rentalRepo, ReportRepository reportRepository, MessageRepository messageRepo, CloudinaryService cloudinaryService) {
         this.userRepo = userRepo;
-        this.conversationRepo = conversationRepo;
         this.listingRepo = listingRepo;
         this.rentalRepo = rentalRepo;
         this.reportRepository = reportRepository;
@@ -63,16 +62,16 @@ public class AdminService {
         long newUserCount = userRepo.countByCreatedAtBetween(today.atStartOfDay(), today.plusDays(1).atStartOfDay());
         stats.setNewUsersToday(newUserCount);
 
-        long onlineUserCount = userRepo.countActiveUsers(true);
+        long onlineUserCount = userRepo.countByIsActive(true);
         stats.setActiveUsers(onlineUserCount);
 
         long listingCount = listingRepo.count();
         stats.setTotalListings(listingCount);
 
-        long activeListingCount = listingRepo.countActiveListings(true);
+        long activeListingCount = listingRepo.countByIsActive(true);
         stats.setActiveListings(activeListingCount);
 
-        long soldListingCount = listingRepo.countSoldListings(Listing.Status.SOLD);
+        long soldListingCount = listingRepo.countByStatus(Listing.Status.SOLD);
         stats.setSoldListings(soldListingCount);
 
         long rentalCount = rentalRepo.count();
@@ -81,13 +80,13 @@ public class AdminService {
         long activeRentalCount = rentalRepo.countByStatus(RentalStatus.ACTIVE);
         stats.setActiveRentals(activeRentalCount);
 
-        long completedRentalCount = rentalRepo.countCompletedRental(RentalStatus.COMPLETED);
+        long completedRentalCount = rentalRepo.countByStatus(RentalStatus.COMPLETED);
         stats.setCompletedRentals(completedRentalCount);
 
         long messageCount = messageRepo.count();
         stats.setTotalMessages(messageCount);
 
-        long unreadMessageCount = messageRepo.countUnreadMessage(false);
+        long unreadMessageCount = messageRepo.countByIsReadFalse();
         stats.setUnreadMessages(unreadMessageCount);
         return stats;
 
@@ -129,7 +128,7 @@ public class AdminService {
     public UserDto banUser(UUID userId, String banReason) {
         User user = userRepo.findUserById(userId).orElseThrow();
         if(user.getIsBanned() == true) {
-            throw new RuntimeException("user is already Banned");
+            throw ApiException.conflict("user is already Banned");
         }
         user.setIsBanned(true);
         user.setBanReason(banReason);
@@ -140,7 +139,7 @@ public class AdminService {
     public UserDto unbanUser(UUID userId) {
         User user = userRepo.findUserById(userId).orElseThrow();
         if(user.getIsBanned() == false) {
-            throw new RuntimeException("user is not Banned");
+            throw ApiException.badRequest("user is not Banned");
 
         }
         user.setIsBanned(false);

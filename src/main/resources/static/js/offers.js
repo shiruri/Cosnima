@@ -188,7 +188,7 @@ async function submitOffer(listingId, container) {
         messageType: 'TEXT'
       }, true);
     } catch (e) {
-      console.log('Failed to send notification message:', e);
+      showToast('Could not send notification. Please try again.', 'error');
     }
 
     container.innerHTML = `
@@ -207,7 +207,7 @@ async function submitOffer(listingId, container) {
     if (btnText)   btnText.style.display   = 'inline';
     if (btnLoader) btnLoader.style.display = 'none';
 
-    const msg = err?.data?.message || err?.message || 'Failed to send offer. Please try again.';
+    const msg = err?.message || 'Failed to send offer. Please try again.';
 
     if (err?.status === 409 || msg.toLowerCase().includes('already')) {
       container.innerHTML = `
@@ -267,9 +267,17 @@ async function renderIncomingOffers(listingId, container) {
     if (list) {
       list.innerHTML = offers.map(offer => buildIncomingOfferRow(offer)).join('');
       list.querySelectorAll('[data-accept]').forEach(btn =>
-        btn.addEventListener('click', () => handleAcceptOffer(btn.dataset.accept, btn.dataset.buyerId, btn.dataset.listingId, btn.dataset.listingTitle, btn)));
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handleAcceptOffer(btn.dataset.accept, btn.dataset.buyerId, btn.dataset.listingId, btn.dataset.listingTitle, btn);
+        })
+      );
       list.querySelectorAll('[data-reject]').forEach(btn =>
-        btn.addEventListener('click', () => handleRejectOffer(btn.dataset.reject, btn.dataset.buyerId, btn.dataset.listingId, btn.dataset.listingTitle, btn)));
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handleRejectOffer(btn.dataset.reject, btn.dataset.buyerId, btn.dataset.listingId, btn.dataset.listingTitle, btn);
+        })
+      );
     }
   } catch (err) {
     const list  = document.getElementById('offers-list');
@@ -324,7 +332,8 @@ function buildIncomingOfferRow(offer) {
 }
 
 async function handleAcceptOffer(offerId, buyerId, listingId, listingTitle, btn) {
-const row = document.getElementById(`offer-row-${offerId}`) || document.getElementById(`incoming-offer-card-${offerId}`);  const allBtns = row?.querySelectorAll('.offer-action-btn');
+  const row = document.getElementById(`offer-row-${offerId}`) || document.getElementById(`incoming-offer-card-${offerId}`);
+  const allBtns = row?.querySelectorAll('.offer-action-btn');
   allBtns?.forEach(b => { b.disabled = true; b.style.opacity = '0.6'; });
 
   try {
@@ -332,14 +341,22 @@ const row = document.getElementById(`offer-row-${offerId}`) || document.getEleme
     
     // Send notification message to buyer
     try {
+      const currentUser = API.getUser();
+      const sellerId = currentUser?.id;
+      if (!sellerId) {
+        showToast('Please log in to send notification.', 'error');
+        return;
+      }
       const msgContent = `I've accepted your offer for "${listingTitle}". Let's arrange the exchange!`;
-      await API.post('/api/messages/messages/send/auto', {
-        senderId: buyerId,
-        listingId: listingId,
+      await API.post('/api/conversations/messages/send/auto', {
+        senderId: sellerId,
+        listingId: String(listingId),
         content: msgContent
       }, true);
     } catch (e) {
-      console.log('Failed to send notification message:', e);
+      console.error('Failed to send notification:', e);
+      showToast('Could not send notification. Please try again.', 'error');
+      return;
     }
     
     if (row) {
@@ -352,7 +369,7 @@ const row = document.getElementById(`offer-row-${offerId}`) || document.getEleme
     if (typeof showToast === 'function') showToast('Offer accepted! 🎉', 'success');
   } catch (err) {
     allBtns?.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
-    const msg = err?.data?.message || err?.message || 'Could not accept offer. Please try again.';
+    const msg = err?.message || 'Could not accept offer. Please try again.';
     if (typeof showToast === 'function') showToast(msg, 'error');
   }
 }
@@ -367,14 +384,22 @@ async function handleRejectOffer(offerId, buyerId, listingId, listingTitle, btn)
     
     // Send notification message to buyer
     try {
+      const currentUser = API.getUser();
+      const sellerId = currentUser?.id;
+      if (!sellerId) {
+        showToast('Please log in to send notification.', 'error');
+        return;
+      }
       const msgContent = `I've declined your offer for "${listingTitle}".`;
-      await API.post('/api/messages/messages/send/auto', {
-        senderId: buyerId,
-        listingId: listingId,
+      await API.post('/api/conversations/messages/send/auto', {
+        senderId: sellerId,
+        listingId: String(listingId),
         content: msgContent
       }, true);
     } catch (e) {
-      console.log('Failed to send notification message:', e);
+      console.error('Failed to send notification:', e);
+      showToast('Could not send notification. Please try again.', 'error');
+      return;
     }
     
     if (row) {
@@ -390,7 +415,7 @@ async function handleRejectOffer(offerId, buyerId, listingId, listingTitle, btn)
     if (typeof showToast === 'function') showToast('Offer declined.', 'info');
   } catch (err) {
     allBtns?.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
-    const msg = err?.data?.message || err?.message || 'Could not decline offer.';
+    const msg = err?.message || 'Could not decline offer.';
     if (typeof showToast === 'function') showToast(msg, 'error');
   }
 }
@@ -417,9 +442,11 @@ function offerSkeletonRow() {
    falls back to client-side filtering of allMyOffers
    ────────────────────────────────────────── */
 let allMyOffers    = [];
-let allIncomingOffers = [];
 let activeFilter   = 'ALL';
 let isLoadingFilter = false;
+let activeAnalyticsFilter = 'ALL';
+let activeIncomingFilter = 'ALL';
+let allIncomingOffers = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!document.getElementById('my-offers-container')) return;
@@ -525,6 +552,188 @@ function wireFilterTabs() {
   document.querySelectorAll('.offers-filter-tab').forEach(tab => {
     tab.addEventListener('click', () => setFilter(tab.dataset.filter || 'ALL'));
   });
+  
+  document.querySelectorAll('.dashboard-filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => setAnalyticsFilter(tab.dataset.analyticsFilter || 'ALL'));
+  });
+  
+  document.querySelectorAll('.incoming-filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => setIncomingFilter(tab.dataset.incomingFilter || 'ALL'));
+  });
+}
+
+function setAnalyticsFilter(filter) {
+  document.querySelectorAll('.dashboard-filter-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.analyticsFilter === filter)
+  );
+  activeAnalyticsFilter = filter;
+  loadOfferAnalytics();
+}
+
+function setIncomingFilter(filter) {
+  document.querySelectorAll('.incoming-filter-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.incomingFilter === filter)
+  );
+  activeIncomingFilter = filter;
+  renderFilteredIncomingOffers();
+}
+
+function renderFilteredIncomingOffers() {
+  const container = document.getElementById('incoming-offers-container');
+  if (!container) return;
+  
+  container.classList.add('fade-in');
+  
+  setTimeout(() => container.classList.remove('fade-in'), 300);
+  
+  const filtered = activeIncomingFilter === 'ALL'
+    ? allIncomingOffers
+    : allIncomingOffers.filter(o => o.status === activeIncomingFilter);
+  
+  if (!filtered.length) {
+    container.innerHTML = `
+      <div class="incoming-empty">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+        </svg>
+        <p>No incoming offers${activeIncomingFilter !== 'ALL' ? ' with this status' : ''}.</p>
+      </div>`;
+    return;
+  }
+  
+  container.innerHTML = filtered.map(o => buildIncomingOfferCard(o)).join('');
+  wireIncomingOfferActions(container);
+}
+
+function wireIncomingOfferActions(container) {
+  container.querySelectorAll('[data-accept]').forEach(btn =>
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleAcceptOffer(btn.dataset.accept, btn.dataset.buyerId, btn.dataset.listingId, btn.dataset.listingTitle, btn);
+    })
+  );
+  container.querySelectorAll('[data-reject]').forEach(btn =>
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleRejectOffer(btn.dataset.reject, btn.dataset.buyerId, btn.dataset.listingId, btn.dataset.listingTitle, btn);
+    })
+  );
+}
+
+async function loadOfferAnalytics() {
+  const container = document.getElementById('analytics-stats');
+  const topListings = document.getElementById('top-listings-chart');
+  const statusChart = document.getElementById('status-chart');
+  
+  container.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--space-md);">
+      <div class="skeleton-card" style="height:100px;border-radius:var(--radius-lg);"></div>
+      <div class="skeleton-card" style="height:100px;border-radius:var(--radius-lg);"></div>
+      <div class="skeleton-card" style="height:100px;border-radius:var(--radius-lg);"></div>
+      <div class="skeleton-card" style="height:100px;border-radius:var(--radius-lg);"></div>
+    </div>
+    <div class="skeleton-card" style="height:200px;border-radius:var(--radius-lg);margin-top:var(--space-md);"></div>
+  `;
+  
+  const analyticsContainer = document.getElementById('dashboard-panel');
+  if (analyticsContainer) {
+    analyticsContainer.classList.add('fade-in');
+    setTimeout(() => analyticsContainer.classList.remove('fade-in'), 400);
+  }
+  
+  try {
+    let offers = [], myOffers = [];
+    
+    if (activeAnalyticsFilter === 'ALL' || activeAnalyticsFilter === 'INCOMING') {
+      offers = await API.get('/api/offers/incoming', true) || [];
+    }
+    if (activeAnalyticsFilter === 'ALL' || activeAnalyticsFilter === 'OUTGOING') {
+      myOffers = await API.get('/api/offers/mine', true) || [];
+    }
+    
+    const allOffers = [...offers, ...myOffers];
+    
+    const total = allOffers.length;
+    const pending = allOffers.filter(o => o.status === 'PENDING').length;
+    const accepted = allOffers.filter(o => o.status === 'ACCEPTED').length;
+    const rejected = allOffers.filter(o => o.status === 'REJECTED' || o.status === 'CANCELLED').length;
+
+    container.innerHTML = `
+      <div class="analytics-stat-card">
+        <div class="analytics-stat-icon total">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        </div>
+        <div class="analytics-stat-value">${total}</div>
+        <div class="analytics-stat-label">Total Offers</div>
+      </div>
+      <div class="analytics-stat-card">
+        <div class="analytics-stat-icon pending">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div class="analytics-stat-value">${pending}</div>
+        <div class="analytics-stat-label">Pending</div>
+      </div>
+      <div class="analytics-stat-card">
+        <div class="analytics-stat-icon accepted">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div class="analytics-stat-value">${accepted}</div>
+        <div class="analytics-stat-label">Accepted</div>
+      </div>
+      <div class="analytics-stat-card">
+        <div class="analytics-stat-icon rejected">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div class="analytics-stat-value">${rejected}</div>
+        <div class="analytics-stat-label">Declined</div>
+      </div>`;
+
+    topListings.innerHTML = '';
+    const byListing = {};
+    allOffers.forEach(o => {
+      const id = o.listingId;
+      byListing[id] = byListing[id] || { count: 0, title: o.listingTitle, image: o.listingImageUrl };
+      byListing[id].count++;
+    });
+    Object.entries(byListing).sort((a, b) => b[1].count - a[1].count).slice(0, 5).forEach(([id, data]) => {
+      topListings.innerHTML += `
+        <div class="analytics-list-item">
+          <div class="analytics-list-thumb">
+            ${data.image ? `<img src="${escHtml(data.image)}" alt="">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--ink-faint);"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>`}
+          </div>
+          <div class="analytics-list-info">
+            <div class="analytics-list-title">${escHtml(data.title || 'Listing')}</div>
+            <div class="analytics-list-meta">ID: ${id}</div>
+          </div>
+          <div class="analytics-list-value">${data.count}</div>
+        </div>`;
+    });
+
+    const pendingPct = total ? Math.round((pending / total) * 100) : 0;
+    const acceptedPct = total ? Math.round((accepted / total) * 100) : 0;
+    const rejectedPct = total ? Math.round((rejected / total) * 100) : 0;
+
+    statusChart.innerHTML = total ? `
+      <div class="status-bar">
+        <div class="status-bar-segment" style="flex:${pendingPct || 1};background:#e67e22;">${pendingPct > 10 ? pendingPct + '%' : ''}</div>
+        <div class="status-bar-segment" style="flex:${acceptedPct || 1};background:#27ae60;">${acceptedPct > 10 ? acceptedPct + '%' : ''}</div>
+        <div class="status-bar-segment" style="flex:${rejectedPct || 1};background:var(--error);">${rejectedPct > 10 ? rejectedPct + '%' : ''}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--ink-faint);">
+        <span><span style="display:inline-block;width:10px;height:10px;background:#e67e22;border-radius:50%;margin-right:4px;"></span>Pending (${pending})</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:#27ae60;border-radius:50%;margin-right:4px;"></span>Accepted (${accepted})</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:var(--error);border-radius:50%;margin-right:4px;"></span>Declined (${rejected})</span>
+      </div>
+    ` : '<div style="text-align:center;padding:20px;color:var(--ink-faint);">No offers yet</div>';
+
+  container.classList.add('fade-in');
+  setTimeout(() => container.classList.remove('fade-in'), 400);
+
+  } catch (err) {
+    console.error('Analytics load error:', err);
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--error);">Failed to load analytics. Please refresh.</div>';
+    if (typeof showToast === 'function') showToast('Could not load analytics. Please try again.', 'error');
+  }
 }
 
 function setFilter(filter) {
@@ -676,7 +885,7 @@ async function handleCancelOffer(offerId, btn) {
   } catch (err) {
     btn.disabled  = false;
     btn.innerHTML = originalHtml;
-    const msg = err?.data?.message || err?.message || 'Could not cancel. Please try again.';
+    const msg = err?.message || 'Could not cancel. Please try again.';
     if (typeof showToast === 'function') showToast(msg, 'error');
   }
 }
@@ -705,40 +914,18 @@ async function loadIncomingOffersDashboard() {
   const container = document.getElementById('incoming-offers-container');
   if (!container) return;
 
-  // Show skeleton / loading state
   container.innerHTML = `
     <div class="incoming-empty">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-      </svg>
+      <div class="skeleton-card" style="height:120px;border-radius:var(--radius-lg);margin-bottom:var(--space-md);"></div>
+      <div class="skeleton-card" style="height:120px;border-radius:var(--radius-lg);margin-bottom:var(--space-md);"></div>
       Loading incoming offers...
     </div>`;
 
   try {
     const offers = await API.get('/api/offers/incoming', true);
-    if (!Array.isArray(offers) || offers.length === 0) {
-      container.innerHTML = `
-        <div class="incoming-empty">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-          </svg>
-          No incoming offers yet. Share your listings to attract buyers!
-        </div>`;
-      return;
-    }
-
-    // Build HTML for each incoming offer as a card
-    const cardsHtml = offers.map(offer => buildIncomingOfferCard(offer)).join('');
-    container.innerHTML = `<div class="incoming-offers-list">${cardsHtml}</div>`;
-    allIncomingOffers = offers;
-
-    // Attach accept/reject handlers
-    container.querySelectorAll('[data-accept]').forEach(btn =>
-      btn.addEventListener('click', () => handleAcceptOffer(btn.dataset.accept, btn))
-    );
-    container.querySelectorAll('[data-reject]').forEach(btn =>
-      btn.addEventListener('click', () => handleRejectOffer(btn.dataset.reject, btn))
-    );
+    allIncomingOffers = Array.isArray(offers) ? offers : [];
+    
+    renderFilteredIncomingOffers();
 
   } catch (err) {
     console.error('Failed to load incoming offers:', err);
@@ -750,6 +937,7 @@ async function loadIncomingOffersDashboard() {
         Could not load incoming offers.
         <button onclick="loadIncomingOffersDashboard()" class="btn btn-outline" style="margin-top:var(--space-md);display:inline-block;">Retry</button>
       </div>`;
+    if (typeof showToast === 'function') showToast('Could not load incoming offers. Please try again.', 'error');
   }
 }
 
@@ -866,9 +1054,9 @@ function openOfferModal(offerId) {
       ${canCancel ? `<button class="offer-cancel-btn" onclick="handleCancelOffer('${escHtml(String(offer.id))}', this); closeOfferModal(); event.stopPropagation();">Cancel Offer</button>` : ''}
       ${isAccepted && offer.sellerUsername ? `<a href="../listing/message-seller.html?listing=${escHtml(String(offer.listingId))}&seller=${offer.sellerId || ''}" class="btn btn-primary" style="padding:0.5rem 1rem;">Message Seller</a>` : ''}
       <a href="../listing/view-listing.html?id=${escHtml(String(offer.listingId))}" class="btn btn-outline" style="padding:0.5rem 1rem;">View Listing</a>
-    </div>
+</div>
   `;
-  
+
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -877,107 +1065,6 @@ function closeOfferModal() {
   const modal = document.getElementById('offer-modal');
   modal.classList.remove('open');
   document.body.style.overflow = '';
-}
-
-async function loadOfferAnalytics() {
-  const container = document.getElementById('analytics-stats');
-  const topListings = document.getElementById('top-listings-chart');
-  const statusChart = document.getElementById('status-chart');
-  
-  container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink-faint);">Loading analytics...</div>';
-  
-  try {
-    const offers = await API.get('/api/offers/incoming', true);
-    const myOffers = await API.get('/api/offers/mine', true);
-    
-    const allOffers = [...(offers || []), ...(myOffers || [])];
-    
-    const total = allOffers.length;
-    const pending = allOffers.filter(o => o.status === 'PENDING').length;
-    const accepted = allOffers.filter(o => o.status === 'ACCEPTED').length;
-    const rejected = allOffers.filter(o => o.status === 'REJECTED' || o.status === 'CANCELLED').length;
-    
-    container.innerHTML = `
-      <div class="analytics-stat-card">
-        <div class="analytics-stat-icon total">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-        </div>
-        <div class="analytics-stat-value">${total}</div>
-        <div class="analytics-stat-label">Total Offers</div>
-      </div>
-      <div class="analytics-stat-card">
-        <div class="analytics-stat-icon pending">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        </div>
-        <div class="analytics-stat-value">${pending}</div>
-        <div class="analytics-stat-label">Pending</div>
-      </div>
-      <div class="analytics-stat-card">
-        <div class="analytics-stat-icon accepted">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-        </div>
-        <div class="analytics-stat-value">${accepted}</div>
-        <div class="analytics-stat-label">Accepted</div>
-      </div>
-      <div class="analytics-stat-card">
-        <div class="analytics-stat-icon rejected">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-        </div>
-        <div class="analytics-stat-value">${rejected}</div>
-        <div class="analytics-stat-label">Declined</div>
-      </div>
-    `;
-    
-    const listingCounts = {};
-    allOffers.forEach(o => {
-      if (o.listingId) {
-        listingCounts[o.listingId] = listingCounts[o.listingId] || { count: 0, title: o.listingTitle, image: o.listingImageUrl };
-        listingCounts[o.listingId].count++;
-      }
-    });
-    
-    const sortedListings = Object.entries(listingCounts)
-      .sort((a, b) => b[1].count - a[1].count)
-      .slice(0, 5);
-    
-    if (sortedListings.length) {
-      topListings.innerHTML = sortedListings.map(([id, data]) => `
-        <div class="analytics-list-item">
-          <div class="analytics-list-thumb">
-            ${data.image ? `<img src="${escHtml(data.image)}" alt="">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--ink-faint);"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>`}
-          </div>
-          <div class="analytics-list-info">
-            <div class="analytics-list-title">${escHtml(data.title || 'Listing')}</div>
-            <div class="analytics-list-meta">ID: ${id}</div>
-          </div>
-          <div class="analytics-list-value">${data.count}</div>
-        </div>
-      `).join('');
-    } else {
-      topListings.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-faint);">No data yet</div>';
-    }
-    
-    const pendingPct = total ? Math.round((pending / total) * 100) : 0;
-    const acceptedPct = total ? Math.round((accepted / total) * 100) : 0;
-    const rejectedPct = total ? Math.round((rejected / total) * 100) : 0;
-    
-    statusChart.innerHTML = total ? `
-      <div class="status-bar">
-        <div class="status-bar-segment" style="flex:${pendingPct || 1};background:#e67e22;">${pendingPct > 10 ? pendingPct + '%' : ''}</div>
-        <div class="status-bar-segment" style="flex:${acceptedPct || 1};background:#27ae60;">${acceptedPct > 10 ? acceptedPct + '%' : ''}</div>
-        <div class="status-bar-segment" style="flex:${rejectedPct || 1};background:var(--error);">${rejectedPct > 10 ? rejectedPct + '%' : ''}</div>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--ink-faint);">
-        <span><span style="display:inline-block;width:10px;height:10px;background:#e67e22;border-radius:50%;margin-right:4px;"></span>Pending (${pending})</span>
-        <span><span style="display:inline-block;width:10px;height:10px;background:#27ae60;border-radius:50%;margin-right:4px;"></span>Accepted (${accepted})</span>
-        <span><span style="display:inline-block;width:10px;height:10px;background:var(--error);border-radius:50%;margin-right:4px;"></span>Declined (${rejected})</span>
-      </div>
-    ` : '<div style="text-align:center;padding:20px;color:var(--ink-faint);">No offers yet</div>';
-    
-  } catch (err) {
-    console.error('Analytics load error:', err);
-    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--error);">Failed to load analytics</div>';
-  }
 }
 
 function openIncomingOfferModal(offerId) {
@@ -1048,4 +1135,6 @@ function openIncomingOfferModal(offerId) {
   
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
-}
+};
+
+// End of offers.js

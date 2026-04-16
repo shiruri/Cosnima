@@ -18,48 +18,96 @@ import java.util.UUID;
 @Repository
 public interface ListingRepository extends JpaRepository<Listing, String> {
 
-    List<Listing> findBySellerId(UUID sellerId);
-
-    long countSoldListings(Listing.Status status);
-    long countActiveListings(boolean isActive);
-
-    @Query("SELECT l FROM Listing l WHERE l.id = :id")
-    List<Listing> getListingsById(@Param("id") String id);
-
-    @Query("SELECT li FROM ListingImage li WHERE li.listing.id IN :listingIds")
-    List<ListingImage> findImagesByListingIds(@Param("listingIds") List<String> listingIds);
-
-    @Modifying
-    @Query("UPDATE Listing l SET l.viewCount = l.viewCount + 1 WHERE l.id = :listingId")
-    int incrementViewCount(@Param("listingId") String listingId);
+    // =========================
+    // SELLER LISTINGS
+    // =========================
+    @Query("""
+        SELECT l FROM Listing l
+        WHERE l.seller.id = :sellerId
+        AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED
+    """)
+    List<Listing> findBySellerId(@Param("sellerId") UUID sellerId);
 
     Optional<Listing> findFirstBySeller_Id(UUID sellerId);
 
+    // =========================
+    // COUNTS
+    // =========================
+    long countByStatus(Listing.Status status);
+
+    long countByIsActive(Boolean isActive);
+
+    @Query("""
+        SELECT COUNT(l)
+        FROM Listing l
+        WHERE l.status = com.shiro.cosnima.model.Listing.Status.AVAILABLE
+        AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED
+    """)
+    long countAllListings();
+
+    @Query("""
+        SELECT COUNT(DISTINCT l.seller.id)
+        FROM Listing l
+        WHERE l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED
+    """)
+    UUID countDistinctSellers();
+
+    // =========================
+    // BASIC FETCH (SAFE VERSION)
+    // =========================
+    @Query("""
+        SELECT l FROM Listing l
+        WHERE l.id = :id
+        AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED
+    """)
+    List<Listing> getListingsById(@Param("id") String id);
 
     @Query("""
         SELECT l FROM Listing l
         LEFT JOIN FETCH l.images
         LEFT JOIN FETCH l.seller
         WHERE l.id = :id
+        AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED
     """)
     Optional<Listing> findByIdWithImages(@Param("id") String id);
 
-    @Query("SELECT COUNT(l) FROM Listing l WHERE l.status = 'AVAILABLE'")
-    long countAllListings();
-
-    // Removed tag JOIN and :tag condition
+    // =========================
+    // IMAGES
+    // =========================
     @Query("""
-    SELECT l FROM Listing l
-    WHERE (:keyword IS NULL OR LOWER(l.title) LIKE LOWER(CONCAT('%', :keyword, '%')))
-    AND (:minPrice IS NULL OR l.price >= :minPrice)
-    AND (:maxPrice IS NULL OR l.price <= :maxPrice)
-    AND (:condition IS NULL OR l.condition = :condition)
-    AND (:isActive IS NULL OR l.isActive = :isActive)
-    AND (:status IS NULL OR l.status = :status)
-    AND (:type IS NULL OR l.type = :type)
-    AND (:size IS NULL OR l.size = :size)
-    AND (:series IS NULL OR LOWER(l.seriesName) LIKE LOWER(CONCAT('%', :series, '%')))
-""")
+        SELECT li FROM ListingImage li
+        WHERE li.listing.id IN :listingIds
+    """)
+    List<ListingImage> findImagesByListingIds(@Param("listingIds") List<String> listingIds);
+
+    // =========================
+    // VIEW COUNT
+    // =========================
+    @Modifying
+    @Query("""
+        UPDATE Listing l
+        SET l.viewCount = l.viewCount + 1
+        WHERE l.id = :listingId
+        AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED
+    """)
+    int incrementViewCount(@Param("listingId") String listingId);
+
+    // =========================
+    // MAIN LISTING SEARCH (FULL FILTER)
+    // =========================
+    @Query("""
+        SELECT l FROM Listing l
+        WHERE (:keyword IS NULL OR LOWER(l.title) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        AND (:minPrice IS NULL OR l.price >= :minPrice)
+        AND (:maxPrice IS NULL OR l.price <= :maxPrice)
+        AND (:condition IS NULL OR l.condition = :condition)
+        AND (:isActive IS NULL OR l.isActive = :isActive)
+        AND (:status IS NULL OR l.status = :status)
+        AND (:type IS NULL OR l.type = :type)
+        AND (:size IS NULL OR l.size = :size)
+        AND (:series IS NULL OR LOWER(l.seriesName) LIKE LOWER(CONCAT('%', :series, '%')))
+        AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED
+    """)
     Page<Listing> getListings(
             @Param("keyword") String keyword,
             @Param("minPrice") BigDecimal minPrice,
@@ -73,7 +121,9 @@ public interface ListingRepository extends JpaRepository<Listing, String> {
             Pageable pageable
     );
 
-    // For stats endpoint
-    @Query("SELECT COUNT(DISTINCT l.seller.id) FROM Listing l")
-    UUID countDistinctSellers();
+    // =========================
+    // OPTIONAL SAFETY OVERRIDE (prevents accidental use)
+    // =========================
+    @Override
+    Optional<Listing> findById(String id);
 }

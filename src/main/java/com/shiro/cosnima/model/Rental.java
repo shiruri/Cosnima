@@ -30,6 +30,8 @@ public class Rental {
     private RentalStatus status = RentalStatus.PENDING;
 
 
+
+
     // ─────────────────────────────
     // Getters and Setters
     // ─────────────────────────────

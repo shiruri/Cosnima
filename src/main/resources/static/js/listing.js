@@ -278,11 +278,8 @@ if (state.size) params.set('size', state.size);
   if (state.minPrice != null) params.set('minPrice', state.minPrice);
   if (state.maxPrice != null) params.set('maxPrice', state.maxPrice);
 
-  console.log('Fetching with params:', params.toString()); // Debug
-
   try {
     const data = await API.get(`/api/listings?${params.toString()}`, false);
-    console.log('Response:', data); // Debug
 
     let listings = [];
     let total = 0;

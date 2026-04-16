@@ -342,7 +342,7 @@ async function submitListing() {
     showToast('Listing published! 🎉', 'success');
     setTimeout(() => redirectTo(`view-listing.html?id=${id}`), 1000);
   } catch (err) {
-    const msg = err?.data?.message || err?.message || 'Failed to publish. Please try again.';
+    const msg = err?.message || 'Failed to publish. Please try again.';
     const banner = document.getElementById('submit-error');
     if (banner) { banner.textContent = msg; banner.style.display = 'block'; }
     showToast(msg, 'error');

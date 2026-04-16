@@ -73,7 +73,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       } catch (err) {
         const status = err?.status;
-        let msg = err?.data?.message || err?.message || 'Login failed. Please try again.';
+        let msg = err?.message || 'Login failed. Please try again.';
+        
+        // Sanitize technical errors
+        if (msg.includes('java.') || msg.length > 80 || msg.includes('exception')) {
+          msg = 'Login failed. Please check your credentials.';
+        }
+        
         if (status === 401 || status === 403) msg = 'Incorrect email or password.';
         if (status === 0) msg = 'Cannot reach the server. Check your connection.';
         showBanner(msg, 'error');
@@ -149,7 +155,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       } catch (err) {
         const status = err?.status;
-        let msg = err?.data?.message || err?.message || 'Registration failed. Username or email may already be taken.';
+        let msg = err?.message || 'Registration failed. Please try again.';
+        
+        // Sanitize technical errors
+        if (msg.includes('java.') || msg.length > 80 || msg.includes('exception')) {
+          msg = 'Registration failed. Please try again.';
+        }
+        
         if (status === 409) msg = 'Username or email is already taken. Please try another.';
         if (status === 0)   msg = 'Cannot reach the server. Check your connection.';
         showBanner(msg, 'error');

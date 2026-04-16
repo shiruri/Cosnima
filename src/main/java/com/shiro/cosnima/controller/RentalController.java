@@ -1,11 +1,8 @@
 package com.shiro.cosnima.controller;
 
-import com.shiro.cosnima.dto.request.CreateOfferRequest;
 import com.shiro.cosnima.dto.request.RentalRequest;
-import com.shiro.cosnima.dto.response.OfferResponse;
 import com.shiro.cosnima.dto.response.RentalResponse;
-import com.shiro.cosnima.model.OfferStatus;
-import com.shiro.cosnima.model.Rental;
+import com.shiro.cosnima.model.ApiException;
 import com.shiro.cosnima.model.RentalStatus;
 import com.shiro.cosnima.service.RentalService;
 import jakarta.validation.Valid;
@@ -35,7 +32,7 @@ public class RentalController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
-            throw new RuntimeException("Unauthorized");
+            throw ApiException.forbidden("Unauthorized");
         }
 
         return UUID.fromString(auth.getName());

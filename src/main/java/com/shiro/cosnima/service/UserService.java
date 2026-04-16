@@ -1,16 +1,13 @@
 package com.shiro.cosnima.service;
 
 import com.shiro.cosnima.dto.request.UpdateProfileRequest;
-import com.shiro.cosnima.dto.response.AuthResult;
 import com.shiro.cosnima.dto.response.ListingResponse;
 import com.shiro.cosnima.dto.request.UserDto;
 import com.shiro.cosnima.dto.response.RatingResponse;
 import com.shiro.cosnima.dto.response.WishlistResponse;
-import com.shiro.cosnima.model.Rating;
+import com.shiro.cosnima.model.ApiException;
 import com.shiro.cosnima.model.User;
-import com.shiro.cosnima.model.Wishlist;
 import com.shiro.cosnima.repository.UserRepository;
-import com.shiro.cosnima.security.JwtUtils;
 import com.shiro.cosnima.utility.ListingMapper;
 import com.shiro.cosnima.utility.RatingMapper;
 import com.shiro.cosnima.utility.WishlistMapper;
@@ -23,7 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -67,7 +63,7 @@ public class UserService {
         if (userDetails.getUsername() != null && !userDetails.getUsername().equals(user.getUsername())) {
             long usernameCount = userRepo.countByUsernameExcludingUser(userDetails.getUsername(), id);
             if (usernameCount > 0) {
-                throw new RuntimeException("Username is already taken");
+                throw ApiException.conflict("Username is already taken");
             }
             user.setUsername(userDetails.getUsername());
         }
@@ -76,7 +72,7 @@ public class UserService {
         if (userDetails.getEmail() != null && !userDetails.getEmail().equals(user.getEmail())) {
             long emailCount = userRepo.countByEmailExcludingUser(userDetails.getEmail(), id);
             if (emailCount > 0) {
-                throw new RuntimeException("Email is already in use");
+                throw ApiException.conflict("Email is already in use");
             }
             user.setEmail(userDetails.getEmail());
         }
