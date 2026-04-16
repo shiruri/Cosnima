@@ -336,7 +336,7 @@
           </div>
           
           <div style="display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-md);">
-            <button class="wishlist-btn" id="view-wishlist-btn" onclick="toggleViewWishlist()">
+            <button class="wishlist-btn" id="view-wishlist-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
               <span id="wishlist-btn-text">Add to Wishlist</span>
             </button>
@@ -432,6 +432,7 @@
 
 <script src="../js/api.js"></script>
 <script src="../js/nav.js"></script>
+<script src="../js/wishlist.js"></script>
 <script src="../js/listing-actions.js"></script>
 <script src="../js/reports.js"></script>
 <script src="../js/report-buttons-patch.js"></script>
@@ -458,6 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  document.getElementById('view-wishlist-btn')?.addEventListener('click', () => window.toggleViewWishlist?.());
   loadListing();
   setupDropZone();
 });
@@ -561,6 +563,48 @@ function showAuthModal() {
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
 }
 
+
+
+window.refreshWishlistCount = async function refreshWishlistCount() {
+  if (!listingId || !API.isLoggedIn()) return;
+  try {
+    const count = await WishlistAPI.getCount(listingId);
+    const wrap = document.getElementById('wishlist-count');
+    const num = document.getElementById('wishlist-count-num');
+    if (wrap && num) {
+      num.textContent = String(count);
+      wrap.style.display = count > 0 ? 'inline-flex' : 'none';
+    }
+  } catch {}
+}
+
+window.syncWishlistButton = function syncWishlistButton() {
+  const btn = document.getElementById('view-wishlist-btn');
+  const text = document.getElementById('wishlist-btn-text');
+  if (!btn || !text || !listing) return;
+  const wished = WishlistAPI.isIn(listing.id);
+  btn.classList.toggle('wishlisted', wished);
+  btn.setAttribute('aria-label', wished ? 'Remove from wishlist' : 'Add to wishlist');
+  text.textContent = wished ? 'Wishlisted' : 'Add to Wishlist';
+}
+
+window.toggleViewWishlist = async function toggleViewWishlist() {
+  if (!listing) return;
+  if (!API.isLoggedIn()) {
+    showToast('Log in to save to your wishlist', 'info');
+    return;
+  }
+
+  try {
+    const wished = await WishlistAPI.toggle(listing.id, listing.sellerId || listing.seller?.id || null);
+    syncWishlistButton();
+    refreshWishlistCount();
+    showToast(wished ? 'Added to wishlist' : 'Removed from wishlist', wished ? 'success' : 'info');
+  } catch (err) {
+    showToast(err?.message || 'Could not update wishlist', 'error');
+  }
+}
+
 function renderListing(l) {
   document.title = `${l.title || 'Listing'} — Cosnima`;
   images = l.images || [];
@@ -569,6 +613,7 @@ function renderListing(l) {
   currentStatus = l.status || 'AVAILABLE';
   listing = l;
   rebuildBadges();
+  WishlistAPI.load().then(() => { syncWishlistButton(); refreshWishlistCount(); });
 
   document.getElementById('listing-title').textContent = l.title || 'Untitled';
   
