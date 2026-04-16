@@ -51,15 +51,15 @@ public class WishlistsService {
         }
 
         Listing listing = listingRepo.findById(listingId)
-                .orElseThrow(() -> new RuntimeException("Listing not found"));
-        
-        if (listing.getStatus() == Listing.Status.ARCHIVED) {
-            throw ApiException.badRequest("This listing is no longer available");
+                .orElseThrow(() -> ApiException.notFound("Listing not found"));
+
+        if (listing.getStatus() != Listing.Status.AVAILABLE) {
+            throw ApiException.badRequest("You can only wishlist available listings");
         }
 
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> ApiException.notFound("User not found"));
         Wishlist wishlist = new Wishlist();
         wishlist.setListing(listing);
         wishlist.setUser(user);

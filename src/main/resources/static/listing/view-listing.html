@@ -9,8 +9,7 @@
   <link rel="stylesheet" href="../css/home.css">
   <link rel="stylesheet" href="../css/rental-actions.css">
   <link rel="stylesheet" href="../css/reports.css">
-  <link rel="stylesheet" href="../css/ratings-modal-scrollbar.css">
-
+  
   <script>(function(){var t=localStorage.getItem('cosnimaTheme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
 
   <style>
@@ -433,8 +432,6 @@
 
 <script src="../js/api.js"></script>
 <script src="../js/nav.js"></script>
-<script src="../js/view-listing-wishlist-patch.js"></script>
-<script src="../js/update-listing-type-patch.js"></script>
 <script src="../js/listing-actions.js"></script>
 <script src="../js/reports.js"></script>
 <script src="../js/report-buttons-patch.js"></script>
@@ -1079,7 +1076,6 @@ document.addEventListener('keydown', function(e) {
   }
 });
 </script>
-
 <div id="image-modal" style="display:none;position:fixed;z-index:99999;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);" onclick="if(event.target === this) closeImageModal()">
   <button onclick="closeImageModal()" style="position:fixed;top:15px;right:20px;background:rgba(0,0,0,0.5);border:none;color:#fff;font-size:32px;cursor:pointer;z-index:999999;width:50px;height:50px;border-radius:50%;">X</button>
   <button onclick="navImg(-1)" style="position:fixed;left:20px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.2);border:none;color:#fff;font-size:32px;width:50px;height:50px;cursor:pointer;border-radius:50%;z-index:999999;">&lt;</button>
