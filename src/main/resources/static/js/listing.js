@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderNavAuth(document.getElementById('mobile-auth'));
   }
   
-  await loadSeriesOptions();
+  await Promise.all([loadSeriesOptions(), WishlistAPI.load()]);
   restoreUrlParams();
   wireFilters();
   initViewToggle();
@@ -462,7 +462,7 @@ function attachCardEvents() {
       return;
     }
 
-    const added = toggleWishlist(id);
+    const added = await toggleWishlist(id, sellerId);
     btn.classList.toggle('active', added);
 
     const svg = btn.querySelector('svg');
@@ -546,7 +546,9 @@ function attachCardEvents() {
         return;
       }
       const id = btn.getAttribute('data-id');
-      const added = toggleWishlist(id);
+      const card = btn.closest('.listing-card');
+      const sellerId = card?.getAttribute('data-seller-id') || null;
+      const added = await toggleWishlist(id, sellerId);
       btn.classList.toggle('active', added);
       const svg = btn.querySelector('svg');
       if (svg) svg.setAttribute('fill', added ? 'var(--accent)' : 'none');
@@ -556,18 +558,9 @@ function attachCardEvents() {
 }
 
 // ── Wishlist ──
-function getWishlist() {
-  try { return JSON.parse(localStorage.getItem('cosnimaWishlist') || '[]'); } catch { return []; }
-}
-function isInWishlist(id) { return getWishlist().includes(String(id)); }
-function toggleWishlist(id) {
-  const list = getWishlist();
-  const sid = String(id);
-  const idx = list.indexOf(sid);
-  if (idx > -1) list.splice(idx, 1);
-  else list.push(sid);
-  localStorage.setItem('cosnimaWishlist', JSON.stringify(list));
-  return idx === -1;
+function isInWishlist(id) { return window.WishlistAPI?.isIn(id) || false; }
+async function toggleWishlist(id, sellerId = null) {
+  return window.WishlistAPI?.toggle(id, sellerId);
 }
 
 // ── Pagination ──

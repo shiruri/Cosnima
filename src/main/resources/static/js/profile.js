@@ -238,6 +238,7 @@ function buildProfileListingCard(listing) {
 
 /* ── Tab switching ── */
 let offersLoaded = false;
+let wishlistLoaded = false;
 
 function switchTab(tab) {
   document.querySelectorAll('.profile-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
@@ -246,6 +247,11 @@ function switchTab(tab) {
   if (tab === 'offers' && !offersLoaded) {
     loadProfileOffers();
     offersLoaded = true;
+  }
+
+  if (tab === 'wishlist' && !wishlistLoaded) {
+    loadProfileWishlist();
+    wishlistLoaded = true;
   }
 }
 
@@ -290,6 +296,47 @@ async function loadProfileOffers() {
       </div>`;
   } catch (err) {
     container.innerHTML = '<div class="empty-state"><h3>Could not load offers</h3><p>Please try again later.</p></div>';
+  }
+}
+
+async function loadProfileWishlist() {
+  const container = document.getElementById('profile-wishlist-list');
+  if (!container) return;
+
+  container.innerHTML = '<div style="text-align:center;padding:var(--space-xl);color:var(--ink-muted);">Loading wishlist...</div>' ;
+
+  try {
+    const data = await API.get('/api/wishlists', true);
+    const wishlists = Array.isArray(data) ? data : [];
+
+    if (!wishlists.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+          </div>
+          <h3>Wishlist is empty</h3>
+          <p>Save items you love and come back to them later.</p>
+          <a href="../listing/listings.html" class="btn btn-primary" style="margin-top:var(--space-md)">Browse listings</a>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = wishlists.map(item => `
+      <article class="offer-row" style="background:var(--card);border:2px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-lg);display:flex;gap:var(--space-md);align-items:center;">
+        ${item.listingImage ? `<img src="${item.listingImage}" alt="${escapeHtml(item.listingTitle || 'Wishlist listing')}" style="width:80px;height:80px;object-fit:cover;border-radius:var(--radius);">` : `<div style="width:80px;height:80px;border-radius:var(--radius);background:var(--bg-alt);display:flex;align-items:center;justify-content:center;color:var(--ink-faint);">No image</div>`}
+        <div style="flex:1;">
+          <h4 style="margin:0 0 4px;font-size:1rem;">${escapeHtml(item.listingTitle || 'Untitled')}</h4>
+          <p style="margin:0;color:var(--accent);font-weight:700;">₱${Number(item.listingPrice || 0).toLocaleString('en-PH')}</p>
+          <p style="margin:6px 0 0;color:var(--ink-faint);font-size:0.75rem;">Saved ${new Date(item.savedAt).toLocaleDateString('en-PH')}</p>
+        </div>
+        <a href="../listing/view-listing.html?id=${item.listingId}" class="btn btn-outline" style="padding:0.5rem 1rem;font-size:0.8rem;">View</a>
+      </article>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = '<div class="empty-state"><h3>Could not load wishlist</h3><p>Please try again later.</p></div>' ;
   }
 }
 
