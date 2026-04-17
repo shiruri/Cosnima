@@ -128,10 +128,14 @@ public class MessageService {
 
 
 
-    public MessageResponse sendAutoMessage(AutoSendMessageRequest request) {
+    public MessageResponse sendAutoMessage(AutoSendMessageRequest request, UUID id) {
 
-        Conversation convo = conversationRepo
-                .findByBuyerIdAndListingId(request.getSenderId(), request.getListingId());
+        Conversation convo = conversationRepo.findBetweenUsersAndListing(
+                request.getSenderId(),
+                request.getRecieverId(),
+                request.getListingId()
+        );
+
 
         if (convo == null) {
             throw ApiException.notFound("Conversation not found");
@@ -156,6 +160,7 @@ public class MessageService {
 
         return MessageMapper.toDto(messageRepo.save(message));
     }
+
 
 
 }

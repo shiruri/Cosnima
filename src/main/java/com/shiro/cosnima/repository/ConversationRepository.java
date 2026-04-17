@@ -14,7 +14,21 @@ import java.util.UUID;
 @Repository
 public interface ConversationRepository extends JpaRepository<Conversation, String> {
 
-    Conversation findByBuyerIdAndListingId(UUID buyerId, String listingId);
+    @Query("""
+SELECT c FROM Conversation c
+WHERE c.listing.id = :listingId
+AND (
+   (c.buyer.id = :senderId AND c.seller.id = :receiverId)
+   OR
+   (c.buyer.id = :receiverId AND c.seller.id = :senderId)
+)
+""")
+    Conversation findBetweenUsersAndListing(
+            UUID senderId,
+            UUID receiverId,
+            String listingId
+    );
+
     Conversation findBySellerIdAndListingId(UUID sellerId, String listingId);
 
     @Query("SELECT c FROM Conversation c WHERE (c.buyer.id = :userId OR c.seller.id = :userId) AND c.listing.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED")

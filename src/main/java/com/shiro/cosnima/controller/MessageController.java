@@ -105,11 +105,12 @@ public class MessageController {
 
 
     @PostMapping("/messages/send/auto") ResponseEntity<MessageResponse> sendAutoMessage(
+            @RequestParam(required = false) UUID id,
             @RequestBody AutoSendMessageRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
             try {
-                MessageResponse messages = messageServ.sendAutoMessage(request);
+                MessageResponse messages = messageServ.sendAutoMessage(request,id);
                 return ResponseEntity.ok(messages);
             } catch (IllegalArgumentException e) {
                 return ResponseEntity.status(401).build();

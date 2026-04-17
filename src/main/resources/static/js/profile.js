@@ -186,7 +186,6 @@ function buildProfileListingCard(listing) {
 
   // Active indicator
   const activePip = listing.isActive
-    ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;font-weight:700;color:#1a7a40;">
         <span style="width:6px;height:6px;border-radius:50%;background:#27ae60;display:inline-block;"></span>Active
        </span>`
     : `<span style="display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;font-weight:700;color:var(--ink-faint);">

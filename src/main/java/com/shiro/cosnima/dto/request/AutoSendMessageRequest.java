@@ -6,6 +6,16 @@ public class AutoSendMessageRequest {
 
     private UUID senderId;
     private String listingId;
+
+    public UUID getRecieverId() {
+        return recieverId;
+    }
+
+    public void setRecieverId(UUID recieverId) {
+        this.recieverId = recieverId;
+    }
+
+    private UUID recieverId;
     private String content;
 
     // ===== Constructors =====
