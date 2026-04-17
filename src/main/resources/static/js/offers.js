@@ -330,101 +330,99 @@ function buildIncomingOfferRow(offer) {
       ${actionsHtml}
     </div>`;
 }
-
 async function handleAcceptOffer(offerId, buyerId, listingId, listingTitle, btn) {
-  const row = document.getElementById(`offer-row-${offerId}`) || document.getElementById(`incoming-offer-card-${offerId}`);
+  const row = document.getElementById(`offer-row-${offerId}`) 
+           || document.getElementById(`incoming-offer-card-${offerId}`);
+
   const allBtns = row?.querySelectorAll('.offer-action-btn');
   allBtns?.forEach(b => { b.disabled = true; b.style.opacity = '0.6'; });
 
   try {
-await API.post('/api/conversations/messages/send/auto', {
-  senderId: sellerId,
-  recieverId: offer.buyerId,  // ADD THIS
-  listingId: String(listingId),
-  content: msgContent
-}, true);    
-    // Send notification message to buyer
-    try {
-      const currentUser = API.getUser();
-      const sellerId = currentUser?.id;
-      if (!sellerId) {
-        showToast('Please log in to send notification.', 'error');
-        return;
-      }
-      const msgContent = `I've accepted your offer for "${listingTitle}". Let's arrange the exchange!`;
-      await API.post('/api/conversations/messages/send/auto', {
-        senderId: sellerId,
-        listingId: String(listingId),
-        content: msgContent
-      }, true);
-    } catch (e) {
-      console.error('Failed to send notification:', e);
-      showToast('Could not send notification. Please try again.', 'error');
+    const currentUser = API.getUser();
+    const sellerId = currentUser?.id;
+
+    if (!sellerId) {
+      showToast('Please log in to continue.', 'error');
       return;
     }
-    
+
+    const msgContent = `I've accepted your offer for "${listingTitle}". Let's arrange the exchange!`;
+
+    await API.post('/api/conversations/messages/send/auto', {
+      senderId: sellerId,
+      recieverId: buyerId,   // ✅ KEEP BACKEND SPELLING
+      listingId: String(listingId),
+      content: msgContent
+    }, true);
+
     if (row) {
       row.innerHTML = `
         <div style="display:flex;align-items:center;gap:var(--space-sm);width:100%;padding:var(--space-xs) 0;flex-wrap:wrap;">
           ${offerStatusChip('ACCEPTED')}
-          <span style="font-size:0.84rem;color:var(--ink-muted);font-weight:600;">Offer accepted — contact the buyer to arrange the exchange.</span>
+          <span style="font-size:0.84rem;color:var(--ink-muted);font-weight:600;">
+            Offer accepted — contact the buyer to arrange the exchange.
+          </span>
         </div>`;
     }
-    if (typeof showToast === 'function') showToast('Offer accepted! 🎉', 'success');
+
+    showToast('Offer accepted! 🎉', 'success');
+
   } catch (err) {
     allBtns?.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+
     const msg = err?.message || 'Could not accept offer. Please try again.';
-    if (typeof showToast === 'function') showToast(msg, 'error');
+    showToast(msg, 'error');
   }
 }
-
 async function handleRejectOffer(offerId, buyerId, listingId, listingTitle, btn) {
-  const row     = document.getElementById(`offer-row-${offerId}`);
+  const row = document.getElementById(`offer-row-${offerId}`);
   const allBtns = row?.querySelectorAll('.offer-action-btn');
+
   allBtns?.forEach(b => { b.disabled = true; b.style.opacity = '0.6'; });
 
   try {
-await API.post('/api/conversations/messages/send/auto', {
-  senderId: sellerId,
-  recieverId: offer.buyerId,  // ADD THIS
-  listingId: String(listingId),
-  content: msgContent
-}, true);    
-    // Send notification message to buyer
-    try {
-      const currentUser = API.getUser();
-      const sellerId = currentUser?.id;
-      if (!sellerId) {
-        showToast('Please log in to send notification.', 'error');
-        return;
-      }
-      const msgContent = `I've declined your offer for "${listingTitle}".`;
-      await API.post('/api/conversations/messages/send/auto', {
-        senderId: sellerId,
-        listingId: String(listingId),
-        content: msgContent
-      }, true);
-    } catch (e) {
-      console.error('Failed to send notification:', e);
-      showToast('Could not send notification. Please try again.', 'error');
+    const currentUser = API.getUser();
+    const sellerId = currentUser?.id;
+
+    if (!sellerId) {
+      showToast('Please log in to continue.', 'error');
       return;
     }
-    
+
+    // ✅ FIXED ENDPOINT
+    await API.post(`/api/offers/${offerId}/reject`, null, true);
+
+    const msgContent = `I've declined your offer for "${listingTitle}".`;
+
+    await API.post('/api/conversations/messages/send/auto', {
+      senderId: sellerId,
+      recieverId: buyerId,   // ✅ KEEP BACKEND SPELLING
+      listingId: String(listingId),
+      content: msgContent
+    }, true);
+
     if (row) {
       row.style.transition = 'opacity 0.3s, transform 0.3s';
-      row.style.opacity    = '0';
-      row.style.transform  = 'translateX(12px)';
+      row.style.opacity = '0';
+      row.style.transform = 'translateX(12px)';
+
       setTimeout(() => {
         row.remove();
+
         const badge = document.getElementById('offers-count');
-        if (badge) badge.textContent = Math.max(0, (parseInt(badge.textContent) || 1) - 1);
+        if (badge) {
+          badge.textContent = Math.max(0, (parseInt(badge.textContent) || 1) - 1);
+        }
       }, 320);
     }
-    if (typeof showToast === 'function') showToast('Offer declined.', 'info');
+
+    showToast('Offer declined.', 'info');
+
   } catch (err) {
     allBtns?.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+
     const msg = err?.message || 'Could not decline offer.';
-    if (typeof showToast === 'function') showToast(msg, 'error');
+    showToast(msg, 'error');
   }
 }
 

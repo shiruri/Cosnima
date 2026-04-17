@@ -263,40 +263,32 @@ function buildIncomingRentalCard(r) {
       </div>` : ''}
     </div>`;
 }
-
 async function handleRentalAccept(rentalId, listingId, renterId, listingTitle, btn) {
   const allBtns = btn.parentElement.querySelectorAll('.btn');
   allBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
 
   try {
-await API.post('/api/conversations/messages/send/auto', {
-  senderId: sellerId,
-  recieverId: rental.renterId,  // ADD THIS
-  listingId: String(listingId),
-  content: msgContent
-}, true);    
-    // Send notification message to renter
-    try {
-      const currentUser = API.getUser();
-      const sellerId = currentUser?.id;
-      if (!sellerId) {
-        showToast('Please log in to send notification.', 'error');
-        return;
-      }
-      const msgContent = `I've accepted your rental request for "${listingTitle}". Let's arrange the exchange!`;
-      await API.post('/api/conversations/messages/send/auto', {
-        senderId: sellerId,
-        listingId: String(listingId),
-        content: msgContent
-      }, true);
-    } catch (e) {
-      console.error('Failed to send notification:', e);
-      showToast('Could not send notification. Please try again.', 'error');
+    const currentUser = API.getUser();
+    const sellerId = currentUser?.id;
+
+    if (!sellerId) {
+      showToast('Please log in to continue.', 'error');
+      allBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
       return;
     }
-    
+
+    const msgContent = `I've accepted your rental request for "${listingTitle}". Let's arrange the exchange!`;
+
+    await API.post('/api/conversations/messages/send/auto', {
+      senderId: sellerId,
+      recieverId: renterId,   // ✅ keep backend spelling
+      listingId: String(listingId),
+      content: msgContent     // ✅ FIXED (was msgContent before)
+    }, true);
+
     showToast('Rental accepted!', 'success');
     loadIncomingRentalsDashboard();
+
   } catch (err) {
     const msg = err?.message || 'Could not accept rental.';
     showToast(msg, 'error');
@@ -309,40 +301,36 @@ async function handleRentalReject(rentalId, listingId, renterId, listingTitle, b
   allBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
 
   try {
-await API.post('/api/conversations/messages/send/auto', {
-  senderId: sellerId,
-  recieverId: rental.renterId,  // ADD THIS
-  listingId: String(listingId),
-  content: msgContent
-}, true);    
-    // Send notification message to renter
-    try {
-      const currentUser = API.getUser();
-      const sellerId = currentUser?.id;
-      if (!sellerId) {
-        showToast('Please log in to send notification.', 'error');
-        return;
-      }
-      const msgContent = `I've declined your rental request for "${listingTitle}".`;
-      await API.post('/api/conversations/messages/send/auto', {
-        senderId: sellerId,
-        listingId: String(listingId),
-        content: msgContent
-      }, true);
-    } catch (e) {
-      console.error('Failed to send notification:', e);
-      showToast('Could not send notification. Please try again.', 'error');
+    const currentUser = API.getUser();
+    const sellerId = currentUser?.id;
+
+    if (!sellerId) {
+      showToast('Please log in to continue.', 'error');
+      allBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
       return;
     }
-    
+
+    await API.post(`/api/rental/${rentalId}/reject`, null, true);
+
+    const msgContent = `I've declined your rental request for "${listingTitle}".`;
+
+    await API.post('/api/conversations/messages/send/auto', {
+      senderId: sellerId,
+      recieverId: renterId,   // ✅ keep backend spelling
+      listingId: String(listingId),
+      content: msgContent     // ✅ FIXED
+    }, true);
+
     showToast('Rental declined.', 'success');
     loadIncomingRentalsDashboard();
+
   } catch (err) {
     const msg = err?.message || 'Could not decline rental.';
     showToast(msg, 'error');
     allBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
   }
 }
+
 
 // Expose functions globally
 window.loadMyRentalsDashboard = loadMyRentalsDashboard;

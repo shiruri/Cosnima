@@ -14,9 +14,8 @@ import java.util.UUID;
 @Repository
 public interface OffersRepository extends JpaRepository<Offer, UUID> {
 
+
     boolean existsByListing_IdAndStatus(String listingId, OfferStatus status);
-
-
     Offer findByBuyerIdAndListingId(UUID buyerId, String listingId);
 
     @Query("SELECT o FROM Offer o JOIN FETCH o.listing l LEFT JOIN FETCH l.images LEFT JOIN FETCH l.seller WHERE o.buyer.id = :buyerId AND o.status = :status AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED ORDER BY o.createdAt DESC")

@@ -15,20 +15,14 @@ import java.util.UUID;
 @Repository
 public interface RentalRepository extends JpaRepository<Rental, Long> {
 
-    @Query("""
-SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END
-FROM Rental r
-WHERE r.listing.id = :listingId
-AND r.status = com.shiro.cosnima.model.RentalStatus.APPROVED
-AND (
-    :start <= r.endDate AND :end >= r.startDate
-)
-""")
-    boolean existsOverlap(
-            String listingId,
-            LocalDate start,
-            LocalDate end
-    );
+    List<Rental> findAllByListingId(String listingId);
+
+    @Query("SELECT COUNT(r) > 0 FROM Rental r WHERE r.listing.id = :listingId " +
+            "AND r.status IN ('ACTIVE', 'CONFIRMED') " +
+            "AND (r.startDate <= :end AND r.endDate >= :start)")
+    boolean existsOverlap(@Param("listingId") String listingId,
+                          @Param("start") LocalDate start,
+                          @Param("end") LocalDate end);
 
 
     @Query("SELECT r FROM Rental r WHERE r.renter.id = :userId OR r.listing.seller.id = :userId AND r.listing.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED ORDER BY r.startDate DESC")
