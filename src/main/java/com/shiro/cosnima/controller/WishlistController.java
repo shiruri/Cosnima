@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+
+ // TODO INTEGRATE LOGIC FOR RENTAL _ RENT - SALE NOTES AND WISHLISTS AND DESING PROBLEM AND AUTO MESSAGING
+
 @RestController
 @RequestMapping("api/wishlists")
 public class WishlistController {
@@ -57,7 +60,7 @@ public class WishlistController {
         return ResponseEntity.badRequest().build();
     }
 
-    @GetMapping("/{listingId}/wishlist")
+    @PostMapping("/{listingId}/wishlist")
     public ResponseEntity<WishlistResponse> wishlistListing(@PathVariable String listingId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {

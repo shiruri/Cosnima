@@ -43,12 +43,6 @@ const gridViewBtn = document.getElementById('grid-view-btn');
 const listViewBtn = document.getElementById('list-view-btn');
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Render nav auth
-  if (typeof renderNavAuth === 'function') {
-    renderNavAuth(document.getElementById('nav-auth'));
-    renderNavAuth(document.getElementById('mobile-auth'));
-  }
-  
   await loadSeriesOptions();
   restoreUrlParams();
   wireFilters();
@@ -278,8 +272,11 @@ if (state.size) params.set('size', state.size);
   if (state.minPrice != null) params.set('minPrice', state.minPrice);
   if (state.maxPrice != null) params.set('maxPrice', state.maxPrice);
 
+  console.log('Fetching with params:', params.toString()); // Debug
+
   try {
     const data = await API.get(`/api/listings?${params.toString()}`, false);
+    console.log('Response:', data); // Debug
 
     let listings = [];
     let total = 0;
@@ -433,48 +430,7 @@ function createListingCard(listing) {
     </div>
   `;
   return article;
-}
 
-function attachCardEvents() {
-    document.querySelectorAll('.card-wish:not([data-wired-wish])').forEach(btn => {
-  btn.setAttribute('data-wired-wish', 'true');
-
-  btn.addEventListener('click', async (e) => {
-    e.stopPropagation();
-
-    const id = btn.getAttribute('data-id');
-
-    // 🔒 Prevent wishlisting own listing
-    const currentUser = API.getUser();
-    const card = btn.closest('.listing-card');
-    const listingId = card?.getAttribute('data-id');
-
-    // You need sellerId stored — easiest way:
-    const sellerId = card?.getAttribute('data-seller-id');
-
-    if (currentUser && String(currentUser.id) === String(sellerId)) {
-      showToast("You can't wishlist your own listing", "info");
-      return;
-    }
-
-    if (!API.isLoggedIn()) {
-      showToast('Log in to save to your wishlist', 'info');
-      return;
-    }
-
-    const added = toggleWishlist(id);
-    btn.classList.toggle('active', added);
-
-    const svg = btn.querySelector('svg');
-    if (svg) svg.setAttribute('fill', added ? 'var(--accent)' : 'none');
-
-    showToast(
-      added ? 'Added to wishlist' : 'Removed from wishlist',
-      added ? 'success' : 'info',
-      2000
-    );
-  });
-});
 
   document.querySelectorAll('.listing-card:not([data-wired-card])').forEach(card => {
     card.setAttribute('data-wired-card', 'true');
@@ -490,59 +446,7 @@ function attachCardEvents() {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       if (!API.isLoggedIn()) {
-        // Show login modal
-        const modal = document.createElement('div');
-        modal.id = 'auth-gate-modal';
-        modal.style.cssText = `
-          position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);
-          display:flex;align-items:center;justify-content:center;z-index:9999;
-          animation:fadeIn 0.2s ease;
-        `;
-        modal.innerHTML = `
-          <div style="
-            background:var(--card);border:2px solid var(--border);border-radius:var(--radius-xl);
-            padding:var(--space-2xl);max-width:360px;width:90%;text-align:center;
-            box-shadow:0 20px 40px rgba(0,0,0,0.15);animation:slideUp 0.3s ease;
-          ">
-            <div style="
-              width:64px;height:64px;margin:0 auto var(--space-lg);
-              background:linear-gradient(135deg, var(--accent), #f8bbd0);
-              border-radius:50%;display:flex;align-items:center;justify-content:center;
-            ">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2" style="width:32px;height:32px;">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-              </svg>
-            </div>
-            <h3 style="margin:0 0 var(--space-sm);color:var(--ink);font-size:1.25rem;">Save to Wishlist</h3>
-            <p style="margin:0 0 var(--space-lg);color:var(--ink-muted);font-size:0.9rem;line-height:1.5;">
-              Sign in to save your favorite listings!
-            </p>
-            <div style="display:flex;flex-direction:column;gap:var(--space-sm);">
-              <a href="../login/login.html" class="btn btn-primary" style="justify-content:center;text-decoration:none;">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-                </svg>
-                Sign In
-              </a>
-              <a href="../signup/register.html" class="btn btn-outline" style="justify-content:center;text-decoration:none;border-color:var(--accent);color:var(--accent);">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                </svg>
-                Create Account
-              </a>
-            </div>
-            <button onclick="document.getElementById('auth-gate-modal').remove()" style="
-              margin-top:var(--space-md);background:none;border:none;color:var(--ink-faint);
-              font-size:0.85rem;cursor:pointer;padding:var(--space-xs);
-            ">Maybe later</button>
-          </div>
-          <style>
-            @keyframes slideUp { from { opacity:0;transform:translateY(20px); } to { opacity:1;transform:translateY(0); } }
-            @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-          </style>
-        `;
-        document.body.appendChild(modal);
-        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+        showToast('Log in to save to your wishlist', 'info');
         return;
       }
       const id = btn.getAttribute('data-id');

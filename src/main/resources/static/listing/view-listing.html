@@ -10,7 +10,21 @@
   <link rel="stylesheet" href="../css/rental-actions.css">
   <link rel="stylesheet" href="../css/reports.css">
   
-  <script>(function(){var t=localStorage.getItem('cosnimaTheme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <script>
+(function(){var t=localStorage.getItem('cosnimaTheme')||'light';document.documentElement.setAttribute('data-theme',t);})();
+
+function addPriceNoteUpdate() {
+  const container = document.getElementById('u-price-notes-container');
+  if (!container) return;
+  
+  const noteDiv = document.createElement('div');
+  noteDiv.className = 'price-note-item';
+  noteDiv.style.cssText = 'display:flex;gap:8px;align-items:center;margin-top:8px;';
+  noteDiv.innerHTML = '<input type="text" class="price-note-input" placeholder="e.g., 500 for 3 days" style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--ink);"><button type="button" onclick="this.closest(\'div\').remove()" style="padding:8px;background:none;border:none;color:var(--ink-faint);cursor:pointer;border-radius:6px;transition:all 0.2s;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>';
+  
+  container.appendChild(noteDiv);
+}
+</script>
 
   <style>
     .view-listing-page{padding-top:calc(var(--nav-h) + var(--space-xl));padding-bottom:var(--space-3xl);}
@@ -192,23 +206,51 @@
 
 <!-- UPDATE MODAL -->
 <div class="modal-backdrop" id="modal-backdrop" onclick="closeModal()"></div>
-<div class="modal" id="update-modal" role="dialog" aria-label="Update Listing" aria-modal="true">
-  <div class="modal-header">
+<div class="modal" id="update-modal" role="dialog" aria-label="Update Listing" aria-modal="true" style="background:var(--card);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.25);border:1px solid var(--border);max-width:520px;">
+  <div class="modal-header" style="border-bottom:1px solid var(--border);padding:20px 24px;">
     <div>
       <p style="font-size:0.68rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:4px;">Owner Actions</p>
-      <h2>Update Listing</h2>
+      <h2 style="font-size:1.4rem;">Update Listing</h2>
     </div>
-    <button class="modal-close" onclick="closeModal()" aria-label="Close">
+    <button class="modal-close" onclick="closeModal()" aria-label="Close" style="background:var(--bg-alt);border:none;padding:8px;border-radius:8px;cursor:pointer;color:var(--ink-muted);">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" style="padding:20px 24px;max-height:70vh;overflow-y:auto;scrollbar-width:thin;overscroll-behavior:contain;scrollbar-color:var(--beaver) var(--bg-alt);">
     <form id="update-form">
       <div class="form-grid">
         <div class="form-field full"><label>Title</label><input type="text" id="u-title" placeholder="Title" maxlength="200"></div>
+        <div class="form-field full">
+          <label>Listing Type</label>
+          <div id="u-type-toggle" style="display:flex;gap:4px;background:var(--bg-alt);padding:4px;border-radius:10px;border:2px solid var(--beaver);position:relative;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,0.08);">
+            <span class="toggle-slider" id="type-slider" style="position:absolute;top:4px;left:4px;width:calc(50% - 4px);height:calc(100% - 8px);background:linear-gradient(135deg, var(--beaver), #a67c5a);border-radius:8px;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);z-index:0;box-shadow:0 2px 6px rgba(200,122,80,0.35);"></span>
+            <button type="button" class="type-btn active" data-type="SELL" onclick="toggleTypeUpdate(this,'SELL')" style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px 14px;border:none;background:transparent;border-radius:8px;font-size:0.85rem;font-weight:700;color:var(--ink-muted);cursor:pointer;position:relative;z-index:1;transition:color 0.2s;">For Sale</button>
+            <button type="button" class="type-btn" data-type="RENT" onclick="toggleTypeUpdate(this,'RENT')" style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px 14px;border:none;background:transparent;border-radius:8px;font-size:0.85rem;font-weight:700;color:var(--ink-muted);cursor:pointer;position:relative;z-index:1;transition:color 0.2s;">For Rent</button>
+          </div>
+        </div>
+        <div class="form-field" id="sell-price-field">
+          <label>Price (₱)</label>
+          <div class="price-field-wrap"><span>₱</span><input type="number" id="u-price" min="1" max="100000" step="0.01" placeholder="0.00"></div>
+        </div>
+        <div class="form-field" id="rent-price-field" style="display:none;">
+          <label>Daily Rate (₱)</label>
+          <div class="price-field-wrap"><span>₱</span><input type="number" id="u-daily-price" min="1" max="100000" step="0.01" placeholder="0.00"></div>
+        </div>
+        <div class="form-field" id="rent-min-days-field" style="display:none;">
+          <label style="visibility:hidden;">Min</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="number" id="u-min-days" min="1" max="365" value="1" style="width:70px;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--ink);text-align:center;">
+            <span style="color:var(--ink-faint);font-size:14px;">days min</span>
+          </div>
+        </div>
+        <div class="form-field full" id="rent-notes-field" style="display:none;">
+          <label>Price Options</label>
+          <div id="u-price-notes-container" style="display:flex;flex-direction:column;gap:8px;">
+            <button type="button" class="btn btn-outline" onclick="addPriceNoteUpdate()" style="font-size:0.8rem;color:var(--beaver);border-color:var(--beaver);width:100%;justify-content:center;">+ Add Price Option</button>
+          </div>
+        </div>
         <div class="form-field full"><label>Description</label><textarea id="u-description" rows="4"></textarea></div>
-        <div class="form-field"><label>Price (₱)</label><div class="price-field-wrap"><span>₱</span><input type="number" id="u-price" min="0" step="0.01"></div></div>
-        <div class="form-field"><label>Type</label><select id="u-type"><option value="SELL">For Sale</option><option value="RENT">For Rent</option></select></div>
+        
         <div class="form-field"><label>Condition</label><select id="u-condition"><option value="">Select…</option><option value="NEW">New</option><option value="LIKE_NEW">Like New</option><option value="USED">Used</option><option value="WORN">Worn</option></select></div>
         <div class="form-field"><label>Size</label><select id="u-size"><option value="">Not specified</option><option value="XS">XS</option><option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="XXL">XXL</option></select></div>
         <div class="form-field"><label>Character</label><input type="text" id="u-character"></div>
@@ -217,7 +259,7 @@
         <div class="form-field full">
           <label>Convention Pickup</label>
           <div id="conv-toggle" onclick="toggleConvention()" style="display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md) var(--space-lg);background:var(--bg-alt);border:2px solid var(--border);border-radius:var(--radius-lg);cursor:pointer;transition:all var(--t-fast);" role="checkbox" aria-checked="false">
-            <div style="font-size:1.4rem;flex-shrink:0;" aria-hidden="true">🎪</div>
+            <div style="flex-shrink:0;" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
             <div style="flex:1;"><strong style="font-size:0.88rem;color:var(--ink);">Available for convention pickup</strong></div>
             <div id="conv-switch" style="width:44px;height:24px;border-radius:var(--radius-pill);background:var(--border-dark);position:relative;transition:background var(--t-base);flex-shrink:0;">
               <span id="conv-knob" style="position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,0.2);transition:transform var(--t-base);display:block;"></span>
@@ -232,7 +274,7 @@
           </div>
           <div class="img-upload-zone" id="img-drop-zone" onclick="document.getElementById('u-images').click()">
             <input type="file" id="u-images" multiple accept="image/*" onchange="handleImageFiles(this.files)">
-            <div class="img-upload-icon">📸</div>
+            <div class="img-upload-icon" style="display:flex;align-items:center;justify-content:center;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--ink-faint);"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
             <p class="img-upload-text">Drop images or <strong>browse</strong></p>
             <p class="img-upload-hint">JPEG, PNG, WebP — max 10MB</p>
           </div>
@@ -475,6 +517,7 @@ async function loadListing() {
     if (!listing) { showError('Listing not found.'); return; }
     if (listing.status === 'ARCHIVED') { showError('This listing is no longer available.'); return; }
     renderListing(listing);
+    updateWishlistButtonState();
   } catch (err) {
     const msg = err?.status === 404
       ? 'This listing does not exist or has been removed.'
@@ -808,6 +851,80 @@ function attachStatusHandlers() {
   });
 }
 
+// ── Wishlist helpers for view-listing.html ──
+async function isInWishlist(id) {
+  if (!API.isLoggedIn()) return false;
+  try {
+    const wishlists = await API.get('/api/wishlists', true);
+    if (!Array.isArray(wishlists)) return false;
+    return wishlists.some(w => String(w.listingId) === String(id));
+  } catch {
+    return false;
+  }
+}
+
+async function updateWishlistButtonState() {
+  const btn = document.getElementById('view-wishlist-btn');
+  const btnText = document.getElementById('wishlist-btn-text');
+  if (!btn || !listingId) return;
+  
+  if (!API.isLoggedIn()) return;
+  
+  const currentUser = API.getUser();
+  if (currentUser && String(currentUser.id) === String(listing?.sellerId)) {
+    btn.style.display = 'none';
+    return;
+  }
+  
+  try {
+    const isWished = await isInWishlist(listingId);
+    btn.classList.toggle('wishlisted', isWished);
+    if (btnText) btnText.textContent = isWished ? 'In Wishlist' : 'Add to Wishlist';
+  } catch {
+    // Ignore
+  }
+}
+
+async function toggleViewWishlist() {
+  const btn = document.getElementById('view-wishlist-btn');
+  const btnText = document.getElementById('wishlist-btn-text');
+  if (!btn || !listingId) return;
+
+  if (!API.isLoggedIn()) {
+    showToast('Log in to save to your wishlist', 'info');
+    return;
+  }
+
+  const currentUser = API.getUser();
+  if (currentUser && String(currentUser.id) === String(listing?.sellerId)) {
+    showToast("You can't wishlist your own listing", 'info');
+    return;
+  }
+
+  try {
+    const isWished = await isInWishlist(listingId);
+    console.log('=== VIEW LISTING WISHLIST ===');
+    console.log('Currently wishlisted:', isWished);
+    if (isWished) {
+      console.log('Calling DELETE /api/wishlists/' + listingId);
+      await API.delete(`/api/wishlists/${listingId}`, true);
+      btn.classList.remove('wishlisted');
+      if (btnText) btnText.textContent = 'Add to Wishlist';
+      showToast('Removed from wishlist', 'info');
+    } else {
+      console.log('Calling POST /api/wishlists/' + listingId + '/wishlist');
+      await API.post(`/api/wishlists/${listingId}/wishlist`, null, true);
+      btn.classList.add('wishlisted');
+      if (btnText) btnText.textContent = 'In Wishlist';
+      showToast('Added to wishlist', 'success');
+    }
+  } catch (err) {
+    console.error('Wishlist error:', err);
+    const msg = err?.data?.message || err?.message || 'Failed to update wishlist';
+    showToast(msg, 'error');
+  }
+}
+
 document.addEventListener('keydown', function(e) {
   const modal = document.getElementById('image-modal');
   if (modal && modal.style.display === 'block') {
@@ -818,20 +935,151 @@ document.addEventListener('keydown', function(e) {
 });
 
 /* Update modal */
+let updateFormInitialized = false;
+
 function prefillUpdateForm(l) {
+  if (!l) return;
+  
   const set = (id, val) => { const el=document.getElementById(id); if(el&&val!=null) el.value=val; };
-  set('u-title',l.title); set('u-description',l.description); set('u-price',l.price);
-  set('u-type',l.type); set('u-condition',l.condition||''); set('u-size',l.size||'');
-  set('u-character',l.characterName); set('u-series',l.seriesName); set('u-location',l.location);
-  conventionOn = !!l.conventionPickup; updateConvToggle();
+  set('u-title', l.title);
+  set('u-condition', l.condition || '');
+  set('u-size', l.size || '');
+  set('u-character', l.characterName);
+  set('u-series', l.seriesName);
+  set('u-location', l.location);
+  
+  const type = l.type || 'SELL';
+  const btn = document.querySelector(`#u-type-toggle .type-btn[data-type="${type}"]`);
+  if (btn) toggleTypeUpdate(btn, type);
+  
+  const noteContainer = document.getElementById('u-price-notes-container');
+  if (noteContainer) {
+    const existingNotes = noteContainer.querySelectorAll('.price-note-item');
+    existingNotes.forEach(n => n.remove());
+  }
+  
+  const desc = l.description || '';
+  let cleanDescription = '';
+  
+  if (type === 'RENT') {
+    set('u-daily-price', l.price);
+    
+    const minMatch = desc.match(/minimum rental:?\s*(\d+)\s*day/i);
+    if (minMatch) {
+      set('u-min-days', parseInt(minMatch[1]) || 1);
+    }
+    
+    const pricingOptStart = desc.indexOf('Pricing Options:');
+    let pricingLines = [];
+    
+    if (pricingOptStart !== -1) {
+      const afterPricing = desc.substring(pricingOptStart + 16);
+      const dashLines = afterPricing.split('\n').filter(line => line.trim().startsWith('- '));
+      
+      if (noteContainer && dashLines.length > 0) {
+        const addBtn = noteContainer.querySelector('button');
+        dashLines.forEach(line => {
+          const text = line.trim().substring(2);
+          const match = text.match(/₱?([\d,]+(?:\.\d{1,2})?)\s*for\s*(\d+)\s*days?/i);
+          const amount = match ? match[1].replace(/,/g, '') : '';
+          const days = match ? match[2] : '';
+          
+          const noteDiv = document.createElement('div');
+          noteDiv.className = 'price-note-item';
+          noteDiv.style.cssText = 'display:inline-flex;gap:6px;align-items:center;vertical-align:middle;background:var(--bg-alt);padding:8px 12px;border-radius:10px;border:1px solid var(--border);margin:4px 8px 0 0;';
+          noteDiv.innerHTML = `
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--beaver)" stroke-width="2.5" style="color:var(--beaver);"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <input type="number" class="price-note-input" value="${amount}" placeholder="0.00" min="1" max="100000" step="0.01" style="width:100px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--ink);text-align:right;font-weight:500;">
+            <span style="font-size:13px;color:var(--ink-faint);">for</span>
+            <input type="number" class="days-note-input" value="${days}" placeholder="days" min="1" max="365" style="width:60px;padding:10px 8px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--ink);text-align:center;font-weight:500;">
+            <span style="font-size:13px;color:var(--ink-faint);">days</span>
+            <button type="button" onclick="this.closest('div').remove()" style="padding:6px;background:none;border:none;color:var(--ink-faint);cursor:pointer;border-radius:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+          `;
+          if (addBtn) noteContainer.insertBefore(noteDiv, addBtn);
+        });
+      }
+    }
+    
+    let minRentalPos = desc.length;
+    if (minMatch) minRentalPos = desc.indexOf(minMatch[0]);
+    const pricingSection = Math.min(pricingOptStart !== -1 ? pricingOptStart : desc.length, minRentalPos);
+    cleanDescription = desc.substring(0, pricingSection).trim();
+  } else {
+    set('u-price', l.price);
+    cleanDescription = l.description || '';
+  }
+  
+  set('u-description', cleanDescription);
+  
+  conventionOn = !!l.conventionPickup; 
+  updateConvToggle();
+  updateFormInitialized = true;
 }
 
-function openModal() { document.getElementById('modal-backdrop').classList.add('open'); document.getElementById('update-modal').classList.add('open'); document.body.style.overflow='hidden'; }
+function openModal() {
+  if (currentStatus === 'SOLD') {
+    showToast('This item has been sold and cannot be edited.', 'info');
+    return;
+  }
+  if (currentStatus === 'RENTED') {
+    showToast('This item is currently rented and cannot be edited.', 'info');
+    return;
+  }
+  document.getElementById('modal-backdrop').classList.add('open');
+  document.getElementById('update-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
 function closeModal() { document.getElementById('modal-backdrop').classList.remove('open'); document.getElementById('update-modal').classList.remove('open'); document.body.style.overflow=''; }
 
 function toggleConvention() {
   conventionOn = !conventionOn; updateConvToggle();
   document.getElementById('conv-toggle').setAttribute('aria-checked', conventionOn);
+}
+
+function toggleTypeUpdate(btn, type) {
+  const slider = document.getElementById('type-slider');
+  document.querySelectorAll('#u-type-toggle .type-btn').forEach(b => {
+    b.classList.remove('active');
+    b.style.color = 'var(--ink-muted)';
+  });
+  btn.classList.add('active');
+  btn.style.color = 'white';
+  btn.style.fontWeight = '700';
+  
+  const isRent = type === 'RENT';
+  if (slider) {
+    slider.style.transform = isRent ? 'translateX(100%)' : 'translateX(0)';
+  }
+  
+  document.getElementById('sell-price-field').style.display = isRent ? 'none' : 'block';
+  document.getElementById('rent-price-field').style.display = isRent ? 'block' : 'none';
+  document.getElementById('rent-min-days-field').style.display = isRent ? 'block' : 'none';
+  document.getElementById('rent-notes-field').style.display = isRent ? 'block' : 'none';
+  
+  // Transfer price when switching SELL → RENT
+  if (isRent) {
+    const sellPrice = document.getElementById('u-price');
+    const rentPrice = document.getElementById('u-daily-price');
+    if (sellPrice && rentPrice && sellPrice.value && !rentPrice.value) {
+      rentPrice.value = sellPrice.value;
+    }
+  }
+}
+
+function addPriceNoteUpdate() {
+  const container = document.getElementById('u-price-notes-container');
+  const noteDiv = document.createElement('div');
+  noteDiv.className = 'price-note-item';
+  noteDiv.style.cssText = 'display:inline-flex;gap:6px;align-items:center;vertical-align:middle;background:var(--bg-alt);padding:8px 12px;border-radius:10px;border:1px solid var(--border);margin:4px 8px 0 0;';
+  noteDiv.innerHTML = `
+    <span style="font-size:14px;color:var(--beaver);font-weight:600;">₱</span>
+    <input type="number" class="price-note-input" placeholder="0.00" min="1" max="100000" step="0.01" style="width:100px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--ink);text-align:right;font-weight:500;">
+    <span style="font-size:13px;color:var(--ink-faint);">for</span>
+    <input type="number" class="days-note-input" placeholder="days" min="1" max="365" style="width:60px;padding:10px 8px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--ink);text-align:center;font-weight:500;">
+    <span style="font-size:13px;color:var(--ink-faint);">days</span>
+    <button type="button" onclick="this.closest('div').remove()" style="padding:6px;background:none;border:none;color:var(--ink-faint);cursor:pointer;border-radius:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+  `;
+  container.appendChild(noteDiv);
 }
 
 function updateConvToggle() {
@@ -871,28 +1119,152 @@ function setupDropZone() {
   zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('dragover'); handleImageFiles(e.dataTransfer.files); });
 }
 
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function sanitizeForHtml(str) {
+  if (!str) return '';
+  let s = String(str);
+  // Remove any HTML tags except allowed ones
+  s = s.replace(/<[^>]*>/g, '');
+  // Remove emoji that might cause issues
+  s = s.replace(/[\u{1F600}-\u{1F64F}]/gu, '');
+  s = s.replace(/[\u{1F300}-\u{1F5FF}]/gu, '');
+  s = s.replace(/[\u{1F680}-\u{1F6FF}]/gu, '');
+  s = s.replace(/[\u{1F700}-\u{1F77F}]/gu, '');
+  s = s.replace(/[\u{1F780}-\u{1F7FF}]/gu, '');
+  s = s.replace(/[\u{1F800}-\u{1F8FF}]/gu, '');
+  return s.trim();
+}
+
 async function submitUpdate() {
   const btn = document.getElementById('update-submit-btn');
-  const btnText = btn.querySelector('.btn-text'); const loader = btn.querySelector('.btn-loader');
-  btn.disabled=true; if(btnText) btnText.style.display='none'; if(loader) loader.style.display='flex';
+  const btnText = btn ? btn.querySelector('.btn-text') : null;
+  const loader = btn ? btn.querySelector('.btn-loader') : null;
+  if(btn) btn.disabled=true;
+  if(btnText) btnText.style.display='none';
+  if(loader) loader.style.display='flex';
+  
   try {
-    const get = id => document.getElementById(id)?.value?.trim() || null;
+    const get = id => {
+      const el = document.getElementById(id);
+      return el ? el.value.trim() : '';
+    };
+    
+    const title = sanitizeForHtml(get('u-title'));
+    if (!title || title.length < 2) {
+      showToast('Please enter a valid title', 'error');
+      return;
+    }
+    
+    // Get current listing type
+    const activeTypeBtn = document.querySelector('#u-type-toggle .type-btn.active');
+    const listingType = activeTypeBtn ? activeTypeBtn.dataset.type : 'SELL';
+    
+    let price = get('u-price') || '';
+    let description = sanitizeForHtml(get('u-description')) || '';
+    
+    // Validate SELL price
+    if (listingType === 'SELL') {
+      const priceNum = Number(price);
+      if (!price || priceNum <= 0) {
+        showToast('Please enter a valid price', 'error');
+        return;
+      }
+      if (priceNum > 100000) {
+        showToast('Price cannot exceed P100,000', 'error');
+        return;
+      }
+    }
+    
+    // For RENT type, combine price notes into description
+    if (listingType === 'RENT') {
+      const dailyPrice = get('u-daily-price');
+      const minDays = parseInt(get('u-min-days')) || 1;
+      price = dailyPrice || '';
+      
+      const priceNum = Number(price);
+      if (!price || priceNum <= 0) {
+        showToast('Please enter a valid price greater than 0', 'error');
+        return;
+      }
+      if (priceNum > 100000) {
+        showToast('Price cannot exceed ₱100,000', 'error');
+        return;
+      }
+      if (minDays < 1) {
+        showToast('Minimum days must be at least 1', 'error');
+        return;
+      }
+      if (minDays > 365) {
+        showToast('Minimum days cannot exceed 365', 'error');
+        return;
+      }
+      
+      const amounts = document.querySelectorAll('#u-price-notes-container .price-note-input');
+      const daysInputs = document.querySelectorAll('#u-price-notes-container .days-note-input');
+      
+      const priceNotesArr = [];
+      amounts.forEach((input, i) => {
+        const amt = sanitizeForHtml(input.value.trim());
+        const d = parseInt(sanitizeForHtml(daysInputs[i]?.value.trim())) || 0;
+        if (amt && d > 0) priceNotesArr.push({ amount: amt, days: d });
+      });
+      
+      const invalidNotes = priceNotesArr.filter(pn => Number(pn.amount) <= 0 || pn.days < 1 || Number(pn.amount) > 100000 || pn.days > 365);
+      if (invalidNotes.length > 0) {
+        showToast('Price options: amount max ₱100,000, days max 365', 'error');
+        return;
+      }
+      
+      let rentalInfo = '';
+      rentalInfo += `\nMinimum rental: ${minDays} day${minDays > 1 ? 's' : ''}`;
+      if (priceNotesArr.length > 0) {
+        rentalInfo += `\nPricing Options:`;
+        priceNotesArr.forEach(pn => {
+          rentalInfo += `\n  - P${Number(pn.amount).toLocaleString()} for ${pn.days} days`;
+        });
+      }
+      description = description + rentalInfo;
+    }
+    
     const formData = new FormData();
     formData.append('value', new Blob([JSON.stringify({
-      title:get('u-title'), description:get('u-description'), price:get('u-price'),
-      type:get('u-type'), condition:get('u-condition'), size:get('u-size'),
-      characterName:get('u-character'), seriesName:get('u-series'), location:get('u-location'),
-      conventionPickup:conventionOn, imageMode:imgMode,
-    })], { type:'application/json' }));
-    newFiles.forEach(f => formData.append('files', f));
+      title: title, 
+      description: description, 
+      price: price,
+      type: listingType, 
+      condition: sanitizeForHtml(get('u-condition')), 
+      size: sanitizeForHtml(get('u-size')),
+      characterName: sanitizeForHtml(get('u-character')), 
+      seriesName: sanitizeForHtml(get('u-series')), 
+      location: sanitizeForHtml(get('u-location')),
+      conventionPickup: conventionOn, 
+      imageMode: imgMode,
+    })], { type: 'application/json' }));
+    
+    if (newFiles && newFiles.length > 0) {
+      newFiles.forEach(f => formData.append('files', f));
+    }
+    
     await API.patchForm(`/api/listings/update/${listingId}`, formData);
     showToast('Listing updated!', 'success');
-    closeModal(); newFiles=[];
+    closeModal();
+    newFiles = [];
     await loadListing();
   } catch (err) {
     showToast(err?.data?.message || err?.message || 'Update failed.', 'error');
   } finally {
-    btn.disabled=false; if(btnText) btnText.style.display='inline'; if(loader) loader.style.display='none';
+    if(btn) btn.disabled=false;
+    if(btnText) btnText.style.display='inline';
+    if(loader) loader.style.display='none';
   }
 }
 

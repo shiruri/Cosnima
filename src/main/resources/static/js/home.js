@@ -115,7 +115,7 @@ async function loadFeaturedListings(filters = {}) {
 
     container.querySelectorAll('.listing-card').forEach(card => {
       card.addEventListener('click', e => {
-        if (e.target.closest('.card-wish')) return;
+        
         const id = card.dataset.id;
         if (id) redirectTo(`listing/view-listing.html?id=${id}`);
       });
@@ -199,7 +199,7 @@ function buildListingCard(listing) {
         </svg>
       </div>`;
 
-  const isWished = isInWishlist(listing.id);
+  const isWished = false;
 
   // Check if viewing own listing — seller avatar links to public profile
   // The card click goes to the listing page itself
@@ -217,11 +217,7 @@ function buildListingCard(listing) {
       <div class="card-thumb">
         ${imgHtml}
         <div class="card-badges">${typeBadge}</div>
-        <button class="card-wish ${isWished ? 'active' : ''}" data-id="${listing.id}" aria-label="${isWished ? 'Remove from wishlist' : 'Add to wishlist'}">
-          <svg viewBox="0 0 24 24" fill="${isWished ? 'var(--accent)' : 'none'}" stroke="var(--accent)" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-          </svg>
-        </button>
+        
       </div>
       <div class="card-body">
         ${series ? `<p class="card-series">${escapeHtml(series)}</p>` : ''}
@@ -242,23 +238,50 @@ function buildListingCard(listing) {
 }
 
 /* ── Wishlist ── */
-function getWishlist() {
-  try { return JSON.parse(localStorage.getItem('cosnimaWishlist') || '[]'); } catch { return []; }
+// Wishlist API calls for home.js
+async function isInWishlistHome(id) {
+  if (!API.isLoggedIn()) return false;
+  try {
+    const wishlists = await API.get('/api/wishlists', true);
+    if (!Array.isArray(wishlists)) return false;
+    return wishlists.some(w => String(w.listingId) === String(id));
+  } catch { return false; }
 }
-function isInWishlist(id) { return getWishlist().includes(String(id)); }
-function toggleWishlist(id) {
-  const list = getWishlist();
-  const sid  = String(id);
-  const idx  = list.indexOf(sid);
-  if (idx > -1) { list.splice(idx, 1); } else { list.push(sid); }
-  localStorage.setItem('cosnimaWishlist', JSON.stringify(list));
-  return idx === -1;
+
+async function toggleWishlistHome(id) {
+  if (!API.isLoggedIn()) { showToast('Log in to save to your wishlist', 'info'); return false; }
+  const isWished = await isInWishlistHome(id);
+  try {
+    if (isWished) {
+      await API.delete(`/api/wishlists/${id}`, true);
+      showToast('Removed from wishlist', 'info');
+      return false;
+    } else {
+      await API.post(`/api/wishlists/${id}/wishlist`, null, true);
+      showToast('Added to wishlist', 'success');
+      return true;
+    }
+  } catch (err) {
+    showToast(err?.data?.message || 'Failed to update wishlist', 'error');
+    return isWished;
+  }
+}
+
+// Handle heart button clicks on home page
+function handleWishClick(btn) {
+  const id = btn.getAttribute('data-id');
+  if (!id) return;
+  toggleWishlistHome(id).then(added => {
+    btn.classList.toggle('active', added);
+    const svg = btn.querySelector('svg');
+    if (svg) svg.setAttribute('fill', added ? 'var(--accent)' : 'none');
+    btn.setAttribute('aria-label', added ? 'Remove from wishlist' : 'Add to wishlist');
+  });
 }
 
 function initWishButtons() {
-  document.querySelectorAll('.card-wish').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
+  console.log('=== INIT WISH BUTTONS ===');
+  
       if (!API.isLoggedIn()) {
         // Show login modal
         const modal = document.createElement('div');
@@ -315,13 +338,21 @@ function initWishButtons() {
         modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
         return;
       }
-      const id    = btn.dataset.id;
-      const added = toggleWishlist(id);
-      btn.classList.toggle('active', added);
-      const svg = btn.querySelector('svg');
-      if (svg) svg.setAttribute('fill', added ? 'var(--accent)' : 'none');
-      btn.setAttribute('aria-label', added ? 'Remove from wishlist' : 'Add to wishlist');
-      showToast(added ? 'Added to wishlist' : 'Removed from wishlist', added ? 'success' : 'info', 2000);
+      const id = btn.dataset.id;
+      console.log('=== HOME WISHLIST CLICK ===');
+      console.log('Listing ID:', id);
+      console.log('ToggleWishlist function:', typeof toggleWishlist);
+      console.log('window.toggleWishlist:', typeof window.toggleWishlist);
+      try {
+        const added = await window.toggleWishlist(id);
+        console.log('Result:', added);
+        btn.classList.toggle('active', added);
+        const svg = btn.querySelector('svg');
+        if (svg) svg.setAttribute('fill', added ? 'var(--accent)' : 'none');
+        btn.setAttribute('aria-label', added ? 'Remove from wishlist' : 'Add to wishlist');
+      } catch (err) {
+        console.error('Error:', err);
+      }
     });
   });
 }

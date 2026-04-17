@@ -229,16 +229,7 @@
 
     <!-- Wishlist -->
     <div id="wishlist-content" class="tab-content">
-      <div class="empty-state">
-        <div class="empty-state-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-          </svg>
-        </div>
-        <h3>Wishlist is empty</h3>
-        <p>Save items you love and come back to them later.</p>
-        <a href="../listing/listings.html" class="btn btn-primary" style="margin-top:var(--space-md)">Browse listings</a>
-      </div>
+      <div id="profile-wishlist"></div>
     </div>
 
     <!-- Reviews -->
@@ -352,6 +343,9 @@ function switchTab(tab) {
   }
   if (tab === 'messages' && !document.getElementById('profile-messages-list')._loaded) {
     loadProfileMessages();
+  }
+  if (tab === 'wishlist' && !document.getElementById('profile-wishlist')._loaded) {
+    loadProfileWishlist();
   }
 }
 
@@ -486,6 +480,58 @@ async function loadProfileMessages() {
 
 function escH(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function loadProfileWishlist() {
+  const container = document.getElementById('profile-wishlist');
+  if (!container) return;
+  container._loaded = true;
+
+  container.innerHTML = `<div style="text-align:center;padding:var(--space-xl);color:var(--ink-faint);"><div style="width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto var(--space-md);"></div>Loading…</div>`;
+
+  try {
+    const wishlists = await API.get('/api/wishlists', true) || [];
+    if (!wishlists.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+          </div>
+          <h3>Wishlist is empty</h3>
+          <p>Save items you love and come back to them later.</p>
+          <a href="../listing/listings.html" class="btn btn-primary" style="margin-top:var(--space-md)">Browse listings</a>
+        </div>`;
+      return;
+    }
+
+    const escHtm = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const fmtPri = (p) => p != null ? '₱' + Number(p).toLocaleString('en-PH') : '₱0';
+
+    container.innerHTML = wishlists.slice(0, 10).map(w => `
+      <a href="../listing/view-listing.html?id=${escHtm(w.listingId)}" class="listing-card" style="display:flex;gap:var(--space-md);padding:var(--space-md);border-bottom:1px solid var(--border);text-decoration:none;">
+        <div style="width:80px;height:80px;background:var(--bg-alt);border-radius:var(--radius);overflow:hidden;flex-shrink:0;">
+          ${w.listingImageUrl ? `<img src="${escHtm(w.listingImageUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;">` : 
+            `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--ink-faint);">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>`}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;color:var(--ink);margin-bottom:var(--space-xs);">${escHtm(w.listingTitle) || 'Untitled'}</div>
+          <div style="font-size:0.9rem;color:var(--accent);font-weight:800;">${fmtPri(w.listingPrice)}</div>
+          <div style="font-size:0.8rem;color:var(--ink-faint);margin-top:var(--space-xs);">${w.savedAt ? 'Saved ' + new Date(w.savedAt).toLocaleDateString('en-PH', { month:'short', day:'numeric', year:'numeric' }) : ''}</div>
+        </div>
+      </a>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <h3>Could not load wishlist</h3>
+        <p>Please try again.</p>
+        <button onclick="loadProfileWishlist()" class="btn btn-primary" style="margin-top:var(--space-md)">Retry</button>
+      </div>`;
+  }
 }
 </script>
 </body>

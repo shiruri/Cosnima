@@ -997,19 +997,25 @@ function addPriceNote() {
   
   const noteDiv = document.createElement('div');
   noteDiv.className = 'price-note-item';
-  noteDiv.style.cssText = 'display:flex;gap:var(--space-sm);align-items:center;';
+  noteDiv.style.cssText = 'display:inline-flex;gap:6px;align-items:center;vertical-align:middle;background:var(--bg-alt);padding:8px 12px;border-radius:10px;border:1px solid var(--border);';
   noteDiv.innerHTML = `
-    <input type="text" class="price-note-input" data-note-id="${noteId}" placeholder="e.g., ₱500 for 3 days" style="flex:1;padding:0.6rem;border:1.5px solid var(--border);border-radius:var(--radius);font-size:0.85rem;background:var(--card);color:var(--ink);">
-    <button type="button" class="remove-note-btn" onclick="removePriceNote(${noteId})" style="background:none;border:none;color:var(--error);cursor:pointer;padding:4px;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    <span style="font-size:0.9rem;color:var(--beaver);font-weight:600;">₱</span>
+    <input type="number" class="price-note-input" data-note-id="${noteId}" placeholder="0.00" min="1" max="100000" step="0.01" style="width:100px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:0.95rem;background:var(--card);color:var(--ink);text-align:right;font-weight:500;">
+    <span style="font-size:0.85rem;color:var(--ink-faint);">for</span>
+    <input type="number" class="days-note-input" data-note-id="${noteId}" placeholder="0" min="1" max="365" style="width:60px;padding:10px 8px;border:1px solid var(--border);border-radius:8px;font-size:0.95rem;background:var(--card);color:var(--ink);text-align:center;font-weight:500;">
+    <span style="font-size:0.85rem;color:var(--ink-faint);">days</span>
+    <button type="button" class="remove-note-btn" onclick="removePriceNote(${noteId})" style="background:none;border:none;color:var(--ink-faint);cursor:pointer;padding:4px 6px;border-radius:6px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
   `;
   container.appendChild(noteDiv);
   
-  // Add event listener for auto-save
-  noteDiv.querySelector('.price-note-input').addEventListener('input', saveFormDraft);
-  noteDiv.querySelector('.price-note-input').addEventListener('change', saveFormDraft);
+  noteDiv.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', () => { saveFormDraft(); updateLivePreview(); });
+    input.addEventListener('change', () => { saveFormDraft(); updateLivePreview(); });
+  });
   saveFormDraft();
+  updateLivePreview();
 }
 
 function removePriceNote(noteId) {
@@ -1018,6 +1024,7 @@ function removePriceNote(noteId) {
   const noteItem = container.querySelector(`[data-note-id="${noteId}"]`);
   if (noteItem) noteItem.parentElement.remove();
   saveFormDraft();
+  updateLivePreview();
 }
 
 /* ── Auto-save form drafts ── */
@@ -1328,12 +1335,36 @@ function validateStep(step) {
     const desc = document.getElementById('description')?.value?.trim();
     const price = document.getElementById('price')?.value;
     const type = document.getElementById('type')?.value;
+    
     if (!title || title.length < 3) errors.push({ field: 'title', msg: 'Title must be at least 3 characters.' });
     if (title && title.length > 200) errors.push({ field: 'title', msg: 'Title too long (max 200).' });
     if (!desc || desc.length < 10) errors.push({ field: 'description', msg: 'Description must be at least 10 characters.' });
-    if (!price || isNaN(Number(price)) || Number(price) <= 0) errors.push({ field: 'price', msg: 'Enter a valid price (>0).' });
-    if (Number(price) > 100000) errors.push({ field: 'price', msg: 'Price cannot exceed ₱100,000.' });
+    
     if (!type) errors.push({ field: 'type', msg: 'Select listing type.' });
+    
+    if (type === 'SELL') {
+      if (!price || isNaN(Number(price)) || Number(price) <= 0) errors.push({ field: 'price', msg: 'Enter a valid price.' });
+      if (Number(price) > 100000) errors.push({ field: 'price', msg: 'Price cannot exceed ₱100,000.' });
+    }
+    
+    if (type === 'RENT') {
+      if (!price || isNaN(Number(price)) || Number(price) <= 0) errors.push({ field: 'price', msg: 'Enter a daily rate.' });
+      if (Number(price) > 100000) errors.push({ field: 'price', msg: 'Daily rate cannot exceed ₱100,000.' });
+      
+      const minDays = document.getElementById('min-rental-days')?.value;
+      if (!minDays || parseInt(minDays) < 1) errors.push({ field: 'min-rental-days', msg: 'Minimum days required.' });
+      if (minDays && parseInt(minDays) > 365) errors.push({ field: 'min-rental-days', msg: 'Max 365 days.' });
+      
+      const amounts = document.querySelectorAll('.price-note-input');
+      const daysInputs = document.querySelectorAll('.days-note-input');
+      let hasValidOption = false;
+      amounts.forEach((input, i) => {
+        const amt = parseFloat(input.value) || 0;
+        const d = parseInt(daysInputs[i]?.value) || 0;
+        if (amt > 0 && d > 0) hasValidOption = true;
+      });
+      if (!hasValidOption) errors.push({ field: 'price-notes', msg: 'Add at least one price option.' });
+    }
   }
   if (step === 2) {
     if (uploadedFiles.length === 0) errors.push({ field: 'images', msg: 'Upload at least one image.' });
@@ -1513,14 +1544,21 @@ function updateLivePreview() {
   let rentalInfoHtml = '';
   if (get('type') === 'RENT') {
     const minDays = get('min-rental-days');
-    const noteInputs = document.querySelectorAll('.price-note-input');
-    const priceNotes = Array.from(noteInputs).map(input => input.value).filter(v => v.trim());
+    const amounts = document.querySelectorAll('.price-note-input');
+    const daysInputs = document.querySelectorAll('.days-note-input');
+    
+    const priceOptions = [];
+    amounts.forEach((input, i) => {
+      const amt = input.value;
+      const d = daysInputs[i]?.value;
+      if (amt && d) priceOptions.push(`₱${Number(amt).toLocaleString()} for ${d} days`);
+    });
     
     if (minDays) {
       rentalInfoHtml += `<div style="color:#7c3aed;font-weight:700;margin-top:8px;">Minimum Rental: ${minDays} day(s)</div>`;
     }
-    if (priceNotes.length) {
-      rentalInfoHtml += `<div style="color:#7c3aed;margin-top:4px;"><strong>Pricing Options:</strong><br>${priceNotes.map(n => `• ${escapeHtml(n)}`).join('<br>')}</div>`;
+    if (priceOptions.length) {
+      rentalInfoHtml += `<div style="color:#7c3aed;margin-top:4px;"><strong>Pricing Options:</strong><br>${priceOptions.map(n => `• ${n}`).join('<br>')}</div>`;
     }
   }
   
@@ -1574,19 +1612,42 @@ async function submitListing() {
     conventionPickup: checked('conventionPickup') || false,
     tags: selectedTags,
   };
+  
+  const priceNum = Number(get('price'));
+  if (!priceNum || priceNum <= 0) {
+    showToast('Enter a valid price', 'error');
+    return;
+  }
+  if (priceNum > 100000) {
+    showToast('Price cannot exceed ₱100,000', 'error');
+    return;
+  }
 
   // Add rental-specific info to description if RENT type
   if (get('type') === 'RENT') {
     const minDays = get('min-rental-days');
-    const noteInputs = document.querySelectorAll('.price-note-input');
-    const priceNotes = Array.from(noteInputs).map(input => input.value).filter(v => v.trim());
+    const amounts = document.querySelectorAll('.price-note-input');
+    const days = document.querySelectorAll('.days-note-input');
+    
+    const priceNotesArr = [];
+    amounts.forEach((input, i) => {
+      const amt = parseFloat(input.value) || 0;
+      const d = parseInt(days[i]?.value) || 0;
+      if (amt > 0 && d > 0) priceNotesArr.push({ amount: amt, days: d });
+    });
+    
+    const invalidNotes = priceNotesArr.filter(pn => pn.amount > 100000 || pn.days > 365);
+    if (invalidNotes.length > 0) {
+      showToast('Price options: amount max ₱100,000, days max 365', 'error');
+      return;
+    }
     
     let rentalInfo = '';
     if (minDays) rentalInfo += `\nMinimum rental: ${minDays} day(s)`;
-    if (priceNotes.length) {
+    if (priceNotesArr.length) {
       rentalInfo += `\nPricing Options:`;
-      priceNotes.forEach(note => {
-        rentalInfo += `\n  - ${note}`;
+      priceNotesArr.forEach(pn => {
+        rentalInfo += `\n  - ₱${Number(pn.amount).toLocaleString()} for ${pn.days} days`;
       });
     }
     if (rentalInfo) listingJson.description = (listingJson.description || '') + rentalInfo;
