@@ -337,8 +337,12 @@ async function handleAcceptOffer(offerId, buyerId, listingId, listingTitle, btn)
   allBtns?.forEach(b => { b.disabled = true; b.style.opacity = '0.6'; });
 
   try {
-    await API.post(`/api/offers/${offerId}/accept`, null, true);
-    
+await API.post('/api/conversations/messages/send/auto', {
+  senderId: sellerId,
+  recieverId: offer.buyerId,  // ADD THIS
+  listingId: String(listingId),
+  content: msgContent
+}, true);    
     // Send notification message to buyer
     try {
       const currentUser = API.getUser();
@@ -380,8 +384,12 @@ async function handleRejectOffer(offerId, buyerId, listingId, listingTitle, btn)
   allBtns?.forEach(b => { b.disabled = true; b.style.opacity = '0.6'; });
 
   try {
-    await API.post(`/api/offers/${offerId}/reject`, null, true);
-    
+await API.post('/api/conversations/messages/send/auto', {
+  senderId: sellerId,
+  recieverId: offer.buyerId,  // ADD THIS
+  listingId: String(listingId),
+  content: msgContent
+}, true);    
     // Send notification message to buyer
     try {
       const currentUser = API.getUser();

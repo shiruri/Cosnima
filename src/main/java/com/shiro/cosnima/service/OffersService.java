@@ -74,7 +74,10 @@ public class OffersService {
     public OfferResponse acceptOffer(UUID offerId) {
         Offer accepted = offerRepo.findById(offerId).orElseThrow();
 
-        List<Offer> others = offerRepo.findAllByListingId(accepted.getListing().getId());
+        Listing listing = accepted.getListing();
+
+// reject all other pending offers first (keep your logic)
+        List<Offer> others = offerRepo.findAllByListingId(listing.getId());
         for (Offer o : others) {
             if (!o.getId().equals(offerId) && o.getStatus() == OfferStatus.PENDING) {
                 o.setStatus(OfferStatus.REJECTED);
@@ -82,21 +85,21 @@ public class OffersService {
             }
         }
 
+// accept selected offer
         accepted.setStatus(OfferStatus.ACCEPTED);
-
-        // update status of listing
-        Listing listing = accepted.getListing();
-        listing.setStatus(Listing.Status.SOLD);
-        listingRepo.save(listing);
-
         accepted.setUpdatedAt(LocalDateTime.now());
 
-        try {
+// BUSINESS RULE:
+// SOLD only applies for SALE listings
+        if (listing.getStatus() == Listing.Status.AVAILABLE ||
+                listing.getType() == Listing.Type.SELL) {
 
-            offerRepo.saveAll(others);
+            listing.setStatus(Listing.Status.SOLD);
+        }
 
-            return mapToResponse(accepted);
-        }  catch (Exception e) { /* silently fail */ }
+// save all
+        offerRepo.saveAll(others);
+        listingRepo.save(listing);
 
         return mapToResponse(accepted);
     }

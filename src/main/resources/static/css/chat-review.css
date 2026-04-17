@@ -1,0 +1,464 @@
+/* ============================================
+   COSNIMA — Chat Review Modal (Loopy Theme)
+   ============================================ */
+
+.chat-review-toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  background: linear-gradient(135deg, rgba(245,166,35,0.1), rgba(240,98,146,0.08));
+  border: 1.5px solid rgba(245,166,35,0.3);
+  border-radius: var(--radius-lg);
+  margin: var(--space-sm) var(--space-md);
+  animation: reviewToastIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.chat-review-toast:hover {
+  border-color: rgba(245,166,35,0.6);
+  transform: translateY(-2px);
+}
+
+@keyframes reviewToastIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.chat-review-toast-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f5a623, var(--accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(245,166,35,0.3);
+}
+
+.chat-review-toast-icon svg {
+  width: 20px;
+  height: 20px;
+  color: white;
+}
+
+.chat-review-toast-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-review-toast-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+.chat-review-toast-sub {
+  font-size: 0.74rem;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+.chat-review-toast-btn {
+  flex-shrink: 0;
+  padding: 0.4rem 0.9rem;
+  background: linear-gradient(135deg, #f5a623, #e8941a);
+  color: white;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  font-family: var(--font-body);
+}
+
+.chat-review-toast-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(245,166,35,0.4);
+}
+
+/* ── Review Modal ── */
+.chat-review-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(42,26,14,0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.chat-review-backdrop.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.chat-review-modal {
+  background: var(--card);
+  border-radius: var(--radius-xl);
+  width: min(460px, 94vw);
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 32px 80px rgba(42,26,14,0.28);
+  border: 2px solid var(--border);
+  transform: translateY(28px) scale(0.95);
+  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.chat-review-backdrop.open .chat-review-modal {
+  transform: translateY(0) scale(1);
+}
+
+.chat-review-modal::-webkit-scrollbar { width: 5px; }
+.chat-review-modal::-webkit-scrollbar-track { background: var(--bg-alt); border-radius: 4px; }
+.chat-review-modal::-webkit-scrollbar-thumb { background: #f5a623; border-radius: 4px; }
+
+/* Modal Header */
+.chat-review-header {
+  padding: var(--space-xl);
+  background: linear-gradient(135deg, rgba(245,166,35,0.08), var(--card));
+  border-bottom: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.chat-review-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.chat-review-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--beaver), var(--accent));
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(240,98,146,0.3);
+}
+
+.chat-review-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.chat-review-header-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--ink);
+  margin: 0 0 2px;
+}
+
+.chat-review-header-sub {
+  font-size: 0.74rem;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+.chat-review-close {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-muted);
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: var(--card);
+  flex-shrink: 0;
+}
+
+.chat-review-close:hover {
+  background: var(--error);
+  color: white;
+  border-color: var(--error);
+}
+
+.chat-review-close svg { width: 14px; height: 14px; }
+
+/* Modal Body */
+.chat-review-body {
+  padding: var(--space-xl);
+}
+
+/* Transaction banner */
+.chat-review-txn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: linear-gradient(135deg, rgba(240,98,146,0.07), rgba(200,122,80,0.05));
+  border: 1.5px solid rgba(240,98,146,0.2);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.chat-review-txn-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-alt);
+  flex-shrink: 0;
+  border: 1.5px solid var(--border);
+}
+
+.chat-review-txn-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chat-review-txn-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ink);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-review-txn-type {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* Stars */
+.chat-star-section {
+  margin-bottom: var(--space-xl);
+  text-align: center;
+}
+
+.chat-star-label {
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: var(--space-md);
+  display: block;
+}
+
+.chat-star-row {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+.chat-star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+  line-height: 0;
+}
+
+.chat-star-btn:hover { transform: scale(1.2); }
+.chat-star-btn:active { transform: scale(0.9); }
+
+.chat-star-btn svg {
+  width: 38px;
+  height: 38px;
+  transition: fill 0.15s ease, stroke 0.15s ease;
+}
+
+.chat-star-btn.filled svg,
+.chat-star-btn.hovered svg {
+  fill: #f5a623;
+  stroke: #f5a623;
+}
+
+.chat-star-btn:not(.filled):not(.hovered) svg {
+  fill: none;
+  stroke: var(--border-dark);
+}
+
+.chat-star-text {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--ink-faint);
+  margin-top: var(--space-sm);
+  min-height: 1.4em;
+  transition: color 0.15s ease;
+}
+
+.chat-star-text.rated { color: #f5a623; }
+
+/* Comment */
+.chat-review-comment-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: var(--space-xs);
+}
+
+.chat-review-comment {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--bg-alt);
+  outline: none;
+  resize: none;
+  min-height: 90px;
+  line-height: 1.65;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.chat-review-comment:focus {
+  border-color: #f5a623;
+  box-shadow: 0 0 0 3px rgba(245,166,35,0.12);
+  background: var(--card);
+}
+
+.chat-review-char {
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+  text-align: right;
+  margin-top: 4px;
+}
+
+/* Status banner */
+.chat-review-status {
+  display: none;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.84rem;
+  font-weight: 700;
+  margin-bottom: var(--space-md);
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.chat-review-status.show { display: flex; }
+.chat-review-status.error {
+  background: rgba(192,57,43,0.08);
+  border: 1.5px solid rgba(192,57,43,0.2);
+  color: var(--error);
+}
+.chat-review-status.success {
+  background: rgba(39,174,96,0.08);
+  border: 1.5px solid rgba(39,174,96,0.25);
+  color: #1a7a40;
+}
+
+/* Footer */
+.chat-review-footer {
+  padding: var(--space-lg) var(--space-xl);
+  border-top: 1.5px solid var(--border);
+  background: var(--bg-alt);
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+}
+
+/* Success state */
+.chat-review-success {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-xl);
+}
+
+.chat-review-success-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f5a623, var(--accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-lg);
+  box-shadow: 0 8px 24px rgba(245,166,35,0.35);
+  animation: successBounce 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes successBounce {
+  from { transform: scale(0) rotate(-15deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.chat-review-success-icon svg {
+  width: 34px;
+  height: 34px;
+  color: white;
+}
+
+.chat-review-success-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--ink);
+  margin-bottom: var(--space-sm);
+}
+
+.chat-review-success-stars {
+  color: #f5a623;
+  font-size: 1.6rem;
+  letter-spacing: 2px;
+  margin-bottom: var(--space-sm);
+}
+
+.chat-review-success-desc {
+  font-size: 0.9rem;
+  color: var(--ink-muted);
+  max-width: 300px;
+  margin: 0 auto;
+  line-height: 1.65;
+}
+
+/* Offer/Rental accepted notification in chat */
+.chat-accepted-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(39,174,96,0.08);
+  border: 1.5px solid rgba(39,174,96,0.2);
+  border-radius: var(--radius-lg);
+  margin: var(--space-xs) var(--space-md);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1a7a40;
+  animation: reviewToastIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.chat-accepted-notice svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}

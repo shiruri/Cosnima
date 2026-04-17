@@ -269,8 +269,12 @@ async function handleRentalAccept(rentalId, listingId, renterId, listingTitle, b
   allBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
 
   try {
-    await API.post(`/api/rental/${rentalId}/approve`, null, true);
-    
+await API.post('/api/conversations/messages/send/auto', {
+  senderId: sellerId,
+  recieverId: rental.renterId,  // ADD THIS
+  listingId: String(listingId),
+  content: msgContent
+}, true);    
     // Send notification message to renter
     try {
       const currentUser = API.getUser();
@@ -305,8 +309,12 @@ async function handleRentalReject(rentalId, listingId, renterId, listingTitle, b
   allBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
 
   try {
-    await API.post(`/api/rental/${rentalId}/reject`, null, true);
-    
+await API.post('/api/conversations/messages/send/auto', {
+  senderId: sellerId,
+  recieverId: rental.renterId,  // ADD THIS
+  listingId: String(listingId),
+  content: msgContent
+}, true);    
     // Send notification message to renter
     try {
       const currentUser = API.getUser();

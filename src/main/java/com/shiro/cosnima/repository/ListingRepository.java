@@ -18,6 +18,8 @@ import java.util.UUID;
 @Repository
 public interface ListingRepository extends JpaRepository<Listing, String> {
 
+
+
     // =========================
     // SELLER LISTINGS
     // =========================

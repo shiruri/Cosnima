@@ -147,11 +147,25 @@ public class RentalService {
         //update listing status
         Listing listing = rent.getListing();
 
-        listing.setStatus(Listing.Status.RENTED);
+// approve rental
+        rent.setStatus(RentalStatus.APPROVED);
+
+// CHECK IF RENTAL IS ACTIVE TODAY
+        LocalDate today = LocalDate.now();
+
+        boolean isActiveNow =
+                !today.isBefore(rent.getStartDate()) &&
+                        !today.isAfter(rent.getEndDate());
+
+// ONLY mark RENTED if currently active
+        if (isActiveNow) {
+            listing.setStatus(Listing.Status.RENTED);
+        } else {
+            listing.setStatus(Listing.Status.AVAILABLE);
+        }
+
         listingRepo.save(listing);
 
-        // approve
-        rent.setStatus(RentalStatus.APPROVED);
 
         return RentalMapper.toDto(rentalRepo.save(rent));
     }

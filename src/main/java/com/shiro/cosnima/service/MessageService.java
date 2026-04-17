@@ -127,7 +127,6 @@ public class MessageService {
     }
 
 
-
     public MessageResponse sendAutoMessage(AutoSendMessageRequest request, UUID id) {
 
         Conversation convo = conversationRepo.findBetweenUsersAndListing(

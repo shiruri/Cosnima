@@ -186,11 +186,12 @@ function buildProfileListingCard(listing) {
 
   // Active indicator
   const activePip = listing.isActive
-        <span style="width:6px;height:6px;border-radius:50%;background:#27ae60;display:inline-block;"></span>Active
-       </span>`
-    : `<span style="display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;font-weight:700;color:var(--ink-faint);">
-        <span style="width:6px;height:6px;border-radius:50%;background:var(--ink-faint);display:inline-block;"></span>Inactive
-       </span>`;
+    ? `
+       
+       `
+    : `
+       
+       `;
 
   return `
     <article class="listing-card" data-id="${listing.id}" role="listitem" tabindex="0">
@@ -359,28 +360,29 @@ async function handleSettingsSave(e) {
   try {
     const formData = new FormData();
 
-    const valueObj = { username: nameVal, bio: bioVal };
-    if (newPw) {
-      valueObj.currentPassword = currentPw;
-      valueObj.newPassword     = newPw;
-    }
-    formData.append('value', JSON.stringify(valueObj));
-    if (avatarFile) formData.append('file', avatarFile);
+const valueObj = {
+  username: nameVal,
+  bio: bioVal
+};
 
-    const updated = await API.patchForm('/api/users/me/update', formData);
+if (newPw) {
+  valueObj.currentPassword = currentPw;
+  valueObj.newPassword = newPw;
+}
 
-    // Update cached user
-    currentUser = { ...currentUser, ...updated };
-    API.setSession(null, currentUser);
+formData.append(
+  'value',
+  new Blob(
+    [JSON.stringify(valueObj)],
+    { type: 'application/json' }
+  )
+);
 
-    renderProfile(currentUser);
-    showSettingsBanner('Profile updated successfully!', 'success');
+if (avatarFile) {
+  formData.append('file', avatarFile);
+}
 
-    // Clear password fields
-    ['settings-current-pw','settings-new-pw','settings-confirm-pw'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
+const updated = await API.patchForm('/api/users/me/update', formData);
 
   } catch (err) {
     const msg = err?.message || 'Failed to save. Please try again.';

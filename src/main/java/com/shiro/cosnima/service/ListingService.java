@@ -11,10 +11,7 @@ import com.shiro.cosnima.dto.response.StatsResponse;
 import com.shiro.cosnima.dto.response.UserDetailsDto;
 import com.shiro.cosnima.model.ApiException;
 import com.shiro.cosnima.model.*;
-import com.shiro.cosnima.repository.ListingRepository;
-import com.shiro.cosnima.repository.ListingViewRepository;
-import com.shiro.cosnima.repository.TagRepository;
-import com.shiro.cosnima.repository.UserRepository;
+import com.shiro.cosnima.repository.*;
 import com.shiro.cosnima.utility.ListingMapper;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -38,14 +35,18 @@ public class ListingService {
     private final ListingRepository listingRepo;
     private final CloudinaryService cloudinaryService;
     private final UserRepository userRepo;
+    private final RentalRepository rentalRepo;
     private final TagRepository tagRepo;
+    private final OffersRepository offerRepo;
     private final ListingViewRepository listingViewRepo;
 
-    public ListingService(ListingRepository listingRepo, CloudinaryService cloudinaryService, UserRepository userRepo, TagRepository tagRepo, ListingViewRepository listingViewRepo) {
+    public ListingService(ListingRepository listingRepo, CloudinaryService cloudinaryService, UserRepository userRepo, RentalRepository rentalRepo, TagRepository tagRepo, OffersRepository offerRepo, ListingViewRepository listingViewRepo) {
         this.listingRepo = listingRepo;
         this.cloudinaryService = cloudinaryService;
         this.userRepo = userRepo;
+        this.rentalRepo = rentalRepo;
         this.tagRepo = tagRepo;
+        this.offerRepo = offerRepo;
         this.listingViewRepo = listingViewRepo;
     }
 
@@ -349,7 +350,8 @@ public class ListingService {
 
     }
 
-    public ListingResponse updateStatus(String id, UUID userId, String status) throws AccessDeniedException {
+    public ListingResponse updateType(String id, UUID userId, String type)
+            throws AccessDeniedException {
 
         Listing listing = listingRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Not found"));
@@ -357,14 +359,69 @@ public class ListingService {
         if (!listing.getSeller().getId().equals(userId)) {
             throw new AccessDeniedException("Not owner");
         }
-        Listing.Status newStatus =  Listing.Status .valueOf(status.trim().toUpperCase());
 
-        listing.setStatus(newStatus);
+        Listing.Type newType =
+                Listing.Type.valueOf(type.trim().toUpperCase());
+
+        Listing.Type currentType = listing.getType();
+
+        // ─────────────────────────────
+        // RULE 1: SALE → RENT
+        // ─────────────────────────────
+        if (currentType == Listing.Type.SELL &&
+                newType == Listing.Type.RENT) {
+
+            boolean hasActiveOffers =
+                    offerRepo.existsByListing_IdAndStatus(
+                            listing.getId(),
+                            OfferStatus.PENDING
+                    );
+
+            if (hasActiveOffers) {
+                throw ApiException.conflict(
+                        "Cannot switch to RENT: active offers exist"
+                );
+            }
+        }
+
+        // ─────────────────────────────
+        // RULE 2: RENT → SALE
+        // ─────────────────────────────
+        if (currentType == Listing.Type.RENT &&
+                newType == Listing.Type.SELL) {
+
+            boolean hasActiveRentals =
+                    rentalRepo.existsActiveRentals(
+                            listing.getId(),
+                            LocalDate.now()
+                    );
+
+            if (hasActiveRentals) {
+                throw ApiException.conflict(
+                        "Cannot switch to SALE: active rentals exist"
+                );
+            }
+        }
+
+        // ─────────────────────────────
+        // RULE 3: prevent changes on sold listings (if still applicable)
+        // ─────────────────────────────
+        if (listing.getStatus() == Listing.Status.SOLD) {
+            throw ApiException.conflict(
+                    "Cannot change type of a sold listing"
+            );
+        }
+
+        // ─────────────────────────────
+        // APPLY CHANGE
+        // ─────────────────────────────
+        listing.setType(newType);
 
         Listing saved = listingRepo.save(listing);
 
         return ListingMapper.toDto(saved);
     }
+
 
     public Boolean isAvailable(String id, String startDate, String endDate) {
 
@@ -374,9 +431,24 @@ public class ListingService {
         LocalDate start = LocalDate.parse(startDate);
         LocalDate end = LocalDate.parse(endDate);
 
-        // Example logic (replace with real booking table later)
-        return listing.getStatus() == Listing.Status.AVAILABLE;
+        // RENT TYPE → check rental overlaps
+        if (listing.getType() == Listing.Type.RENT) {
+            boolean hasOverlap = rentalRepo.existsOverlap(listing.getId(), start, end);
+            return !hasOverlap;
+        }
+
+        // SALE TYPE → check pending/accepted offers
+        if (listing.getType() == Listing.Type.SELL) {
+            boolean hasOffers = offerRepo.existsByListing_IdAndStatus(
+                    listing.getId(),
+                    OfferStatus.PENDING
+            );
+            return !hasOffers;
+        }
+
+        return true;
     }
+
 
     public StatsResponse getStats() {
         long listingCount = listingRepo.countAllListings();
