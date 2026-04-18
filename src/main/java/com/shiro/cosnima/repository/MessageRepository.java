@@ -23,14 +23,16 @@ public interface MessageRepository extends JpaRepository<Message, String> {
 """)
     List<Message> findAllByConversationId(@Param("conversationId") String conversationId);
 
+    @Modifying
     @Query("""
 UPDATE Message m
 SET m.isRead = true
 WHERE m.conversation.id = :conversationId
 AND m.sender.id <> :userId
 """)
-    @Modifying
-    void markConversationAsRead(String conversationId, UUID userId);
-
+    void markConversationAsRead(
+            @Param("conversationId") String conversationId,
+            @Param("userId") UUID userId
+    );
 
 }

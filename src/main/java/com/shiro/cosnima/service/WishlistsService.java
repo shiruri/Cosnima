@@ -33,8 +33,8 @@ public class WishlistsService {
     }
 
     public List<WishlistResponse> getUserWishlists(UUID uuid) {
-        return wishlistsRepo.getUserWishListsByUserId(uuid).stream().map(WishlistMapper::toDto).toList();
-
+        return wishlistsRepo.findByUserId(uuid).stream()
+                .map(WishlistMapper::toDto).toList();
     }
 
     public Long countListingWishlist(String listingId) {

@@ -1,6 +1,8 @@
 package com.shiro.cosnima.model;
 
 import jakarta.persistence.Embeddable;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -9,9 +11,10 @@ import java.util.UUID;
 @Embeddable
 public class ListingViewId implements Serializable {
 
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     private String listingId;
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID userId;
-
     public ListingViewId() {}
 
     public ListingViewId(String listingId, UUID userId) {

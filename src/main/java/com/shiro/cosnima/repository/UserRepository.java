@@ -33,7 +33,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Long countActiveListingsByUserId(@Param("userId") UUID userId);
 
 
-    @Query("SELECT l FROM Listing l WHERE l.seller.id = :userId AND l.isActive = true AND l.status = 'AVAILABLE'")
+    @Query("SELECT l FROM Listing l WHERE l.seller.id = :userId AND l.isActive = true AND l.status = com.shiro.cosnima.model.Listing.Status.AVAILABLE")
     List<Listing> findActiveListingsByUserId(@Param("userId") UUID userId);
 
     @Query("SELECT COUNT(u) FROM User u WHERE u.email = :email AND u.id <> :id")
@@ -63,7 +63,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("SELECT COUNT(l) FROM Listing l WHERE l.seller.id = :userId")
     Long countListingsByUserId(@Param("userId") UUID userId);
 
-    @Query("SELECT COALESCE(AVG(r.stars), 0) FROM Rating r WHERE r.ratedUser.id = :userId")
-    int getAverageRatingByUserId(@Param("userId") UUID userId);
+    @Query("SELECT COALESCE(AVG(r.stars), 0.0) FROM Rating r WHERE r.ratedUser.id = :userId")
+    double getAverageRatingByUserId(@Param("userId") UUID userId);
 
 }

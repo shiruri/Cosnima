@@ -94,48 +94,52 @@ public class ListingService {
         return dto;
     }
 
+    private String normalize(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        return value.toLowerCase().trim();
+    }
+
+
     // =====================================================
     // GET MANY
     // =====================================================
+    public List<ListingResponse> getListings(ListingRequest request) {
 
-    public List<ListingResponse> getListings(
-            ListingRequest request
-    ) {
+        Sort sort = request.getSortDir().equalsIgnoreCase("asc")
+                ? Sort.by(request.getSortBy()).ascending()
+                : Sort.by(request.getSortBy()).descending();
 
-        Sort sort =
-                request.getSortDir().equalsIgnoreCase("asc")
-                        ? Sort.by(request.getSortBy()).ascending()
-                        : Sort.by(request.getSortBy()).descending();
+        Pageable pageable = PageRequest.of(request.getPage(), request.getPageSize(), sort);
 
-        Pageable pageable =
-                PageRequest.of(
-                        request.getPage(),
-                        request.getPageSize(),
-                        sort
-                );
+// ==============================
+// 1. SAFE NORMALIZATION (IMPORTANT FIX)
+// ==============================
+        String keyword = normalize(request.getKeyword());
+        String series = normalize(request.getSeries());
 
-        Listing.Condition condition =
-                parseCondition(request.getCondition());
+// Parse enums safely
+        Listing.Condition condition = parseCondition(request.getCondition());
+        Listing.Type type = parseType(request.getType());
+        Listing.Status status = parseStatus(request.getStatus());
 
-        Listing.Type type =
-                parseType(request.getType());
+// ==============================
+// 2. CALL REPOSITORY (NO LOWER() IN DB)
+// ==============================
+        Page<Listing> page = listingRepo.getListings(
+                keyword,
+                request.getMinPrice(),
+                request.getMaxPrice(),
+                condition,
+                request.getIsActive(),
+                status,
+                type,
+                request.getSize(),
+                series,
+                pageable
+        );
 
-        Listing.Status status =
-                parseStatus(request.getStatus());
-
-        Page<Listing> page =
-                listingRepo.getListings(
-                        request.getKeyword(),
-                        request.getMinPrice(),
-                        request.getMaxPrice(),
-                        condition,
-                        request.getIsActive(),
-                        status,
-                        type,
-                        request.getSize(),
-                        request.getSeries(),
-                        pageable
-                );
 
         List<Listing> listings = page.getContent();
 
@@ -143,43 +147,24 @@ public class ListingService {
             return List.of();
         }
 
-        List<String> ids =
-                listings.stream()
-                        .map(Listing::getId)
-                        .toList();
+        List<String> ids = listings.stream()
+                .map(Listing::getId)
+                .toList();
 
-        List<ListingImage> images =
-                listingRepo.findImagesByListingIds(ids);
+        List<ListingImage> images = listingRepo.findImagesByListingIds(ids);
 
-        Map<String, List<ListingImage>> imageMap =
-                images.stream()
-                        .collect(Collectors.groupingBy(
-                                i -> i.getListing().getId()
-                        ));
+        Map<String, List<ListingImage>> imageMap = images.stream()
+                .collect(Collectors.groupingBy(i -> i.getListing().getId()));
 
         return listings.stream()
                 .map(listing -> {
-
-                    ListingResponse dto =
-                            ListingMapper.toDto(listing);
-
-                    List<ListingImage> imgs =
-                            imageMap.getOrDefault(
-                                    listing.getId(),
-                                    List.of()
-                            );
-
-                    dto.setImages(
-                            imgs.stream()
-                                    .map(this::mapImage)
-                                    .toList()
-                    );
-
+                    ListingResponse dto = ListingMapper.toDto(listing);
+                    List<ListingImage> imgs = imageMap.getOrDefault(listing.getId(), List.of());
+                    dto.setImages(imgs.stream().map(this::mapImage).toList());
                     return dto;
                 })
                 .toList();
     }
-
     // =====================================================
     // CREATE
     // =====================================================
@@ -645,13 +630,13 @@ public class ListingService {
                                         "User not found"
                                 ));
 
-        int ratings =
+        double ratings =
                 userRepo.getAverageRatingByUserId(
                         user.getId()
                 );
 
         return new UserDetailsDto(
-                ratings,
+                (int) Math.round(ratings),
                 user.getCreatedAt()
         );
     }

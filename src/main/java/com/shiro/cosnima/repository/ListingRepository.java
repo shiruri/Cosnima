@@ -47,12 +47,8 @@ public interface ListingRepository extends JpaRepository<Listing, String> {
     """)
     long countAllListings();
 
-    @Query("""
-        SELECT COUNT(DISTINCT l.seller.id)
-        FROM Listing l
-        WHERE l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED
-    """)
-    UUID countDistinctSellers();
+
+
 
     // =========================
     // BASIC FETCH (SAFE VERSION)
@@ -93,23 +89,40 @@ public interface ListingRepository extends JpaRepository<Listing, String> {
         AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED
     """)
     int incrementViewCount(@Param("listingId") String listingId);
-
     // =========================
-    // MAIN LISTING SEARCH (FULL FILTER)
-    // =========================
-    @Query("""
-        SELECT l FROM Listing l
-        WHERE (:keyword IS NULL OR LOWER(l.title) LIKE LOWER('%' || :keyword || '%'))
-        AND (:minPrice IS NULL OR l.price >= :minPrice)
-        AND (:maxPrice IS NULL OR l.price <= :maxPrice)
-        AND (:condition IS NULL OR l.condition = :condition)
-        AND (:isActive IS NULL OR l.isActive = :isActive)
-        AND (:status IS NULL OR l.status = :status)
-        AND (:type IS NULL OR l.type = :type)
-        AND (:size IS NULL OR l.size = :size)
-        AND (:series IS NULL OR LOWER(l.seriesName) LIKE LOWER('%' || :series || '%'))
-        AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED
-    """)
+// MAIN LISTING SEARCH
+// =========================
+    @Query(value = """
+SELECT l FROM Listing l
+LEFT JOIN FETCH l.seller
+LEFT JOIN FETCH l.images
+WHERE 1=1
+AND (:keyword IS NULL OR l.title LIKE CONCAT('%', :keyword, '%'))
+AND (:minPrice IS NULL OR l.price >= :minPrice)
+AND (:maxPrice IS NULL OR l.price <= :maxPrice)
+AND (:condition IS NULL OR l.condition = :condition)
+AND (:isActive IS NULL OR l.isActive = :isActive)
+AND (:status IS NULL OR l.status = :status)
+AND (:type IS NULL OR l.type = :type)
+AND (:size IS NULL OR l.size = :size)
+            AND (:keyword IS NULL OR l.title ILIKE CONCAT('%', :keyword, '%'))
+                                                                    AND (:series IS NULL OR l.seriesName ILIKE CONCAT('%', :series, '%'))
+                                                                    AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED
+""",
+            countQuery = """
+SELECT COUNT(l) FROM Listing l
+WHERE 1=1
+AND (:keyword IS NULL OR l.title LIKE CONCAT('%', :keyword, '%'))
+AND (:minPrice IS NULL OR l.price >= :minPrice)
+AND (:maxPrice IS NULL OR l.price <= :maxPrice)
+AND (:condition IS NULL OR l.condition = :condition)
+AND (:isActive IS NULL OR l.isActive = :isActive)
+AND (:status IS NULL OR l.status = :status)
+AND (:type IS NULL OR l.type = :type)
+AND (:size IS NULL OR l.size = :size)
+AND (:series IS NULL OR l.seriesName LIKE CONCAT('%', :series, '%'))
+AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED
+""")
     Page<Listing> getListings(
             @Param("keyword") String keyword,
             @Param("minPrice") BigDecimal minPrice,
@@ -122,6 +135,7 @@ public interface ListingRepository extends JpaRepository<Listing, String> {
             @Param("series") String series,
             Pageable pageable
     );
+
 
     // =========================
     // OPTIONAL SAFETY OVERRIDE (prevents accidental use)
