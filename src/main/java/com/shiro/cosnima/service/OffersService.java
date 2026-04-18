@@ -94,7 +94,6 @@ public class OffersService {
         if (listing.getStatus() == Listing.Status.AVAILABLE ||
                 listing.getType() == Listing.Type.SELL) {
 
-            listing.setStatus(Listing.Status.SOLD);
         }
 
 // save all

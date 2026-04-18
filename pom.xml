@@ -35,6 +35,11 @@
             <artifactId>cloudinary-http44</artifactId>
             <version>1.31.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
 
         <!-- Source: https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
         <dependency>

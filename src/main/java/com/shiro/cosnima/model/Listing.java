@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,8 +18,8 @@ import java.util.UUID;
 public class Listing {
 
     @Id
-    @UuidGenerator
-    @Column(columnDefinition = "CHAR(36)")
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "id", length = 36, updatable = false, nullable = false)
     private String  id;
 
     // ===== RELATIONSHIPS =====

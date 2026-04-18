@@ -1,6 +1,9 @@
 package com.shiro.cosnima.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -12,7 +15,8 @@ import java.util.UUID;
 public class Report {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "id", length = 36, updatable = false, nullable = false)
     private UUID id;
 
     // ===== RELATIONSHIPS =====

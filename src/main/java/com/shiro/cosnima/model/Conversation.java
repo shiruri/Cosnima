@@ -1,6 +1,8 @@
 package com.shiro.cosnima.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -14,7 +16,8 @@ import java.util.List;
 public class Conversation {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "id", length = 36, updatable = false, nullable = false)
     private String id;
 
     @ManyToOne

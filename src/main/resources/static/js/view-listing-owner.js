@@ -122,7 +122,7 @@ async function updateListingStatus(listingId, newStatus, clickedBtn) {
     console.log('Token exists:', !!API.getToken());
     console.log('================================');
     
-    const result = await API.post(url, null, true);
+    const result = await API.post(url, {}, true);
     console.log('Status update success:', result);
 
     // Update active state
@@ -143,8 +143,18 @@ async function updateListingStatus(listingId, newStatus, clickedBtn) {
   } catch (err) {
     picker.querySelectorAll('.status-btn').forEach(b => b.classList.remove('saving'));
     console.error('Status update error:', err);
-    console.error('Status update response:', err.data);
-    showToast(err?.data?.message || 'Failed to update status. Please try again.', 'error');
+    
+    let errMsg = err?.message || '';
+    if (!errMsg) {
+      if (err?.status === 401) errMsg = 'Session expired. Please log in again.';
+      else if (err?.status === 403) errMsg = 'You do not have permission to update this listing.';
+      else if (err?.status === 404) errMsg = 'Listing not found.';
+      else if (err?.status === 409) errMsg = err?.data?.message || 'This listing cannot be updated in its current state.';
+      else if (err?.status >= 500) errMsg = 'Server error. Please try again later.';
+      else errMsg = 'Failed to update status. Please try again.';
+    }
+    errMsg = String(errMsg).replace(/<[^>]*>/g, '').replace(/&/g, '&amp;').trim();
+    showToast(errMsg, 'error');
   }
 }
 

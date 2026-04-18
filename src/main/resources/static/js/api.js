@@ -95,10 +95,29 @@ const API = (() => {
       }
 
       if (!res.ok) {
+        let errorMsg = '';
+        if (data && typeof data === 'object' && data.message) {
+          errorMsg = data.message;
+        } else if (typeof data === 'string' && data.length > 0) {
+          errorMsg = data;
+        } else if (res.status === 401) {
+          errorMsg = 'Session expired. Please log in again.';
+        } else if (res.status === 403) {
+          errorMsg = 'You do not have permission for this action.';
+        } else if (res.status === 404) {
+          errorMsg = 'The requested resource was not found.';
+        } else if (res.status === 409) {
+          errorMsg = 'Conflict: ' + (data?.message || 'Action cannot be completed.');
+        } else if (res.status >= 500) {
+          errorMsg = 'Server error. Please try again later.';
+        } else {
+          errorMsg = `Request failed (${res.status})`;
+        }
+        
         const error = {
           status: res.status,
           data,
-          message: (typeof data === 'object' ? data?.message : data) || `Request failed (${res.status})`
+          message: errorMsg
         };
         
         // Auto-show toast for API errors

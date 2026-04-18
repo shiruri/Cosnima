@@ -299,13 +299,13 @@ function buildIncomingOfferRow(offer) {
   const isPending = offer.status === 'PENDING';
   const actionsHtml = isPending
     ? `<div class="offer-row-actions">
-        <button class="offer-action-btn accept" data-accept="${escHtml(String(offer.id))}">
+        <button class="offer-action-btn accept" data-accept="${escHtml(String(offer.id))}" data-buyer-id="${offer.buyerId || ''}" data-listing-id="${escHtml(String(offer.listingId))}" data-listing-title="${escHtml(offer.listingTitle || '')}">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
           </svg>
           Accept
         </button>
-        <button class="offer-action-btn reject" data-reject="${escHtml(String(offer.id))}">
+        <button class="offer-action-btn reject" data-reject="${escHtml(String(offer.id))}" data-buyer-id="${offer.buyerId || ''}" data-listing-id="${escHtml(String(offer.listingId))}" data-listing-title="${escHtml(offer.listingTitle || '')}">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
           </svg>
@@ -346,6 +346,9 @@ async function handleAcceptOffer(offerId, buyerId, listingId, listingTitle, btn)
       return;
     }
 
+    // ✅ Accept the offer in backend first
+    await API.post(`/api/offers/${offerId}/accept`, {}, true);
+
     const msgContent = `I've accepted your offer for "${listingTitle}". Let's arrange the exchange!`;
 
     await API.post('/api/conversations/messages/send/auto', {
@@ -354,6 +357,10 @@ async function handleAcceptOffer(offerId, buyerId, listingId, listingTitle, btn)
       listingId: String(listingId),
       content: msgContent
     }, true);
+
+    // Update local state
+    const idx = allIncomingOffers.findIndex(o => String(o.id) === String(offerId));
+    if (idx > -1) allIncomingOffers[idx].status = 'ACCEPTED';
 
     if (row) {
       row.innerHTML = `
@@ -390,7 +397,11 @@ async function handleRejectOffer(offerId, buyerId, listingId, listingTitle, btn)
     }
 
     // ✅ FIXED ENDPOINT
-    await API.post(`/api/offers/${offerId}/reject`, null, true);
+    await API.post(`/api/offers/${offerId}/reject`, {}, true);
+
+    // Update local state
+    const idx = allIncomingOffers.findIndex(o => String(o.id) === String(offerId));
+    if (idx > -1) allIncomingOffers[idx].status = 'REJECTED';
 
     const msgContent = `I've declined your offer for "${listingTitle}".`;
 
@@ -877,7 +888,7 @@ async function handleCancelOffer(offerId, btn) {
   btn.textContent = 'Cancelling…';
 
   try {
-    await API.post(`/api/offers/${offerId}/cancel`, null, true);
+    await API.post(`/api/offers/${offerId}/cancel`, {}, true);
     const idx = allMyOffers.findIndex(o => String(o.id) === String(offerId));
     if (idx > -1) allMyOffers[idx].status = 'CANCELLED';
 
@@ -1127,11 +1138,11 @@ function openIncomingOfferModal(offerId) {
     </div>
     <div class="offer-modal-actions">
       ${isPending ? `
-      <button class="offer-action-btn accept" onclick="handleAcceptOffer('${escHtml(String(offer.id))}', this); closeOfferModal(); event.stopPropagation();" style="display:flex;align-items:center;gap:6px;padding:0.5rem 1rem;">
+      <button class="offer-action-btn accept" data-accept="${escHtml(String(offer.id))}" data-buyer-id="${offer.buyerId || ''}" data-listing-id="${escHtml(String(offer.listingId))}" data-listing-title="${escHtml(offer.listingTitle || '')}" style="display:flex;align-items:center;gap:6px;padding:0.5rem 1rem;">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
         Accept
       </button>
-      <button class="offer-action-btn reject" onclick="handleRejectOffer('${escHtml(String(offer.id))}', this); closeOfferModal(); event.stopPropagation();" style="display:flex;align-items:center;gap:6px;padding:0.5rem 1rem;">
+      <button class="offer-action-btn reject" data-reject="${escHtml(String(offer.id))}" data-buyer-id="${offer.buyerId || ''}" data-listing-id="${escHtml(String(offer.listingId))}" data-listing-title="${escHtml(offer.listingTitle || '')}" style="display:flex;align-items:center;gap:6px;padding:0.5rem 1rem;">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         Decline
       </button>` : ''}
@@ -1141,6 +1152,22 @@ function openIncomingOfferModal(offerId) {
   
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  // Attach event listeners for modal buttons
+  body.querySelectorAll('[data-accept]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleAcceptOffer(btn.dataset.accept, btn.dataset.buyerId, btn.dataset.listingId, btn.dataset.listingTitle, btn);
+      closeOfferModal();
+    });
+  });
+  body.querySelectorAll('[data-reject]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleRejectOffer(btn.dataset.reject, btn.dataset.buyerId, btn.dataset.listingId, btn.dataset.listingTitle, btn);
+      closeOfferModal();
+    });
+  });
 };
 
 // End of offers.js

@@ -227,6 +227,9 @@ function renderChatHeader(convo) {
   if (listingEl)    listingEl.textContent = convo.listingTitle || 'Conversation';
   if (headerAvatar) headerAvatar.textContent = initial;
 
+  // Store other user ID for profile link
+  window._currentChatOtherId = otherId;
+
   // Fetch other user's details
   if (otherId) {
     API.get(`/api/users/${otherId}`, true).then(user => {

@@ -19,6 +19,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+import static com.shiro.cosnima.model.RentalStatus.ACTIVE;
+import static com.shiro.cosnima.model.RentalStatus.APPROVED;
+
 @Service
 @Transactional
 public class RentalService {
@@ -148,7 +151,7 @@ public class RentalService {
         Listing listing = rent.getListing();
 
 // approve rental
-        rent.setStatus(RentalStatus.APPROVED);
+        rent.setStatus(APPROVED);
 
 // CHECK IF RENTAL IS ACTIVE TODAY
         LocalDate today = LocalDate.now();
@@ -190,7 +193,7 @@ public class RentalService {
         if (!rent.getListing().getSeller().getId().equals(userRepo.findById(userId).get().getId())) {
             throw ApiException.forbidden("Not allowed");
         }
-        if (rent.getStatus() != RentalStatus.COMPLETED) {
+        if (rent.getStatus() != APPROVED && rent.getStatus() != ACTIVE) {
             throw ApiException.badRequest("Rental Already Completed");
         }
         rent.setStatus(RentalStatus.COMPLETED);
@@ -205,6 +208,9 @@ public class RentalService {
         }
         if (rent.getStatus() != RentalStatus.PENDING) {
             throw ApiException.badRequest("Only pending rentals can be approved");
+        }
+        if (rent.getStatus() != RentalStatus.CANCELLED) {
+            throw ApiException.badRequest("Rental Already Cancelled");
         }
         rent.setStatus(RentalStatus.CANCELLED);
         return RentalMapper.toDto(rentalRepo.save(rent));

@@ -1358,12 +1358,20 @@ function validateStep(step) {
       const amounts = document.querySelectorAll('.price-note-input');
       const daysInputs = document.querySelectorAll('.days-note-input');
       let hasValidOption = false;
+      let invalidOptions = [];
       amounts.forEach((input, i) => {
         const amt = parseFloat(input.value) || 0;
         const d = parseInt(daysInputs[i]?.value) || 0;
-        if (amt > 0 && d > 0) hasValidOption = true;
+        if (amt > 0 && d > 0) {
+          if (amt > 100000 || d > 365) {
+            invalidOptions.push({ amount: amt, days: d });
+          } else {
+            hasValidOption = true;
+          }
+        }
       });
-      if (!hasValidOption) errors.push({ field: 'price-notes', msg: 'Add at least one price option.' });
+      if (invalidOptions.length > 0) errors.push({ field: 'price-notes', msg: 'Price max P100,000, Days max 365' });
+      else if (!hasValidOption) errors.push({ field: 'price-notes', msg: 'Add at least one price option.' });
     }
   }
   if (step === 2) {

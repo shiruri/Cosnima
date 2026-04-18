@@ -13,9 +13,8 @@ import java.util.UUID;
 @Table(name = "offers")
 public class Offer {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @JdbcTypeCode(SqlTypes.VARCHAR)
-    @Column(columnDefinition = "CHAR(36)")
+    @Column(name = "id", length = 36, updatable = false, nullable = false)
     private UUID id;
 
 

@@ -56,16 +56,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Show logged-in-only links
   if (API.isLoggedIn()) {
+    const user = API.getUser();
     const loggedInLinks = [
       'sell-link', 'mobile-sell-link',
       'messages-link', 'mobile-messages-link',
       'offers-link', 'mobile-offers-link',
       'rentals-link', 'mobile-rentals-link',
+      'ratings-link', 'mobile-ratings-link',
     ];
     loggedInLinks.forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = '';
     });
+
+    // Show admin link for ADMIN/MODERATOR
+    if (user?.role === 'ADMIN' || user?.role === 'MODERATOR') {
+      const adminLink = document.getElementById('admin-link');
+      const mobileAdminLink = document.getElementById('mobile-admin-link');
+      if (adminLink) adminLink.style.display = '';
+      if (mobileAdminLink) mobileAdminLink.style.display = '';
+    }
 
     const heroSell = document.getElementById('hero-sell-btn');
     if (heroSell) heroSell.style.display = '';
@@ -140,12 +150,17 @@ function renderNavAuth(container) {
     const name    = user?.username || 'Cosplayer';
     const initial = name.charAt(0).toUpperCase();
     const profilePath = prefix + 'profile/profile.html';
+    const profileImage = user?.avatarUrl;
+
+    const avatarHtml = profileImage 
+      ? `<img src="${escapeHtml(profileImage)}" alt="${escapeHtml(name)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`
+      : escapeHtml(initial);
 
     container.innerHTML = `
       <div class="auth-greeting">
         <a href="${profilePath}" style="text-decoration:none;display:flex;align-items:center;gap:0.5rem;" aria-label="My profile">
-          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--beaver),var(--accent));color:white;font-size:0.78rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:2px solid var(--card);box-shadow:0 0 0 2px var(--accent);">
-            ${escapeHtml(initial)}
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--beaver),var(--accent));color:white;font-size:0.78rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:2px solid var(--card);box-shadow:0 0 0 2px var(--accent);overflow:hidden;">
+            ${avatarHtml}
           </div>
           <span class="greeting-text" style="display:none;">Hi, <strong>${escapeHtml(name)}</strong></span>
         </a>
@@ -154,6 +169,18 @@ function renderNavAuth(container) {
 
     const greetSpan = container.querySelector('.greeting-text');
     if (greetSpan && window.innerWidth >= 1024) greetSpan.style.display = 'inline';
+    
+    // Fetch fresh user data to update profile image if not available
+    if (!profileImage && user?.id) {
+      API.get(`/api/users/${user.id}`, true).then(freshUser => {
+        if (freshUser?.avatarUrl) {
+          user.avatarUrl = freshUser.avatarUrl;
+          localStorage.setItem('cosnimaUser', JSON.stringify(user));
+          // Re-render with image
+          renderNavAuth(container);
+        }
+      }).catch(() => {});
+    }
   } else {
     const prefix = getPathPrefix();
     container.innerHTML = `

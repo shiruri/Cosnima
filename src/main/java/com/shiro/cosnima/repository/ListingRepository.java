@@ -99,7 +99,7 @@ public interface ListingRepository extends JpaRepository<Listing, String> {
     // =========================
     @Query("""
         SELECT l FROM Listing l
-        WHERE (:keyword IS NULL OR LOWER(l.title) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        WHERE (:keyword IS NULL OR LOWER(l.title) LIKE LOWER('%' || :keyword || '%'))
         AND (:minPrice IS NULL OR l.price >= :minPrice)
         AND (:maxPrice IS NULL OR l.price <= :maxPrice)
         AND (:condition IS NULL OR l.condition = :condition)
@@ -107,7 +107,7 @@ public interface ListingRepository extends JpaRepository<Listing, String> {
         AND (:status IS NULL OR l.status = :status)
         AND (:type IS NULL OR l.type = :type)
         AND (:size IS NULL OR l.size = :size)
-        AND (:series IS NULL OR LOWER(l.seriesName) LIKE LOWER(CONCAT('%', :series, '%')))
+        AND (:series IS NULL OR LOWER(l.seriesName) LIKE LOWER('%' || :series || '%'))
         AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED
     """)
     Page<Listing> getListings(

@@ -38,7 +38,7 @@ public class RatingService {
     public RatingResponse submitRating(UUID raterId, RatingRequest request) {
 
         Rating.TransactionType type =
-                Rating.TransactionType.valueOf(request.getTransactionType().toUpperCase());
+                Rating.TransactionType.valueOf(request.getTransactionType().trim().toUpperCase());
 
         // Prevent self-rating
         if (request.getRatedUserId().equals(raterId)) {

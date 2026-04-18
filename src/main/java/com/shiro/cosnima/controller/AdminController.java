@@ -132,7 +132,8 @@ public class AdminController {
     }
 
     @PostMapping("/reports/{id}/review")
-    public ReportResponse reviewReport(@PathVariable UUID id, AdminReviewReportRequest request) {
+    public ReportResponse reviewReport( @PathVariable UUID id,
+                                        @RequestBody AdminReviewReportRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         checkAdmin(auth);
 

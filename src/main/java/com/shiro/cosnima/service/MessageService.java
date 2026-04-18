@@ -148,7 +148,8 @@ public class MessageService {
             throw ApiException.forbidden("Not part of conversation");
         }
 
-        User sender = new User();
+        User sender = userRepo.findUserById(request.getSenderId()).orElseThrow();
+
         sender.setId(request.getSenderId());
 
         Message message = new Message();

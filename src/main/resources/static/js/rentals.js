@@ -277,6 +277,9 @@ async function handleRentalAccept(rentalId, listingId, renterId, listingTitle, b
       return;
     }
 
+    // Accept rental in backend
+    await API.post(`/api/rental/${rentalId}/accept`, {}, true);
+
     const msgContent = `I've accepted your rental request for "${listingTitle}". Let's arrange the exchange!`;
 
     await API.post('/api/conversations/messages/send/auto', {
@@ -310,7 +313,7 @@ async function handleRentalReject(rentalId, listingId, renterId, listingTitle, b
       return;
     }
 
-    await API.post(`/api/rental/${rentalId}/reject`, null, true);
+    await API.post(`/api/rental/${rentalId}/reject`, {}, true);
 
     const msgContent = `I've declined your rental request for "${listingTitle}".`;
 

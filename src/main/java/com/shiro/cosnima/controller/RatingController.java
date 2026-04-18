@@ -35,25 +35,31 @@ public class RatingController {
         return ResponseEntity.badRequest().build();
     }
 
-    @PostMapping()
-    public ResponseEntity<RatingResponse> submitRating(@RequestBody @Valid RatingRequest ratingRequest,
-                                                 BindingResult result) {
-        if(!result.hasErrors()) {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
-                try {
-                    UUID raterId = UUID.fromString(auth.getName());
-                    RatingResponse rating = ratingServ.submitRating(raterId,ratingRequest);
-                    if(rating != null) {
-                        return ResponseEntity.ok().body(rating);
-                    }
-                    return ResponseEntity.badRequest().build();
-                } catch (IllegalArgumentException e) {
-                    return ResponseEntity.status(401).build();
-                }
-            }
+    @PostMapping
+    public ResponseEntity<RatingResponse> submitRating(
+            @RequestBody @Valid RatingRequest ratingRequest,
+            BindingResult result
+    ) {
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Authentication auth =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null ||
+                !auth.isAuthenticated() ||
+                "anonymousUser".equals(auth.getName())) {
+
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.badRequest().build();
+
+        UUID raterId = UUID.fromString(auth.getName());
+
+        RatingResponse rating =
+                ratingServ.submitRating(raterId, ratingRequest);
+
+        return ResponseEntity.ok(rating);
     }
+
 }
