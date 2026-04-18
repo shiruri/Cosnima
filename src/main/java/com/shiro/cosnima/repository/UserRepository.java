@@ -65,4 +65,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query("SELECT COALESCE(AVG(r.stars), 0) FROM Rating r WHERE r.ratedUser.id = :userId")
     int getAverageRatingByUserId(@Param("userId") UUID userId);
+
 }

@@ -18,7 +18,7 @@ import java.util.UUID;
 public class Listing {
 
     @Id
-    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @org.hibernate.annotations.UuidGenerator
     @Column(name = "id", length = 36, updatable = false, nullable = false)
     private String  id;
 
@@ -50,7 +50,7 @@ public class Listing {
     private Type type;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "`condition`")
+    @Column(name = "condition")
     private Condition condition;
 
     @Size(max = 50)

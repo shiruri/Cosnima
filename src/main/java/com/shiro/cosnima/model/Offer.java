@@ -14,6 +14,7 @@ import java.util.UUID;
 public class Offer {
     @Id
     @JdbcTypeCode(SqlTypes.VARCHAR)
+    @org.hibernate.annotations.UuidGenerator
     @Column(name = "id", length = 36, updatable = false, nullable = false)
     private UUID id;
 

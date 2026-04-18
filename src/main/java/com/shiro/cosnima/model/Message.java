@@ -12,6 +12,7 @@ public class Message {
 
     @Id
     @JdbcTypeCode(SqlTypes.VARCHAR)
+    @org.hibernate.annotations.UuidGenerator
     @Column(name = "id", length = 36, updatable = false, nullable = false)
     private String id;
 

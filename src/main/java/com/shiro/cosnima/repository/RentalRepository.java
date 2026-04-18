@@ -18,7 +18,7 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
     List<Rental> findAllByListingId(String listingId);
 
     @Query("SELECT COUNT(r) > 0 FROM Rental r WHERE r.listing.id = :listingId " +
-            "AND r.status IN ('ACTIVE', 'CONFIRMED') " +
+            "AND r.status IN ('ACTIVE', 'APPROVED') " +
             "AND (r.startDate <= :end AND r.endDate >= :start)")
     boolean existsOverlap(@Param("listingId") String listingId,
                           @Param("start") LocalDate start,
