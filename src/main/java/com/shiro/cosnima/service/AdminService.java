@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import org.springframework.security.access.AccessDeniedException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -31,17 +32,17 @@ import java.util.UUID;
 public class AdminService {
 
     private final UserRepository userRepo;
-    private final ReportRepository reportRepository;
+    private final ReportRepository reportRepo;
     private final ListingRepository listingRepo;
     private final RentalRepository rentalRepo;
     private final MessageRepository messageRepo;
     private final CloudinaryService cloudinaryService;
 
-    public AdminService(UserRepository userRepo  , ListingRepository listingRepo, RentalRepository rentalRepo, ReportRepository reportRepository, MessageRepository messageRepo, CloudinaryService cloudinaryService) {
+    public AdminService(UserRepository userRepo  , ListingRepository listingRepo, RentalRepository rentalRepo, ReportRepository reportRepo, MessageRepository messageRepo, CloudinaryService cloudinaryService) {
         this.userRepo = userRepo;
         this.listingRepo = listingRepo;
         this.rentalRepo = rentalRepo;
-        this.reportRepository = reportRepository;
+        this.reportRepo = reportRepo;
         this.messageRepo = messageRepo;
         this.cloudinaryService = cloudinaryService;
     }
@@ -88,6 +89,21 @@ public class AdminService {
 
         long unreadMessageCount = messageRepo.countByIsReadFalse();
         stats.setUnreadMessages(unreadMessageCount);
+
+        // Reports
+        long pendingReports = reportRepo.countByStatus(Report.Status.PENDING);
+        stats.setPendingReports(pendingReports);
+        long resolvedReports = reportRepo.countByStatus(Report.Status.RESOLVED);
+        stats.setResolvedReports(resolvedReports);
+
+        // Banned users
+        long bannedUsers = userRepo.countByIsBannedTrue();
+        stats.setBannedUsers(bannedUsers);
+
+        // Pending listings (not yet approved)
+        long pendingListings = listingRepo.countByStatus(Listing.Status.PENDING);
+        stats.setPendingListings(pendingListings);
+
         return stats;
 
     }
@@ -127,6 +143,7 @@ public class AdminService {
 
     public UserDto banUser(UUID userId, String banReason) {
         User user = userRepo.findUserById(userId).orElseThrow();
+
         if(user.getIsBanned() == true) {
             throw ApiException.conflict("user is already Banned");
         }
@@ -258,21 +275,40 @@ public class AdminService {
 
 
     }
-
+    @Transactional
     public Page<ReportResponse> getReports(Pageable pageable) {
-        return reportRepository.findAll(pageable).map(ReportMapper::toDto);
+        return reportRepo.findAllWithUsers(pageable).map(ReportMapper::toDto);
     }
 
-    public ReportResponse reviewReport(UUID id, AdminReviewReportRequest request) {
+    public ReportResponse reviewReport(String idStr, AdminReviewReportRequest request, String adminUsername) {
+        Report report = reportRepo.findByIdString(idStr)
+                .orElseThrow(() -> ApiException.notFound("Report not found"));
 
-        Report report = reportRepository.findById(id).orElseThrow();
+        // Guard: don't allow re-reviewing closed reports
+        if (report.getStatus() == Report.Status.RESOLVED ||
+                report.getStatus() == Report.Status.REJECTED) {
+            throw ApiException.badRequest("Report is already closed.");
+        }
 
+        // Parse status safely from String if your DTO holds a String
+        Report.Status newStatus =
+                request.getStatus();
+
+
+        report.setStatus(newStatus);
         report.setAdminNote(request.getAdminNote());
-        report.setReviewedBy(userRepo.findById(request.getReviewedBy()).orElseThrow());
-        report.setStatus(request.getStatus());
-        Report saved = reportRepository.save(report);
-        return ReportMapper.toDto(saved);
 
+        // Set resolvedAt when closing
+        if (newStatus == Report.Status.RESOLVED || newStatus == Report.Status.REJECTED) {
+            report.setResolvedAt(LocalDateTime.now());
+        }
+
+        // Resolve admin from username — never trust a UUID from the request body
+        if (adminUsername != null) {
+            userRepo.findById(UUID.fromString(adminUsername)).ifPresent(report::setReviewedBy);
+        }
+
+        return ReportMapper.toDto(reportRepo.save(report));
     }
 
 }

@@ -5,6 +5,19 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  // ── Show floating admin if admin (check on every page load) ──
+  setTimeout(() => {
+    try {
+      const storedUser = localStorage.getItem('cosnimaUser');
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      const btn = document.getElementById('floating-admin-btn');
+      // Show only if admin + not banned
+      if (btn && !user?.isBanned && (user?.role === 'ADMIN' || user?.role === 'MODERATOR')) {
+        btn.style.display = 'flex';
+      }
+    } catch {/* silent */}
+  }, 100);
+
   // ── Theme toggle ──
   const savedTheme = localStorage.getItem('cosnimaTheme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
@@ -56,7 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Show logged-in-only links
   if (API.isLoggedIn()) {
-    const user = API.getUser();
+    const storedUser = localStorage.getItem('cosnimaUser');
+    let user = null;
+    try { user = storedUser ? JSON.parse(storedUser) : null; } catch { user = null; }
     const loggedInLinks = [
       'sell-link', 'mobile-sell-link',
       'messages-link', 'mobile-messages-link',
@@ -73,8 +88,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (user?.role === 'ADMIN' || user?.role === 'MODERATOR') {
       const adminLink = document.getElementById('admin-link');
       const mobileAdminLink = document.getElementById('mobile-admin-link');
+      const floatingAdminBtn = document.getElementById('floating-admin-btn');
       if (adminLink) adminLink.style.display = '';
       if (mobileAdminLink) mobileAdminLink.style.display = '';
+      if (floatingAdminBtn) floatingAdminBtn.style.display = 'flex';
     }
 
     const heroSell = document.getElementById('hero-sell-btn');
@@ -135,7 +152,8 @@ function getPathPrefix() {
     path.includes('/signup/')   ||
     path.includes('/messages/') ||
     path.includes('/rentals/')  ||
-    path.includes('/offers/')
+    path.includes('/offers/')   ||
+    path.includes('/admin/')
   ) return '../';
   return '';
 }
@@ -190,11 +208,21 @@ function renderNavAuth(container) {
 }
 
 /* ── Logout ── */
-async function logout() {
-  try { await API.post('/api/auth/logout', {}, true); } catch {}
+function logout() {
+  try { API.post('/api/auth/logout', {}, true); } catch {}
   API.clearSession();
+
+  // Hide floating admin button if exists
+  const btn = document.getElementById('floating-admin-btn');
+  if (btn) btn.style.display = 'none';
+
   if (typeof showToast === 'function') showToast('Logged out. See you soon! 🦫', 'success', 2000);
-  setTimeout(() => navigateTo(getPathPrefix() + 'login/login.html'), 700);
+
+  // Clean page transition then redirect to login
+  document.body.classList.add('fade-out');
+  setTimeout(() => {
+    window.location.href = 'login/login.html';
+  }, 300);
 }
 
 /* ── Navigation ── */

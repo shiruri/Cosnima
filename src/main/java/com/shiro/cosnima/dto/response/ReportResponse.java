@@ -5,10 +5,11 @@ import java.util.UUID;
 
 public class ReportResponse {
 
-    private UUID id;
+    private String id;  // Keep as String - JSON number coercion safe
 
-    private UUID reporterId;
-    private UUID reviewedBy;
+    private String reporterId;
+    private String reporterName;
+    private String reviewedBy;
 
     private String targetType;
     private String targetId;
@@ -19,96 +20,44 @@ public class ReportResponse {
     private String status;
     private String adminNote;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime resolvedAt;
+    private String createdAt;
+    private String resolvedAt;
 
     // ===== GETTERS & SETTERS =====
 
-    public UUID getId() {
-        return id;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
+    public String getReporterId() { return reporterId; }
+    public void setReporterId(String id) { this.reporterId = id; }
 
-    public UUID getReporterId() {
-        return reporterId;
-    }
+    public String getReporterName() { return reporterName; }
+    public void setReporterName(String n) { this.reporterName = n; }
 
-    public void setReporterId(UUID reporterId) {
-        this.reporterId = reporterId;
-    }
+    public String getReviewedBy() { return reviewedBy; }
+    public void setReviewedBy(String id) { this.reviewedBy = id; }
 
-    public UUID getReviewedBy() {
-        return reviewedBy;
-    }
+    public String getTargetType() { return targetType; }
+    public void setTargetType(String t) { this.targetType = t; }
 
-    public void setReviewedBy(UUID reviewedBy) {
-        this.reviewedBy = reviewedBy;
-    }
+    public String getTargetId() { return targetId; }
+    public void setTargetId(String id) { this.targetId = id; }
 
-    public String getTargetType() {
-        return targetType;
-    }
+    public String getReason() { return reason; }
+    public void setReason(String r) { this.reason = r; }
 
-    public void setTargetType(String targetType) {
-        this.targetType = targetType;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String d) { this.description = d; }
 
-    public String getTargetId() {
-        return targetId;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String s) { this.status = s; }
 
-    public void setTargetId(String targetId) {
-        this.targetId = targetId;
-    }
+    public String getAdminNote() { return adminNote; }
+    public void setAdminNote(String n) { this.adminNote = n; }
 
-    public String getReason() {
-        return reason;
-    }
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String d) { this.createdAt = d; }
 
-    public void setReason(String reason) {
-        this.reason = reason;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getAdminNote() {
-        return adminNote;
-    }
-
-    public void setAdminNote(String adminNote) {
-        this.adminNote = adminNote;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getResolvedAt() {
-        return resolvedAt;
-    }
-
-    public void setResolvedAt(LocalDateTime resolvedAt) {
-        this.resolvedAt = resolvedAt;
-    }
+    public String getResolvedAt() { return resolvedAt; }
+    public void setResolvedAt(String d) { this.resolvedAt = d; }
 }

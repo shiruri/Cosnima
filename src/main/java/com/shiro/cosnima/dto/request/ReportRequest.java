@@ -5,7 +5,7 @@ import java.util.UUID;
 public class ReportRequest {
 
     private String targetType; // USER, LISTING, MESSAGE
-    private String targetId;
+    private UUID targetId;
 
     private String reason; // SCAM, HARASSMENT, etc
     private String description;
@@ -20,11 +20,11 @@ public class ReportRequest {
         this.targetType = targetType;
     }
 
-    public String getTargetId() {
+    public UUID getTargetId() {
         return targetId;
     }
 
-    public void setTargetId(String targetId) {
+    public void setTargetId(UUID targetId) {
         this.targetId = targetId;
     }
 

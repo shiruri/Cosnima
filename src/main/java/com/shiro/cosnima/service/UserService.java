@@ -50,6 +50,7 @@ public class UserService {
         double ratingCount = userRepo.getAverageRatingByUserId(id);
         long listingCount = userRepo.countActiveListingsByUserId(id);
 
+        user.setRole(user.getRole());
 
         return UserDto.fromEntity(user,ratingCount,listingCount);
     }

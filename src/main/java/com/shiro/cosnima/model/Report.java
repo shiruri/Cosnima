@@ -15,14 +15,14 @@ import java.util.UUID;
 public class Report {
 
     @Id
-    @JdbcTypeCode(SqlTypes.VARCHAR)
-    @org.hibernate.annotations.UuidGenerator
-
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", length = 36, updatable = false, nullable = false)
-    private UUID id;
+    private String id;
 
-    // ===== RELATIONSHIPS =====
-
+    @PrePersist
+    public void prePersist() {
+        if (id == null) id = UUID.randomUUID().toString();
+    }
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reporter_id", nullable = false)
     private User reporter;
@@ -85,11 +85,11 @@ public class Report {
 
     // ===== GETTERS & SETTERS =====
 
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(String id) {
         this.id = id;
     }
 

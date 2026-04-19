@@ -37,6 +37,8 @@ public interface ListingRepository extends JpaRepository<Listing, String> {
     // =========================
     long countByStatus(Listing.Status status);
 
+    long countByStatusNot(Listing.Status status);
+
     long countByIsActive(Boolean isActive);
 
     @Query("""
@@ -97,7 +99,7 @@ SELECT l FROM Listing l
 LEFT JOIN FETCH l.seller
 LEFT JOIN FETCH l.images
 WHERE 1=1
-AND (:keyword IS NULL OR l.title LIKE CONCAT('%', :keyword, '%'))
+AND (:keyword IS NULL OR LOWER(l.title) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%')))
 AND (:minPrice IS NULL OR l.price >= :minPrice)
 AND (:maxPrice IS NULL OR l.price <= :maxPrice)
 AND (:condition IS NULL OR l.condition = :condition)
@@ -105,14 +107,13 @@ AND (:isActive IS NULL OR l.isActive = :isActive)
 AND (:status IS NULL OR l.status = :status)
 AND (:type IS NULL OR l.type = :type)
 AND (:size IS NULL OR l.size = :size)
-            AND (:keyword IS NULL OR l.title ILIKE CONCAT('%', :keyword, '%'))
-                                                                    AND (:series IS NULL OR l.seriesName ILIKE CONCAT('%', :series, '%'))
-                                                                    AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED
+AND (:series IS NULL OR LOWER(l.seriesName) LIKE LOWER(CONCAT('%', CAST(:series AS string), '%')))
+AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED
 """,
             countQuery = """
 SELECT COUNT(l) FROM Listing l
 WHERE 1=1
-AND (:keyword IS NULL OR l.title LIKE CONCAT('%', :keyword, '%'))
+AND (:keyword IS NULL OR LOWER(l.title) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%')))
 AND (:minPrice IS NULL OR l.price >= :minPrice)
 AND (:maxPrice IS NULL OR l.price <= :maxPrice)
 AND (:condition IS NULL OR l.condition = :condition)
@@ -120,7 +121,7 @@ AND (:isActive IS NULL OR l.isActive = :isActive)
 AND (:status IS NULL OR l.status = :status)
 AND (:type IS NULL OR l.type = :type)
 AND (:size IS NULL OR l.size = :size)
-AND (:series IS NULL OR l.seriesName LIKE CONCAT('%', :series, '%'))
+AND (:series IS NULL OR LOWER(l.seriesName) LIKE LOWER(CONCAT('%', CAST(:series AS string), '%')))
 AND l.status <> com.shiro.cosnima.model.Listing.Status.ARCHIVED
 """)
     Page<Listing> getListings(

@@ -44,7 +44,6 @@ function openReportModal(config) {
     return;
   }
   if (!config?.targetType || !config?.targetId) {
-    console.warn('openReportModal: missing targetType or targetId');
     return;
   }
 

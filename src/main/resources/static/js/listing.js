@@ -121,7 +121,6 @@ async function loadSeriesOptions() {
     seriesListCache = Array.from(seriesSet).sort();
     populateSeriesUI(seriesListCache);
   } catch (err) {
-    console.warn('Could not load series options:', err);
     seriesListCache = [];
     populateSeriesUI([]);
   }
@@ -272,11 +271,8 @@ if (state.size) params.set('size', state.size);
   if (state.minPrice != null) params.set('minPrice', state.minPrice);
   if (state.maxPrice != null) params.set('maxPrice', state.maxPrice);
 
-  console.log('Fetching with params:', params.toString()); // Debug
-
   try {
     const data = await API.get(`/api/listings?${params.toString()}`, false);
-    console.log('Response:', data); // Debug
 
     let listings = [];
     let total = 0;
@@ -327,7 +323,6 @@ if (state.size) params.set('size', state.size);
       card.style.animationDelay = `${idx * 0.03}s`;
     });
   } catch (err) {
-    console.error('Fetch error:', err);
     if (reset) container.innerHTML = '';
     if (errorEl) {
       errorEl.style.display = 'block';

@@ -9,7 +9,12 @@
 const API = (() => {
   const BASE_URL = 'http://localhost:8080';
   const TIMEOUT_MS = 15000;
-  const TOAST_ON_ERROR = false; // Set to true to auto-show toasts on errors
+  const TOAST_ON_ERROR = false;
+
+// Expose showToast globally
+if (typeof window !== 'undefined') {
+  window.showToast = showToast;
+}
 
   function getToken() {
     return localStorage.getItem('cosnimaToken');

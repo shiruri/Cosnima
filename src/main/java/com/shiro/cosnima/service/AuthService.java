@@ -4,6 +4,7 @@ package com.shiro.cosnima.service;
 import com.shiro.cosnima.dto.request.UserDto;
 import com.shiro.cosnima.dto.request.UserLoginDto;
 import com.shiro.cosnima.dto.response.AuthResult;
+import com.shiro.cosnima.model.ApiException;
 import com.shiro.cosnima.model.User;
 import com.shiro.cosnima.repository.UserRepository;
 import com.shiro.cosnima.security.JwtUtils;
@@ -55,7 +56,13 @@ public class AuthService {
         if(!encoder.matches(userLogin.getPassword(), user.getPasswordHash())) {
             return new AuthResult(null,"ERORR HASH");
         }
+
+        if(user.getIsBanned()) {
+            throw  ApiException.forbidden("User is banned");
+        }
         user.setIsActive(true);
+
+        user.setRole(user.getRole());
         String token = jwtUtils.generateToken(user.getId());
         return new AuthResult(UserDto.fromEntity(user), token);
     }

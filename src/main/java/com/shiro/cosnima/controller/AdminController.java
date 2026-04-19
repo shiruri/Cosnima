@@ -6,6 +6,8 @@ import com.shiro.cosnima.dto.request.UpdateListingRequest;
 import com.shiro.cosnima.dto.request.UserDto;
 import com.shiro.cosnima.dto.response.*;
 import com.shiro.cosnima.model.ApiException;
+import com.shiro.cosnima.model.User;
+import com.shiro.cosnima.repository.UserRepository;
 import com.shiro.cosnima.service.AdminService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
@@ -25,9 +27,11 @@ import java.util.UUID;
 public class AdminController {
 
     private final AdminService adminServ;
+    private final UserRepository userRepo;
 
-    public AdminController(AdminService adminServ) {
+    public AdminController(AdminService adminServ, UserRepository userRepo) {
         this.adminServ = adminServ;
+        this.userRepo = userRepo;
     }
 
     private void checkAdmin(Authentication auth) {
@@ -36,6 +40,21 @@ public class AdminController {
                 "anonymousUser".equals(auth.getName())) {
             throw ApiException.forbidden("Unauthorized");
         }
+    }
+
+    @GetMapping("/verify")
+    public java.util.Map<String, Object> verifySession(Authentication auth) {
+        checkAdmin(auth);
+        User user = userRepo.findByUsername(auth.getName()).orElse(null);
+        if (user == null || user.getRole() == null ||
+            (!user.getRole().equals("ADMIN") && !user.getRole().equals("MODERATOR"))) {
+            throw ApiException.forbidden("Invalid admin session");
+        }
+        return java.util.Map.of(
+            "valid", true,
+            "role", user.getRole(),
+            "id", user.getId().toString()
+        );
     }
 
     @GetMapping("/users")
@@ -132,12 +151,12 @@ public class AdminController {
     }
 
     @PostMapping("/reports/{id}/review")
-    public ReportResponse reviewReport( @PathVariable UUID id,
+    public ReportResponse reviewReport( @PathVariable String id,
                                         @RequestBody AdminReviewReportRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         checkAdmin(auth);
 
-        return adminServ.reviewReport(id,request);
+        return adminServ.reviewReport(id, request, auth.getName());
     }
 
 }

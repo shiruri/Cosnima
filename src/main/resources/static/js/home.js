@@ -121,16 +121,7 @@ async function loadFeaturedListings(filters = {}) {
       });
     });
 
-  } catch (err) {
-    console.error('Failed to load listings:', err);
-    container.innerHTML = '';
-    if (errorEl) {
-      errorEl.style.display = 'block';
-      errorEl.innerHTML = `
-        Could not load listings.
-        <button onclick="loadFeaturedListings()" style="text-decoration:underline;font-weight:700;color:inherit;margin-left:8px;">Try again</button>
-      `;
-    }
+} catch {/* silent */}
   }
 }
 
@@ -280,9 +271,7 @@ function handleWishClick(btn) {
 }
 
 function initWishButtons() {
-  console.log('=== INIT WISH BUTTONS ===');
-  
-      if (!API.isLoggedIn()) {
+  if (!API.isLoggedIn()) {
         // Show login modal
         const modal = document.createElement('div');
         modal.id = 'auth-gate-modal';
@@ -339,20 +328,15 @@ function initWishButtons() {
         return;
       }
       const id = btn.dataset.id;
-      console.log('=== HOME WISHLIST CLICK ===');
-      console.log('Listing ID:', id);
-      console.log('ToggleWishlist function:', typeof toggleWishlist);
-      console.log('window.toggleWishlist:', typeof window.toggleWishlist);
+
       try {
         const added = await window.toggleWishlist(id);
-        console.log('Result:', added);
+        
         btn.classList.toggle('active', added);
         const svg = btn.querySelector('svg');
         if (svg) svg.setAttribute('fill', added ? 'var(--accent)' : 'none');
         btn.setAttribute('aria-label', added ? 'Remove from wishlist' : 'Add to wishlist');
-      } catch (err) {
-        console.error('Error:', err);
-      }
+} catch {/* silent */}
     });
   });
 }

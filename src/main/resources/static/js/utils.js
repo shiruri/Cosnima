@@ -45,19 +45,9 @@ const UTILS = (() => {
     return `${Math.floor(diffDay / 365)}y ago`;
   }
 
-  function showToast(message, type = 'info', duration = 3500) {
-    if (typeof showToast !== 'function') {
-      console.warn('showToast not available, falling back to alert');
-      alert(message);
-      return;
-    }
-    showToast(message, type, duration);
-  }
-
   return {
     escapeHtml,
     formatPrice,
-    formatRelativeTime,
-    showToast
+    formatRelativeTime
   };
 })();

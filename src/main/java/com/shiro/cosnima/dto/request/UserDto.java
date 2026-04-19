@@ -30,6 +30,25 @@ public class UserDto {
 
     private String avatarUrl;
     private String avatarPublicId;
+    private String role;
+
+    public boolean isBanned() {
+        return isBanned;
+    }
+
+    public void setBanned(boolean banned) {
+        isBanned = banned;
+    }
+
+    private boolean isBanned;
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
 
     public double getRatingStars() {
         return ratingStars;
@@ -75,14 +94,15 @@ public class UserDto {
         this.ratingStars = ratingStars;
         this.listingCount = listingCount;
     }
-    public UserDto(UUID id, String username, String email, String bio, String avatarUrl, String avatarPublicId)
-    {
+    public UserDto(UUID id, String username, String email, String bio, String avatarUrl, String avatarPublicId, User.Role role, boolean isBanned) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.bio = bio;
         this.avatarUrl = avatarUrl;
         this.avatarPublicId = avatarPublicId;
+        this.role = role != null ? role.name() : null;
+        this.isBanned = isBanned;
     }
 
     // ===== Getters & Setters =====
@@ -142,7 +162,9 @@ public class UserDto {
                 user.getEmail(),
                 user.getBio(),
                 user.getAvatarUrl(),
-                user.getAvatarPublicId()
+                user.getAvatarPublicId(),
+                user.getRole(),
+                user.getIsBanned()
         );
     }
 

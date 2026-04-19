@@ -157,6 +157,10 @@ async function submitOffer(listingId, container) {
   const statusEl   = document.getElementById('offer-form-status');
   const btn        = document.getElementById('offer-submit-btn');
 
+  // Prevent spam - limit submissions
+  if (btn?.disabled) return;
+  btn.disabled = true;
+
   priceField?.classList.remove('has-error');
   if (statusEl) statusEl.style.display = 'none';
 
@@ -164,12 +168,12 @@ async function submitOffer(listingId, container) {
   if (!priceInput?.value || isNaN(price) || price <= 0) {
     priceField?.classList.add('has-error');
     priceInput?.focus();
+    btn.disabled = false;
     return;
   }
 
   const btnText   = btn?.querySelector('.btn-text');
   const btnLoader = btn?.querySelector('.btn-loader');
-  if (btn) btn.disabled = true;
   if (btnText)   btnText.style.display   = 'none';
   if (btnLoader) btnLoader.style.display = 'inline-block';
 
@@ -178,18 +182,6 @@ async function submitOffer(listingId, container) {
       offeredPrice: price,
       message: msgInput?.value?.trim() || null,
     }, true);
-
-    // Send notification message
-    try {
-      const msgContent = `I've sent an offer for "${listingTitle}". Please check my offer.`;
-      await API.post('/api/conversations/messages/send', {
-        conversationId: conversationId,
-        content: msgContent,
-        messageType: 'TEXT'
-      }, true);
-    } catch (e) {
-      showToast('Could not send notification. Please try again.', 'error');
-    }
 
     container.innerHTML = `
       <div class="offer-already-made">
@@ -747,8 +739,7 @@ async function loadOfferAnalytics() {
   setTimeout(() => container.classList.remove('fade-in'), 400);
 
   } catch (err) {
-    console.error('Analytics load error:', err);
-    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--error);">Failed to load analytics. Please refresh.</div>';
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink-faint);">Failed to load analytics. Please refresh.</div>';
     if (typeof showToast === 'function') showToast('Could not load analytics. Please try again.', 'error');
   }
 }
@@ -945,7 +936,6 @@ async function loadIncomingOffersDashboard() {
     renderFilteredIncomingOffers();
 
   } catch (err) {
-    console.error('Failed to load incoming offers:', err);
     container.innerHTML = `
       <div class="incoming-empty">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -954,7 +944,6 @@ async function loadIncomingOffersDashboard() {
         Could not load incoming offers.
         <button onclick="loadIncomingOffersDashboard()" class="btn btn-outline" style="margin-top:var(--space-md);display:inline-block;">Retry</button>
       </div>`;
-    if (typeof showToast === 'function') showToast('Could not load incoming offers. Please try again.', 'error');
   }
 }
 

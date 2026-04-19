@@ -24,6 +24,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     long countByIsActive(Boolean isActive);
 
+    long countByIsBannedTrue();
+
     @Transactional
     @Modifying
     @Query("UPDATE User u SET u.isActive = :status WHERE u.id = :id")

@@ -64,23 +64,48 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
+        // Check if user is banned
+        if (result.user?.isBanned) {
+          API.clearSession();
+          showBanner('Your account has been suspended. Contact support.', 'error');
+          shakeForm(loginForm);
+          return;
+        }
+
         API.setSession(result.token, result.user);
         showBanner('Signed in! Redirecting…', 'success');
         const params = new URLSearchParams(window.location.search);
         const redirect = params.get('redirect');
-        const redirectUrl = redirect === 'listing' ? '../listing/view-listing.html' : '../index.html';
+
+        // Redirect admins to their dashboard
+        let redirectUrl;
+        if (result.user?.role === 'ADMIN' || result.user?.role === 'MODERATOR') {
+          redirectUrl = '../admin/admin.html';
+        } else if (redirect === 'listing') {
+          redirectUrl = '../listing/view-listing.html';
+        } else {
+          redirectUrl = '../index.html';
+        }
         setTimeout(() => redirectTo(redirectUrl), 900);
 
       } catch (err) {
         const status = err?.status;
         let msg = err?.message || 'Login failed. Please try again.';
-        
+
+        // Handle banned/suspended users
+        if (status === 403 || msg.toLowerCase().includes('banned') || msg.toLowerCase().includes('suspended') || msg.toLowerCase().includes('suspend')) {
+          msg = 'Your account has been suspended. Contact support for help.';
+          showBanner(msg, 'error');
+          shakeForm(loginForm);
+          return;
+        }
+
         // Sanitize technical errors
         if (msg.includes('java.') || msg.length > 80 || msg.includes('exception')) {
           msg = 'Login failed. Please check your credentials.';
         }
-        
-        if (status === 401 || status === 403) msg = 'Incorrect email or password.';
+
+        if (status === 401) msg = 'Incorrect email or password.';
         if (status === 0) msg = 'Cannot reach the server. Check your connection.';
         showBanner(msg, 'error');
         shakeForm(loginForm);

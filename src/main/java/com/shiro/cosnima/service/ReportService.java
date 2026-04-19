@@ -44,7 +44,7 @@ public class ReportService {
         Report.TargetType type =
                 Report.TargetType.valueOf(request.getTargetType().toUpperCase());
 
-        String targetId = request.getTargetId();
+        String targetId = String.valueOf(request.getTargetId());
 
         // ─────────────────────────────
         // 2. Validate + normalize input
@@ -119,7 +119,7 @@ public class ReportService {
     }
 
     public List<ReportResponse> getUserReports(UUID userId) {
-        return reportRepo.findByReporterId(userId).stream().map(ReportMapper::toDto).toList();
+        return reportRepo.findByReporter_Id(userId).stream().map(ReportMapper::toDto).toList();
     }
 
 }

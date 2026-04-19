@@ -1,35 +1,48 @@
 /* ============================================
-   ADMIN DASHBOARD JavaScript
-   ============================================ */
+    ADMIN DASHBOARD JavaScript
+    ============================================ */
 
 let currentUser = null;
 let usersPage = 0;
 let listingsPage = 0;
 let pageSize = 10;
+let charts = {};
 
 // ========== INIT ==========
 async function init() {
-  if (!API.isLoggedIn()) {
+  // Frontend Auth Guard - check localStorage directly
+  const storedUser = localStorage.getItem('cosnimaUser');
+  let user = null;
+  try { user = storedUser ? JSON.parse(storedUser) : null; } catch { user = null; }
+
+  if (!storedUser || !user) {
     window.location.href = '../login/login.html';
     return;
   }
-  
-  currentUser = API.getUser();
-  if (currentUser?.role !== 'ADMIN' && currentUser?.role !== 'MODERATOR') {
+
+  // Check banned status
+  if (user.isBanned) {
+    API.clearSession();
+    window.location.href = '../login/login.html';
+    return;
+  }
+
+  // Check role - must be ADMIN or MODERATOR
+  if (user.role !== 'ADMIN' && user.role !== 'MODERATOR') {
     showToast('Admin access required', 'error');
     window.location.href = '../index.html';
     return;
   }
-  
+
+  currentUser = user;
   renderNavAuth(document.getElementById('nav-auth'));
-  
+
   await Promise.all([
     loadStats(),
     loadUsers(),
-    loadListings(),
-    loadReports()
+    loadListings()
   ]);
-  
+
   document.getElementById('loading-screen').classList.add('hide');
 }
 
@@ -37,17 +50,50 @@ window.addEventListener('DOMContentLoaded', init);
 
 // ========== STATS ==========
 async function loadStats() {
+  const statIds = [
+    'stat-total-users', 'stat-new-users', 'stat-listings', 'stat-rentals',
+    'stat-messages', 'stat-reports', 'stat-active-users', 'stat-banned-users',
+    'stat-active-listings', 'stat-sold-listings', 'stat-pending-listings',
+    'stat-completed-rentals', 'stat-resolved-reports'
+  ];
+
+  // Show loading state
+  statIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '...';
+  });
+
   try {
     const stats = await API.get('/api/admin/stats', true);
-    
-    document.getElementById('stat-total-users').textContent = stats.totalUsers?.toLocaleString() || '0';
-    document.getElementById('stat-new-users').textContent = stats.newUsersToday?.toLocaleString() || '0';
-    document.getElementById('stat-listings').textContent = stats.totalListings?.toLocaleString() || '0';
-    document.getElementById('stat-rentals').textContent = stats.totalRentals?.toLocaleString() || '0';
-    document.getElementById('stat-messages').textContent = stats.totalMessages?.toLocaleString() || '0';
-    document.getElementById('stat-reports').textContent = (stats.pendingReports || 0).toLocaleString() || '0';
+    if (!stats) throw new Error('No data');
+
+    // Map stats to elements
+    const map = {
+      'stat-total-users': stats.totalUsers,
+      'stat-new-users': stats.newUsersToday,
+      'stat-listings': stats.totalListings,
+      'stat-rentals': stats.totalRentals,
+      'stat-messages': stats.totalMessages,
+      'stat-reports': stats.pendingReports,
+      'stat-active-users': stats.activeUsers,
+      'stat-banned-users': stats.bannedUsers,
+      'stat-active-listings': stats.activeListings,
+      'stat-sold-listings': stats.soldListings,
+      'stat-pending-listings': stats.pendingListings,
+      'stat-completed-rentals': stats.completedRentals,
+      'stat-resolved-reports': stats.resolvedReports
+    };
+
+    Object.entries(map).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val != null ? Number(val).toLocaleString() : '0';
+    });
   } catch (err) {
-    console.error('Failed to load stats:', err);
+    console.error('Stats error:', err);
+    statIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '—';
+    });
   }
 }
 
@@ -56,13 +102,15 @@ async function loadUsers(page = 0) {
   usersPage = page;
   const tbody = document.getElementById('users-table-body');
   tbody.innerHTML = '<tr><td colspan="5" class="loading-cell">Loading...</td></tr>';
-  
+
   try {
     const result = await API.get(`/api/admin/users?page=${page}&size=${pageSize}`, true);
+    if (!result) throw new Error('No response');
     renderUsers(result.content || result);
     renderPagination('users', result.totalPages || 1, page);
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="5" class="loading-cell">Failed to load users</td></tr>';
+    console.error('Load users error:', err);
+    tbody.innerHTML = `<tr><td colspan="5" class="loading-cell">Error loading users. <button onclick="loadUsers(${page})">Retry</button></td></tr>`;
   }
 }
 
@@ -72,15 +120,12 @@ function renderUsers(users) {
     tbody.innerHTML = '<tr><td colspan="5" class="loading-cell">No users found</td></tr>';
     return;
   }
-  
+
   tbody.innerHTML = users.map(user => {
     const initial = (user.username || 'U').charAt(0).toUpperCase();
-    const statusClass = user.isBanned ? 'banned' : 'active';
-    const statusText = user.isBanned ? 'Banned' : 'Active';
-    const roleClass = user.role?.toLowerCase() || 'user';
-    const banBtnLabel = user.isBanned ? 'Unban' : 'Ban';
-    const banBtnClass = user.isBanned ? 'unban' : 'ban';
-    
+    const isBanned = user.isBanned;
+    const roleClass = (user.role || 'USER').toLowerCase();
+
     return `
       <tr>
         <td>
@@ -92,13 +137,13 @@ function renderUsers(users) {
             </div>
           </div>
         </td>
-        <td><span class="role-chip ${roleClass}">${user.role}</span></td>
-        <td><span class="status-chip ${statusClass}">${statusText}</span></td>
+        <td><span class="role-chip ${roleClass}">${user.role || 'USER'}</span></td>
+        <td><span class="status-chip ${isBanned ? 'banned' : 'active'}">${isBanned ? 'Banned' : 'Active'}</span></td>
         <td>${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}</td>
         <td>
           <div class="action-btns">
             <button class="btn-action view" onclick="viewUser('${user.id}')">View</button>
-            <button class="btn-action ${banBtnClass}" onclick="openBanModal('${user.id}', ${user.isBanned})">${banBtnLabel}</button>
+            <button class="btn-action ${isBanned ? 'unban' : 'ban'}" onclick="toggleBan('${user.id}', ${isBanned})">${isBanned ? 'Unban' : 'Ban'}</button>
           </div>
         </td>
       </tr>
@@ -124,13 +169,15 @@ async function loadListings(page = 0) {
   listingsPage = page;
   const tbody = document.getElementById('listings-table-body');
   tbody.innerHTML = '<tr><td colspan="6" class="loading-cell">Loading...</td></tr>';
-  
+
   try {
     const result = await API.get(`/api/admin/listings?page=${page}&size=${pageSize}`, true);
+    if (!result) throw new Error('No response');
     renderListings(result.content || result);
     renderPagination('listings', result.totalPages || 1, page);
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="6" class="loading-cell">Failed to load listings</td></tr>';
+    console.error('Load listings error:', err);
+    tbody.innerHTML = `<tr><td colspan="6" class="loading-cell">Error loading. <button onclick="loadListings(${page})">Retry</button></td></tr>`;
   }
 }
 
@@ -190,111 +237,106 @@ function viewListing(listingId) {
 }
 
 async function deleteListing(listingId) {
+  if (!listingId) return;
   if (!confirm('Delete this listing? This cannot be undone.')) return;
-  
+
   try {
     await API.delete(`/api/admin/${listingId}`, true);
     showToast('Listing deleted', 'success');
     loadListings(listingsPage);
     loadStats();
   } catch (err) {
-    showToast(err?.message || 'Failed to delete listing', 'error');
+    console.error('Delete listing error:', err);
+    showToast(err?.message || 'Failed to delete', 'error');
   }
 }
 
 // ========== REPORTS ==========
 async function loadReports() {
   const container = document.getElementById('reports-list');
+  if (!container) return;
+
   container.innerHTML = '<div class="loading-cell">Loading...</div>';
-  
+
   try {
     const result = await API.get('/api/admin/reports?page=0&size=20', true);
-    const reports = result.content || result;
-    
-    if (!reports?.length) {
+    const reports = result?.content || [];
+
+    if (!reports || reports.length === 0) {
       container.innerHTML = '<div class="empty-state"><h3>No reports</h3><p>All clear!</p></div>';
       return;
     }
-    
-    container.innerHTML = reports.map(report => {
-      const statusClass = report.status?.toLowerCase().replace('_', '-') || 'pending';
-      const canReview = report.status === 'PENDING' || report.status === 'UNDER_REVIEW';
-      
-      return `
-        <div class="report-card">
-          <div class="report-header">
-            <span class="report-type">${report.targetType}</span>
-            <span class="report-status ${statusClass}">${report.status}</span>
-          </div>
-          <div class="report-content">
-            <p><strong>Reason:</strong> ${report.reason}</p>
-            ${report.description ? `<p>${escH(report.description)}</p>` : ''}
-          </div>
-          <div class="report-meta">
-            <span>Reported by: ${escH(report.reporterName || 'Anonymous')}</span>
-            <span>${report.createdAt ? new Date(report.createdAt).toLocaleDateString() : ''}</span>
-          </div>
-          ${canReview ? `
-            <div class="action-btns" style="margin-top:var(--space-md);">
-              <button class="btn-action view" onclick="resolveReport('${report.id}', 'RESOLVED')">Resolve</button>
-              <button class="btn-action ban" onclick="resolveReport('${report.id}', 'REJECTED')">Reject</button>
-            </div>
-          ` : ''}
+
+    let html = '';
+    for (const report of reports) {
+      if (!report || !report.id) continue;
+
+      const reportId = report.id;
+      const status = report.status || 'PENDING';
+
+      html += `<div class="report-card">
+        <div class="report-header">
+          <span class="report-type">${report.targetType || '?'}</span>
+          <span class="report-status ${status.toLowerCase()}">${status}</span>
         </div>
-      `;
-    }).join('');
+        <div class="report-content">
+          <p><strong>Reason:</strong> ${report.reason || 'N/A'}</p>
+          ${report.description ? `<p>${report.description}</p>` : ''}
+        </div>
+        <div class="report-meta">
+          <span>By: ${report.reporterId || 'Anonymous'}</span>
+          <span>${report.createdAt || ''}</span>
+        </div>
+        ${status === 'PENDING' ? `<div class="action-btns"><button class="btn-action view" onclick="resolveReport('${reportId}','RESOLVED')">Mark Resolved</button><button class="btn-action delete" onclick="resolveReport('${reportId}','REJECTED')">Reject</button></div>` : ''}
+      </div>`;
+    }
+
+    container.innerHTML = html || '<div class="empty-state"><h3>No reports</h3></div>';
   } catch (err) {
-    container.innerHTML = '<div class="empty-state"><h3>Failed to load reports</h3></div>';
+    container.innerHTML = '<div class="empty-state"><h3>Error: ' + (err?.message || 'Failed to load') + '</h3></div>';
   }
 }
 
 async function resolveReport(reportId, status) {
+  if (!reportId) return;
+  const note = prompt('Add admin note (optional):');
+  if (note === null) return;
   try {
-    await API.post(`/api/admin/reports/${reportId}/review`, { status, adminNote: '' }, true);
-    showToast(`Report ${status.toLowerCase()}`, 'success');
+    await API.post(`/api/admin/reports/${reportId}/review`, { status, adminNote: note || '' }, true);
+    showToast(`Report ${status?.toLowerCase() || 'done'}`, 'success');
     loadReports();
     loadStats();
   } catch (err) {
-    showToast(err?.message || 'Failed to process report', 'error');
+    console.error('Resolve report error:', err);
+    showToast(err?.message || 'Failed to process', 'error');
   }
 }
 
-// ========== BAN MODAL ==========
-function openBanModal(userId, isCurrentlyBanned) {
-  document.getElementById('ban-user-id').value = userId;
-  document.getElementById('ban-form').dataset.unban = isCurrentlyBanned;
-  document.getElementById('ban-modal').style.display = 'flex';
-}
+// ========== BAN/UNBAN ==========
+async function toggleBan(userId, isCurrentlyBanned) {
+  if (!userId) {
+    showToast('Invalid user', 'error');
+    return;
+  }
+  const action = isCurrentlyBanned ? 'unban' : 'ban';
+  if (!confirm(`Are you sure you want to ${action} this user?`)) return;
 
-function closeBanModal() {
-  document.getElementById('ban-modal').style.display = 'none';
-  document.getElementById('ban-form').reset();
-}
-
-document.getElementById('ban-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const userId = document.getElementById('ban-user-id').value;
-  const isUnban = document.getElementById('ban-form').dataset.unban === 'true';
-  const reason = document.getElementById('ban-reason').value;
-  const notes = document.getElementById('ban-notes').value;
-  
   try {
-    if (isUnban) {
+    if (isCurrentlyBanned) {
       await API.post(`/api/admin/${userId}/unban`, {}, true);
       showToast('User unbanned', 'success');
     } else {
-      await API.post(`/api/admin/${userId}/ban`, { banReason: reason + (notes ? ': ' + notes : '') }, true);
+      const reason = prompt('Ban reason (optional):') || '';
+      await API.post(`/api/admin/${userId}/ban`, { banReason: reason }, true);
       showToast('User banned', 'success');
     }
-    
-    closeBanModal();
     loadUsers(usersPage);
     loadStats();
   } catch (err) {
+    console.error('Toggle ban error:', err);
     showToast(err?.message || 'Failed to update user', 'error');
   }
-});
+}
 
 // ========== PAGINATION ==========
 function renderPagination(type, totalPages, currentPage) {
@@ -324,6 +366,11 @@ function renderPagination(type, totalPages, currentPage) {
 function switchTab(tab) {
   document.querySelectorAll('.admin-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   document.querySelectorAll('.admin-section').forEach(s => s.classList.toggle('active', s.id === `${tab}-section`));
+
+  // Lazy load reports when tab is clicked
+  if (tab === 'reports') {
+    loadReports();
+  }
 }
 
 // ========== UTILITIES ==========
@@ -332,31 +379,28 @@ function escH(str) {
 }
 
 function showToast(message, type = 'info', duration = 3000) {
-  const container = document.getElementById('toast-container');
+  const container = document.getElementById('toast-container') || document.body;
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.textContent = message;
   container.appendChild(toast);
-  
-  setTimeout(() => {
-    toast.classList.add('show');
-  }, 10);
-  
+
+  setTimeout(() => toast.classList.add('show'), 10);
   setTimeout(() => {
     toast.classList.remove('show');
     setTimeout(() => toast.remove(), 300);
   }, duration);
 }
 
-// Expose to window
+// Expose globally
+window.switchTab = switchTab;
 window.loadUsers = loadUsers;
 window.loadListings = loadListings;
-window.switchTab = switchTab;
 window.searchUsers = searchUsers;
 window.searchListings = searchListings;
 window.viewUser = viewUser;
 window.viewListing = viewListing;
 window.deleteListing = deleteListing;
-window.openBanModal = openBanModal;
-window.closeBanModal = closeBanModal;
+window.toggleBan = toggleBan;
 window.resolveReport = resolveReport;
+window.showToast = showToast;

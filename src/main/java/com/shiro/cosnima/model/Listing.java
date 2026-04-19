@@ -124,6 +124,7 @@ public class Listing {
     private List<Tags> tags;
 
     public enum Status {
+        PENDING,
         AVAILABLE,
         SOLD,
         RENTED,

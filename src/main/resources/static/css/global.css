@@ -227,6 +227,34 @@ p  { color: var(--ink-muted); }
   transition: opacity 0.4s ease;
 }
 #loading-screen.hide { opacity: 0; pointer-events: none; }
+
+.floating-admin-btn {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, var(--beaver), var(--accent));
+  color: white;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 20px rgba(200, 122, 80, 0.4);
+  z-index: 998;
+  transition: all 0.25s ease;
+}
+
+.floating-admin-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 30px rgba(200, 122, 80, 0.5);
+}
+
+.floating-admin-btn svg {
+  width: 20px;
+  height: 20px;
+}
 .loader-beaver { animation: loaderBounce 0.8s ease-in-out infinite; }
 @keyframes loaderBounce {
   0%, 100% { transform: translateY(0) rotate(-3deg); }

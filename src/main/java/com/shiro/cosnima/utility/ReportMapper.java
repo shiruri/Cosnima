@@ -18,11 +18,11 @@ public class ReportMapper {
         dto.setId(report.getId());
 
         if (report.getReporter() != null) {
-            dto.setReporterId(report.getReporter().getId()); // UUID
+            dto.setReporterId(report.getReporter().getId().toString());
         }
 
         if (report.getReviewedBy() != null) {
-            dto.setReviewedBy(report.getReviewedBy().getId()); // UUID
+            dto.setReviewedBy(report.getReviewedBy().getId().toString());
         }
 
         dto.setTargetType(
@@ -42,30 +42,10 @@ public class ReportMapper {
         );
 
         dto.setAdminNote(report.getAdminNote());
-        dto.setCreatedAt(report.getCreatedAt());
-        dto.setResolvedAt(report.getResolvedAt());
+        dto.setCreatedAt(report.getCreatedAt().toString());
+        dto.setResolvedAt(report.getResolvedAt() != null ? report.getResolvedAt().toString() : null);
 
         return dto;
     }
 
-    // ===== REQUEST → ENTITY =====
-    public static Report fromDto(ReportRequest dto, Report report, User reporter) {
-        if (dto == null || report == null) return null;
-
-        report.setReporter(reporter); // UUID user
-
-        report.setTargetType(
-                Report.TargetType.valueOf(dto.getTargetType().toUpperCase())
-        );
-
-        report.setTargetId(dto.getTargetId());
-
-        report.setReason(
-                Report.Reason.valueOf(dto.getReason().toUpperCase())
-        );
-
-        report.setDescription(dto.getDescription());
-
-        return report;
-    }
 }

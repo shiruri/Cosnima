@@ -912,7 +912,6 @@ try {
     }
 
   } catch (err) {
-    console.error('Rental submit error:', err);
     showToast('Request failed - you may have already requested on this item', 'error');
     if (btn) btn.disabled = false;
     if (btnText)   btnText.style.display   = 'inline';
@@ -1663,7 +1662,6 @@ async function submitRentInChat() {
     loadMessages(_activeConvoId);
     
   } catch (err) {
-    console.error('Rental send error:', err);
     showToast('Request failed - you may have already requested on this item', 'error');
   } finally {
     if (btn) btn.disabled = false;
