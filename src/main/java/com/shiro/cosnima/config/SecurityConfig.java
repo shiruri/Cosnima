@@ -49,19 +49,15 @@ public class SecurityConfig {
                                 "/css/**", "/js/**", "/images/**", "/fonts/**",
                                 "/*.html", "/*.js", "/*.css", "/*.ico", "/*.png",
                                 "/login/**", "/signup/**", "/profile/**",
-                                "/browse/**", "/listing/**"
+                                "/browse/**", "/listing/**",
+                                "/messages/**", "/offers/**", "/rentals/**",
+                                "/error/**", "/favicon.ico","/admin/**"
                         ).permitAll()
-                        // OPTIONS preflight always allowed
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // Error pages
                         .requestMatchers("/error", "/error/**").permitAll()
-                        // Public auth endpoints
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                        // Public listing reads
                         .requestMatchers(HttpMethod.GET, "/api/listings", "/api/listings/**").permitAll()
-                        // Actuator health check (Railway needs this)
                         .requestMatchers("/actuator/health").permitAll()
-                        // Everything else requires auth
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

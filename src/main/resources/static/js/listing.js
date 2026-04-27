@@ -362,7 +362,9 @@ function showEmptyState() {
     </div>`;
 }
 
-function createListingCard(listing) {
+function attachCardEvents() {
+  // Card event handlers are attached inline in createListingCard
+}
   const isRent = listing.type === 'RENT';
   const typeBadge = isRent
     ? '<span class="badge badge-rent">Rent</span>'
