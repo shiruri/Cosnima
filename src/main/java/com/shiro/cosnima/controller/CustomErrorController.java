@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.webmvc.error.ErrorController;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-
 @Controller
 public class CustomErrorController implements ErrorController {
 
@@ -13,9 +12,14 @@ public class CustomErrorController implements ErrorController {
     public String handleError(HttpServletRequest request) {
         Integer status = (Integer) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
 
-        if (status != null && (status == 401 || status == 403)) {
-            return "forward:/error/error.html";
+        if (status != null) {
+            if (status == 404) {
+                return "forward:/error/404.html";
+            }
+            if (status == 401 || status == 403) {
+                return "forward:/login/login.html"; // redirect to login
+            }
         }
-        return "forward:/error/error.html";
+        return "forward:/error/404.html"; // fallback
     }
 }
