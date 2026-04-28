@@ -122,7 +122,7 @@ async function loadFeaturedListings(filters = {}) {
     });
 
 } catch {/* silent */}
-  }
+  
 }
 
 /* ── Stats ── */
