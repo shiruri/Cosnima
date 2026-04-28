@@ -362,9 +362,7 @@ function showEmptyState() {
     </div>`;
 }
 
-function attachCardEvents() {
-  // Card event handlers are attached inline in createListingCard
-}
+function createListingCard(listing) {
   const isRent = listing.type === 'RENT';
   const typeBadge = isRent
     ? '<span class="badge badge-rent">Rent</span>'
@@ -427,8 +425,9 @@ function attachCardEvents() {
     </div>
   `;
   return article;
+}
 
-
+function attachCardEvents() {
   document.querySelectorAll('.listing-card:not([data-wired-card])').forEach(card => {
     card.setAttribute('data-wired-card', 'true');
     card.addEventListener('click', (e) => {
@@ -440,7 +439,7 @@ function attachCardEvents() {
 
   document.querySelectorAll('.card-wish:not([data-wired-wish])').forEach(btn => {
     btn.setAttribute('data-wired-wish', 'true');
-    btn.addEventListener('click', async (e) => {
+    btn.addEventListener('click', (e) => {
       e.stopPropagation();
       if (!API.isLoggedIn()) {
         showToast('Log in to save to your wishlist', 'info');
