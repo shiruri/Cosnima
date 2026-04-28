@@ -7,7 +7,7 @@
    ============================================ */
 
 const API = (() => {
-  const BASE_URL = 'http://localhost:8080';
+const BASE_URL = process.env.REACT_APP_API_URL;
   const TIMEOUT_MS = 15000;
   const TOAST_ON_ERROR = false;
 
