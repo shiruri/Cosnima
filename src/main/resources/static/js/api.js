@@ -7,7 +7,7 @@
    ============================================ */
 
 const API = (() => {
-const BASE_URL = process.env.REACT_APP_API_URL;
+const BASE_URL = "https://cosnima-production.up.railway.app";
   const TIMEOUT_MS = 15000;
   const TOAST_ON_ERROR = false;
 
