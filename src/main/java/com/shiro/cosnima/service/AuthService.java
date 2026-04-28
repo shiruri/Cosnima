@@ -51,10 +51,10 @@ public class AuthService {
             optionalUser = userRepo.findByUsername(userLogin.getLogin());
         }
 
-        User user = optionalUser.orElseThrow(() -> new RuntimeException("User not found"));
+        User user = optionalUser.orElseThrow(() -> ApiException.unauthorized("Incorrect email or password."));
 
         if(!encoder.matches(userLogin.getPassword(), user.getPasswordHash())) {
-            return new AuthResult(null,"ERORR HASH");
+            throw ApiException.unauthorized("Incorrect email or password.");  // ← throw 401, don't return
         }
 
         if(user.getIsBanned()) {
