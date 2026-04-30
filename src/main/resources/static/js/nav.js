@@ -1,8 +1,8 @@
 /* ============================================
    COSNIMA — Shared Nav & UI Logic
-   FIX: logout now uses getPathPrefix() so redirecting
-        from messages/messages.html goes to ../login/login.html
-        instead of messages/login/login.html
+   FIX: logout uses getPathPrefix() — correct path from any subfolder
+   FIX: mobile drawer auth rendered via renderMobileAuth() with
+        large tap targets, profile card + logout button always visible
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -62,11 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
     hamburger.getAttribute('aria-expanded') === 'true' ? closeMenu() : openMenu();
   });
   overlay?.addEventListener('click', closeMenu);
+  // Close menu when tapping any link inside it
   mobileNav?.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
 
   // ── Auth nav state ──
   renderNavAuth(document.getElementById('nav-auth'));
-  renderNavAuth(document.getElementById('mobile-auth'));
+  // FIX: use dedicated mobile renderer so it gets proper tap targets
+  renderMobileAuth(document.getElementById('mobile-auth'));
 
   // Show logged-in-only links
   if (API.isLoggedIn()) {
@@ -85,7 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (el) el.style.display = '';
     });
 
-    // Show admin link for ADMIN/MODERATOR
     if (user?.role === 'ADMIN' || user?.role === 'MODERATOR') {
       const adminLink = document.getElementById('admin-link');
       const mobileAdminLink = document.getElementById('mobile-admin-link');
@@ -159,16 +160,16 @@ function getPathPrefix() {
   return '';
 }
 
-/* ── Render nav auth ── */
+/* ── Desktop nav auth ── */
 function renderNavAuth(container) {
   if (!container) return;
   const prefix = getPathPrefix();
 
   if (API.isLoggedIn()) {
-    const user    = API.getUser();
-    const name    = user?.username || 'Cosplayer';
-    const initial = name.charAt(0).toUpperCase();
-    const profilePath = prefix + 'profile/profile.html';
+    const user         = API.getUser();
+    const name         = user?.username || 'Cosplayer';
+    const initial      = name.charAt(0).toUpperCase();
+    const profilePath  = prefix + 'profile/profile.html';
     const profileImage = user?.avatarUrl;
 
     const avatarHtml = profileImage
@@ -189,7 +190,6 @@ function renderNavAuth(container) {
     const greetSpan = container.querySelector('.greeting-text');
     if (greetSpan && window.innerWidth >= 1024) greetSpan.style.display = 'inline';
 
-    // Fetch fresh user data to update profile image if not available
     if (!profileImage && user?.id) {
       API.get(`/api/users/${user.id}`, true).then(freshUser => {
         if (freshUser?.avatarUrl) {
@@ -206,21 +206,140 @@ function renderNavAuth(container) {
   }
 }
 
+/* ── Mobile drawer auth ──
+   Separate from renderNavAuth so we can use large, finger-friendly
+   tap targets. Sits at the bottom of the drawer with a divider.
+   -webkit-tap-highlight-color:transparent removes the grey flash on tap. ── */
+function renderMobileAuth(container) {
+  if (!container) return;
+  const prefix = getPathPrefix();
+
+  if (API.isLoggedIn()) {
+    const user         = API.getUser();
+    const name         = user?.username || 'Cosplayer';
+    const initial      = name.charAt(0).toUpperCase();
+    const profilePath  = prefix + 'profile/profile.html';
+    const profileImage = user?.avatarUrl;
+
+    const avatarHtml = profileImage
+      ? `<img src="${escapeHtml(profileImage)}" alt="${escapeHtml(name)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`
+      : escapeHtml(initial);
+
+    container.innerHTML = `
+      <div style="
+        border-top: 1.5px solid var(--border);
+        padding-top: var(--space-lg);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+      ">
+        <a
+          href="${profilePath}"
+          style="
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            border-radius: var(--radius);
+            background: var(--bg-alt);
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 56px;
+          "
+          aria-label="View my profile"
+        >
+          <div style="
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--beaver), var(--accent));
+            color: white;
+            font-size: 1rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+            box-shadow: 0 0 0 2px var(--accent);
+          ">${avatarHtml}</div>
+          <div style="min-width: 0; flex: 1;">
+            <div style="
+              font-size: 1rem;
+              font-weight: 700;
+              color: var(--ink);
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            ">${escapeHtml(name)}</div>
+            <div style="font-size: 0.75rem; color: var(--accent); font-weight: 600; margin-top: 2px;">
+              View Profile →
+            </div>
+          </div>
+        </a>
+
+        <button
+          onclick="logout()"
+          style="
+            width: 100%;
+            min-height: 52px;
+            padding: var(--space-md);
+            border-radius: var(--radius);
+            border: 1.5px solid var(--border);
+            background: transparent;
+            color: var(--ink-muted);
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-family: var(--font-body);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-sm);
+            -webkit-tap-highlight-color: transparent;
+          "
+          aria-label="Log out"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          </svg>
+          Log out
+        </button>
+      </div>`;
+
+  } else {
+    container.innerHTML = `
+      <div style="
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+        border-top: 1.5px solid var(--border);
+        padding-top: var(--space-lg);
+      ">
+        <a
+          href="${prefix}login/login.html"
+          class="btn btn-outline"
+          style="justify-content: center; width: 100%; min-height: 52px; -webkit-tap-highlight-color: transparent;"
+        >Log in</a>
+        <a
+          href="${prefix}signup/register.html"
+          class="btn btn-primary"
+          style="justify-content: center; width: 100%; min-height: 52px; -webkit-tap-highlight-color: transparent;"
+        >Register</a>
+      </div>`;
+  }
+}
+
 /* ── Logout ── */
-/* FIX: Use getPathPrefix() to build the correct redirect URL.
-   Previously this hardcoded 'login/login.html' which became
-   'messages/login/login.html' when called from messages/ folder. */
 function logout() {
   try { API.post('/api/auth/logout', {}, true); } catch {}
   API.clearSession();
 
-  // Hide floating admin button if exists
-  const btn = document.getElementById('floating-admin-btn');
-  if (btn) btn.style.display = 'none';
+  const floatBtn = document.getElementById('floating-admin-btn');
+  if (floatBtn) floatBtn.style.display = 'none';
 
   if (typeof showToast === 'function') showToast('Logged out. See you soon! 🦫', 'success', 2000);
 
-  // Use prefix so the path resolves correctly from any subfolder
+  // FIX: prefix ensures correct path from any subfolder (messages/, offers/, etc.)
   const prefix = getPathPrefix();
   document.body.classList.add('fade-out');
   setTimeout(() => {
