@@ -1,17 +1,18 @@
 /* ============================================
    COSNIMA — Shared Nav & UI Logic
-   Updated: messages + rentals links, consistent auth
+   FIX: logout now uses getPathPrefix() so redirecting
+        from messages/messages.html goes to ../login/login.html
+        instead of messages/login/login.html
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ── Show floating admin if admin (check on every page load) ──
+  // ── Show floating admin if admin ──
   setTimeout(() => {
     try {
       const storedUser = localStorage.getItem('cosnimaUser');
       const user = storedUser ? JSON.parse(storedUser) : null;
       const btn = document.getElementById('floating-admin-btn');
-      // Show only if admin + not banned
       if (btn && !user?.isBanned && (user?.role === 'ADMIN' || user?.role === 'MODERATOR')) {
         btn.style.display = 'flex';
       }
@@ -170,7 +171,7 @@ function renderNavAuth(container) {
     const profilePath = prefix + 'profile/profile.html';
     const profileImage = user?.avatarUrl;
 
-    const avatarHtml = profileImage 
+    const avatarHtml = profileImage
       ? `<img src="${escapeHtml(profileImage)}" alt="${escapeHtml(name)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`
       : escapeHtml(initial);
 
@@ -187,20 +188,18 @@ function renderNavAuth(container) {
 
     const greetSpan = container.querySelector('.greeting-text');
     if (greetSpan && window.innerWidth >= 1024) greetSpan.style.display = 'inline';
-    
+
     // Fetch fresh user data to update profile image if not available
     if (!profileImage && user?.id) {
       API.get(`/api/users/${user.id}`, true).then(freshUser => {
         if (freshUser?.avatarUrl) {
           user.avatarUrl = freshUser.avatarUrl;
           localStorage.setItem('cosnimaUser', JSON.stringify(user));
-          // Re-render with image
           renderNavAuth(container);
         }
       }).catch(() => {});
     }
   } else {
-    const prefix = getPathPrefix();
     container.innerHTML = `
       <a href="${prefix}login/login.html" class="btn btn-ghost btn-nav">Log in</a>
       <a href="${prefix}signup/register.html" class="btn btn-primary btn-nav">Register</a>`;
@@ -208,6 +207,9 @@ function renderNavAuth(container) {
 }
 
 /* ── Logout ── */
+/* FIX: Use getPathPrefix() to build the correct redirect URL.
+   Previously this hardcoded 'login/login.html' which became
+   'messages/login/login.html' when called from messages/ folder. */
 function logout() {
   try { API.post('/api/auth/logout', {}, true); } catch {}
   API.clearSession();
@@ -218,10 +220,11 @@ function logout() {
 
   if (typeof showToast === 'function') showToast('Logged out. See you soon! 🦫', 'success', 2000);
 
-  // Clean page transition then redirect to login
+  // Use prefix so the path resolves correctly from any subfolder
+  const prefix = getPathPrefix();
   document.body.classList.add('fade-out');
   setTimeout(() => {
-    window.location.href = 'login/login.html';
+    window.location.href = prefix + 'login/login.html';
   }, 300);
 }
 
