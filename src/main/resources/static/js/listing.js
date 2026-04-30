@@ -1,6 +1,7 @@
 /* ============================================
-   COSNIMA — Listings Page Logic (FULLY FIXED)
-   Series/size filters working, view toggle, smooth loading
+   COSNIMA — Listings Page Logic
+   Guard: only runs when #listings-container AND #results-count exist
+   (prevents crash when listing.js is loaded on index.html)
    ============================================ */
 
 // ── State ──
@@ -24,25 +25,32 @@ let hasMore = true;
 let seriesListCache = null;
 
 // ── DOM Elements ──
-const searchInput = document.getElementById('search-input');
-const typeFilter = document.getElementById('type-filter');
+const searchInput     = document.getElementById('search-input');
+const typeFilter      = document.getElementById('type-filter');
 const conditionFilter = document.getElementById('condition-filter');
-const seriesFilter = document.getElementById('series-filter');
-const sizeFilter = document.getElementById('size-filter');
-const priceMin = document.getElementById('price-min');
-const priceMax = document.getElementById('price-max');
-const sortFilter = document.getElementById('sort-filter');
-const applyBtn = document.getElementById('apply-filters');
-const resetBtn = document.getElementById('reset-filters');
-const container = document.getElementById('listings-container');
-const resultsCount = document.getElementById('results-count');
-const errorEl = document.getElementById('listings-error');
-const seriesPillsContainer = document.getElementById('series-pills');
+const seriesFilter    = document.getElementById('series-filter');
+const sizeFilter      = document.getElementById('size-filter');
+const priceMin        = document.getElementById('price-min');
+const priceMax        = document.getElementById('price-max');
+const sortFilter      = document.getElementById('sort-filter');
+const applyBtn        = document.getElementById('apply-filters');
+const resetBtn        = document.getElementById('reset-filters');
+const container       = document.getElementById('listings-container');
+const resultsCount    = document.getElementById('results-count');
+const errorEl         = document.getElementById('listings-error');
+const seriesPillsContainer  = document.getElementById('series-pills');
 const activeFiltersContainer = document.getElementById('active-filters');
-const gridViewBtn = document.getElementById('grid-view-btn');
-const listViewBtn = document.getElementById('list-view-btn');
+const gridViewBtn     = document.getElementById('grid-view-btn');
+const listViewBtn     = document.getElementById('list-view-btn');
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // ── GUARD: only initialise on the listings browse page ──
+  // listings.js is also loaded on index.html; if the required
+  // elements (#results-count, filter controls) are absent we
+  // must NOT run – doing so throws "Cannot set properties of
+  // null (setting 'textContent')" and breaks the home page.
+  if (!resultsCount || !container) return;
+
   await loadSeriesOptions();
   restoreUrlParams();
   wireFilters();
@@ -50,7 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   fetchListings(true);
 });
 
-// ── View Toggle (Grid / List) ──
+// ── View Toggle ──
 function initViewToggle() {
   const savedView = localStorage.getItem('cosnimaViewMode') || 'grid';
   if (savedView === 'list') {
@@ -78,22 +86,16 @@ function initViewToggle() {
   });
 }
 
-// ── Restore URL parameters ──
+// ── Restore URL params ──
 function restoreUrlParams() {
   const params = new URLSearchParams(window.location.search);
-  if (params.get('keyword')) {
-    state.keyword = params.get('keyword');
-    if (searchInput) searchInput.value = state.keyword;
-  }
-  if (params.get('series')) {
-    state.series = params.get('series');
-    if (seriesFilter) seriesFilter.value = state.series;
-  }
-  if (params.get('type')) state.type = params.get('type');
+  if (params.get('keyword'))   { state.keyword   = params.get('keyword');   if (searchInput)   searchInput.value   = state.keyword; }
+  if (params.get('series'))    { state.series     = params.get('series');    if (seriesFilter)  seriesFilter.value  = state.series; }
+  if (params.get('type'))      state.type      = params.get('type');
   if (params.get('condition')) state.condition = params.get('condition');
-  if (params.get('size')) state.size = params.get('size');
-  if (params.get('minPrice')) state.minPrice = parseFloat(params.get('minPrice'));
-  if (params.get('maxPrice')) state.maxPrice = parseFloat(params.get('maxPrice'));
+  if (params.get('size'))      state.size      = params.get('size');
+  if (params.get('minPrice'))  state.minPrice  = parseFloat(params.get('minPrice'));
+  if (params.get('maxPrice'))  state.maxPrice  = parseFloat(params.get('maxPrice'));
   if (params.get('sort')) {
     const sortVal = params.get('sort');
     if (sortFilter) sortFilter.value = sortVal;
@@ -101,45 +103,37 @@ function restoreUrlParams() {
   }
 }
 
-// ── Load series from API ──
+// ── Load series ──
 async function loadSeriesOptions() {
-  if (seriesListCache) {
-    populateSeriesUI(seriesListCache);
-    return;
-  }
+  if (seriesListCache) { populateSeriesUI(seriesListCache); return; }
   try {
     const response = await API.get('/api/listings?page=0&pageSize=200', false);
     let listings = [];
     if (Array.isArray(response)) listings = response;
-    else if (response?.content) listings = response.content;
+    else if (response?.content)  listings = response.content;
     else if (response?.listings) listings = response.listings;
 
     const seriesSet = new Set();
-    listings.forEach(l => {
-      if (l.seriesName && l.seriesName.trim()) seriesSet.add(l.seriesName.trim());
-    });
+    listings.forEach(l => { if (l.seriesName?.trim()) seriesSet.add(l.seriesName.trim()); });
     seriesListCache = Array.from(seriesSet).sort();
     populateSeriesUI(seriesListCache);
-  } catch (err) {
+  } catch {
     seriesListCache = [];
     populateSeriesUI([]);
   }
 }
 
 function populateSeriesUI(seriesList) {
-  // Dropdown
   if (seriesFilter) {
     seriesFilter.innerHTML = '<option value="">Any Series</option>';
     seriesList.forEach(s => {
       const option = document.createElement('option');
-      option.value = s;
-      option.textContent = s;
+      option.value = s; option.textContent = s;
       seriesFilter.appendChild(option);
     });
     if (state.series) seriesFilter.value = state.series;
   }
 
-  // Pills
   if (seriesPillsContainer) {
     seriesPillsContainer.innerHTML = '<button class="pill active" data-series="">All Series</button>';
     seriesList.slice(0, 12).forEach(s => {
@@ -170,75 +164,54 @@ function wireFilters() {
     let debounceTimer;
     searchInput.addEventListener('input', () => {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        state.keyword = searchInput.value.trim();
-        fetchListings(true);
-      }, 400);
+      debounceTimer = setTimeout(() => { state.keyword = searchInput.value.trim(); fetchListings(true); }, 400);
     });
   }
 
   if (applyBtn) {
     applyBtn.addEventListener('click', () => {
-      state.type = typeFilter?.value || null;
+      state.type      = typeFilter?.value || null;
       state.condition = conditionFilter?.value || null;
-      state.series = seriesFilter?.value || null;
-      state.size = sizeFilter?.value || null;
-      state.minPrice = priceMin?.value ? parseFloat(priceMin.value) : null;
-      state.maxPrice = priceMax?.value ? parseFloat(priceMax.value) : null;
-      const sortVal = sortFilter?.value || 'newest';
-      setSortFromValue(sortVal);
+      state.series    = seriesFilter?.value || null;
+      state.size      = sizeFilter?.value || null;
+      state.minPrice  = priceMin?.value ? parseFloat(priceMin.value) : null;
+      state.maxPrice  = priceMax?.value ? parseFloat(priceMax.value) : null;
+      setSortFromValue(sortFilter?.value || 'newest');
       fetchListings(true);
     });
   }
 
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {
-      if (searchInput) searchInput.value = '';
-      if (typeFilter) typeFilter.value = '';
+      if (searchInput)   searchInput.value   = '';
+      if (typeFilter)    typeFilter.value     = '';
       if (conditionFilter) conditionFilter.value = '';
-      if (seriesFilter) seriesFilter.value = '';
-      if (sizeFilter) sizeFilter.value = '';
-      if (priceMin) priceMin.value = '';
-      if (priceMax) priceMax.value = '';
-      if (sortFilter) sortFilter.value = 'newest';
+      if (seriesFilter)  seriesFilter.value   = '';
+      if (sizeFilter)    sizeFilter.value     = '';
+      if (priceMin)      priceMin.value       = '';
+      if (priceMax)      priceMax.value       = '';
+      if (sortFilter)    sortFilter.value     = 'newest';
 
-      state = {
-        page: 0,
-        pageSize: 12,
-        sortBy: 'createdAt',
-        sortDir: 'desc',
-        keyword: '',
-        type: null,
-        condition: null,
-        series: null,
-        size: null,
-        minPrice: null,
-        maxPrice: null,
-        status: 'AVAILABLE',
-      };
+      state = { page:0, pageSize:12, sortBy:'createdAt', sortDir:'desc', keyword:'', type:null, condition:null, series:null, size:null, minPrice:null, maxPrice:null, status:'AVAILABLE' };
       document.querySelectorAll('[data-series]').forEach(p => p.classList.remove('active'));
-      const allPill = document.querySelector('[data-series=""]');
-      if (allPill) allPill.classList.add('active');
+      document.querySelector('[data-series=""]')?.classList.add('active');
       fetchListings(true);
     });
   }
 
   if (sortFilter) {
-    sortFilter.addEventListener('change', () => {
-      setSortFromValue(sortFilter.value);
-      fetchListings(true);
-    });
+    sortFilter.addEventListener('change', () => { setSortFromValue(sortFilter.value); fetchListings(true); });
   }
 }
 
 function setSortFromValue(val) {
   switch (val) {
-    case 'newest': state.sortBy = 'createdAt'; state.sortDir = 'desc'; break;
-    case 'oldest': state.sortBy = 'createdAt'; state.sortDir = 'asc'; break;
-    case 'price-asc': state.sortBy = 'price'; state.sortDir = 'asc'; break;
-    case 'price-desc': state.sortBy = 'price'; state.sortDir = 'desc'; break;
-    case 'alpha': state.sortBy = 'title'; state.sortDir = 'asc'; break;
-    default: state.sortBy = 'createdAt'; state.sortDir = 'desc';
+    case 'newest':     state.sortBy = 'createdAt'; state.sortDir = 'desc'; break;
+    case 'oldest':     state.sortBy = 'createdAt'; state.sortDir = 'asc';  break;
+    case 'price-asc':  state.sortBy = 'price';     state.sortDir = 'asc';  break;
+    case 'price-desc': state.sortBy = 'price';     state.sortDir = 'desc'; break;
+    case 'alpha':      state.sortBy = 'title';     state.sortDir = 'asc';  break;
+    default:           state.sortBy = 'createdAt'; state.sortDir = 'desc';
   }
 }
 
@@ -247,12 +220,7 @@ async function fetchListings(reset = false) {
   if (isLoading) return;
   isLoading = true;
 
-  if (reset) {
-    state.page = 0;
-    hasMore = true;
-    showSkeletons();
-  }
-
+  if (reset) { state.page = 0; hasMore = true; showSkeletons(); }
   if (errorEl) errorEl.style.display = 'none';
 
   const params = new URLSearchParams();
@@ -262,36 +230,28 @@ async function fetchListings(reset = false) {
   params.set('sortDir', state.sortDir);
   params.set('isActive', 'true');
   params.set('status', 'AVAILABLE');
-
-  if (state.keyword) params.set('keyword', state.keyword);
- if (state.type) params.set('type', state.type);
-if (state.condition) params.set('condition', state.condition);
-if (state.series) params.set('series', state.series);  // matches seriesName in entity
-if (state.size) params.set('size', state.size);
-  if (state.minPrice != null) params.set('minPrice', state.minPrice);
-  if (state.maxPrice != null) params.set('maxPrice', state.maxPrice);
+  if (state.keyword)            params.set('keyword',   state.keyword);
+  if (state.type)               params.set('type',      state.type);
+  if (state.condition)          params.set('condition', state.condition);
+  if (state.series)             params.set('series',    state.series);
+  if (state.size)               params.set('size',      state.size);
+  if (state.minPrice != null)   params.set('minPrice',  state.minPrice);
+  if (state.maxPrice != null)   params.set('maxPrice',  state.maxPrice);
 
   try {
     const data = await API.get(`/api/listings?${params.toString()}`, false);
 
     let listings = [];
-    let total = 0;
-    if (Array.isArray(data)) {
-      listings = data;
-      total = data.length;
-    } else if (data?.content) {
-      listings = data.content;
-      total = data.totalElements || data.content.length;
-    } else if (data?.listings) {
-      listings = data.listings;
-      total = data.total || data.listings.length;
-    }
+    let total    = 0;
+    if (Array.isArray(data))    { listings = data;          total = data.length; }
+    else if (data?.content)     { listings = data.content;  total = data.totalElements || data.content.length; }
+    else if (data?.listings)    { listings = data.listings; total = data.total || data.listings.length; }
 
     if (reset) {
       container.innerHTML = '';
-      if (listings.length === 0) {
+      if (!listings.length) {
         showEmptyState();
-        resultsCount.textContent = '0 listings';
+        if (resultsCount) resultsCount.textContent = '0 listings';
         hasMore = false;
         updatePagination();
         return;
@@ -299,16 +259,16 @@ if (state.size) params.set('size', state.size);
     }
 
     const fragment = document.createDocumentFragment();
-    listings.forEach(listing => {
-      fragment.appendChild(createListingCard(listing));
-    });
+    listings.forEach(listing => fragment.appendChild(createListingCard(listing)));
     container.appendChild(fragment);
 
     if (reset) {
-      resultsCount.textContent = `${total} listing${total !== 1 ? 's' : ''}`;
+      if (resultsCount) resultsCount.textContent = `${total} listing${total !== 1 ? 's' : ''}`;
     } else {
-      const current = parseInt(resultsCount.textContent.split(' ')[0]) || 0;
-      resultsCount.textContent = `${current + listings.length} listings`;
+      if (resultsCount) {
+        const current = parseInt(resultsCount.textContent.split(' ')[0]) || 0;
+        resultsCount.textContent = `${current + listings.length} listings`;
+      }
     }
 
     hasMore = listings.length === state.pageSize;
@@ -316,9 +276,7 @@ if (state.size) params.set('size', state.size);
     attachCardEvents();
     updateActiveFilters();
 
-    // Staggered reveal
-    const newCards = container.querySelectorAll('.listing-card:not(.revealed)');
-    newCards.forEach((card, idx) => {
+    container.querySelectorAll('.listing-card:not(.revealed)').forEach((card, idx) => {
       card.classList.add('revealed');
       card.style.animationDelay = `${idx * 0.03}s`;
     });
@@ -326,26 +284,24 @@ if (state.size) params.set('size', state.size);
     if (reset) container.innerHTML = '';
     if (errorEl) {
       errorEl.style.display = 'block';
-      errorEl.innerHTML = `<strong>Error: ${err.message || 'Could not load listings.'}</strong> <button onclick="fetchListings(true)" style="text-decoration:underline;font-weight:700;color:inherit;">Retry</button>`;
+      errorEl.innerHTML = `<strong>Could not load listings.</strong> <button onclick="fetchListings(true)" style="text-decoration:underline;font-weight:700;color:inherit;">Retry</button>`;
     }
   } finally {
     isLoading = false;
   }
 }
 
-// ── UI Helpers ──
+// ── UI helpers ──
 function showSkeletons() {
   if (!container) return;
-  const skeletons = Array(6).fill(`
+  container.innerHTML = Array(6).fill(`
     <div class="skeleton-card" aria-hidden="true">
       <div class="skeleton-thumb"></div>
       <div class="skeleton-body">
         <div class="skeleton-line medium"></div>
         <div class="skeleton-line short"></div>
       </div>
-    </div>
-  `).join('');
-  container.innerHTML = skeletons;
+    </div>`).join('');
 }
 
 function showEmptyState() {
@@ -363,15 +319,13 @@ function showEmptyState() {
 }
 
 function createListingCard(listing) {
-  const isRent = listing.type === 'RENT';
-  const typeBadge = isRent
-    ? '<span class="badge badge-rent">Rent</span>'
-    : '<span class="badge badge-sell">Sale</span>';
-  const price = listing.price != null ? `₱${Number(listing.price).toLocaleString('en-PH')}` : '—';
+  const isRent    = listing.type === 'RENT';
+  const typeBadge = isRent ? '<span class="badge badge-rent">Rent</span>' : '<span class="badge badge-sell">Sale</span>';
+  const price     = listing.price != null ? `₱${Number(listing.price).toLocaleString('en-PH')}` : '—';
   const priceNote = isRent ? '<span class="price-note">/ event</span>' : '';
   const sellerName = listing.sellerUsername || listing.seller?.username || 'Seller';
-  const initial = sellerName.charAt(0).toUpperCase();
-  const series = listing.seriesName || listing.series || '';
+  const initial    = sellerName.charAt(0).toUpperCase();
+  const series     = listing.seriesName || listing.series || '';
 
   let primaryImage = null;
   if (listing.imageUrl) primaryImage = listing.imageUrl;
@@ -441,11 +395,8 @@ function attachCardEvents() {
     btn.setAttribute('data-wired-wish', 'true');
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (!API.isLoggedIn()) {
-        showToast('Log in to save to your wishlist', 'info');
-        return;
-      }
-      const id = btn.getAttribute('data-id');
+      if (!API.isLoggedIn()) { showToast('Log in to save to your wishlist', 'info'); return; }
+      const id  = btn.getAttribute('data-id');
       const added = toggleWishlist(id);
       btn.classList.toggle('active', added);
       const svg = btn.querySelector('svg');
@@ -456,16 +407,13 @@ function attachCardEvents() {
 }
 
 // ── Wishlist ──
-function getWishlist() {
-  try { return JSON.parse(localStorage.getItem('cosnimaWishlist') || '[]'); } catch { return []; }
-}
+function getWishlist()  { try { return JSON.parse(localStorage.getItem('cosnimaWishlist') || '[]'); } catch { return []; } }
 function isInWishlist(id) { return getWishlist().includes(String(id)); }
 function toggleWishlist(id) {
   const list = getWishlist();
-  const sid = String(id);
-  const idx = list.indexOf(sid);
-  if (idx > -1) list.splice(idx, 1);
-  else list.push(sid);
+  const sid  = String(id);
+  const idx  = list.indexOf(sid);
+  if (idx > -1) list.splice(idx, 1); else list.push(sid);
   localStorage.setItem('cosnimaWishlist', JSON.stringify(list));
   return idx === -1;
 }
@@ -476,29 +424,23 @@ function updatePagination() {
   if (!paginationContainer) return;
   if (hasMore) {
     paginationContainer.innerHTML = `<button class="btn btn-outline" id="load-more-btn">Load More</button>`;
-    const loadMoreBtn = document.getElementById('load-more-btn');
-    if (loadMoreBtn) {
-      loadMoreBtn.addEventListener('click', () => {
-        if (!isLoading && hasMore) {
-          state.page++;
-          fetchListings(false);
-        }
-      });
-    }
+    document.getElementById('load-more-btn')?.addEventListener('click', () => {
+      if (!isLoading && hasMore) { state.page++; fetchListings(false); }
+    });
   } else {
     paginationContainer.innerHTML = '';
   }
 }
 
-// ── Active Filters Chips ──
+// ── Active filter chips ──
 function updateActiveFilters() {
   if (!activeFiltersContainer) return;
   const filters = [];
-  if (state.keyword) filters.push(`<span class="filter-chip">Search: ${escapeHtml(state.keyword)} <button class="remove-chip" data-filter="keyword">✕</button></span>`);
-  if (state.type) filters.push(`<span class="filter-chip">${state.type === 'SELL' ? 'For Sale' : 'For Rent'} <button class="remove-chip" data-filter="type">✕</button></span>`);
-  if (state.condition) filters.push(`<span class="filter-chip">Condition: ${state.condition.replace('_', ' ')} <button class="remove-chip" data-filter="condition">✕</button></span>`);
-  if (state.series) filters.push(`<span class="filter-chip">Series: ${escapeHtml(state.series)} <button class="remove-chip" data-filter="series">✕</button></span>`);
-  if (state.size) filters.push(`<span class="filter-chip">Size: ${state.size} <button class="remove-chip" data-filter="size">✕</button></span>`);
+  if (state.keyword)          filters.push(`<span class="filter-chip">Search: ${escapeHtml(state.keyword)} <button class="remove-chip" data-filter="keyword">✕</button></span>`);
+  if (state.type)             filters.push(`<span class="filter-chip">${state.type === 'SELL' ? 'For Sale' : 'For Rent'} <button class="remove-chip" data-filter="type">✕</button></span>`);
+  if (state.condition)        filters.push(`<span class="filter-chip">Condition: ${state.condition.replace('_', ' ')} <button class="remove-chip" data-filter="condition">✕</button></span>`);
+  if (state.series)           filters.push(`<span class="filter-chip">Series: ${escapeHtml(state.series)} <button class="remove-chip" data-filter="series">✕</button></span>`);
+  if (state.size)             filters.push(`<span class="filter-chip">Size: ${state.size} <button class="remove-chip" data-filter="size">✕</button></span>`);
   if (state.minPrice != null) filters.push(`<span class="filter-chip">Min ₱${state.minPrice} <button class="remove-chip" data-filter="minPrice">✕</button></span>`);
   if (state.maxPrice != null) filters.push(`<span class="filter-chip">Max ₱${state.maxPrice} <button class="remove-chip" data-filter="maxPrice">✕</button></span>`);
 
@@ -506,11 +448,7 @@ function updateActiveFilters() {
     activeFiltersContainer.style.display = 'flex';
     activeFiltersContainer.innerHTML = filters.join('');
     activeFiltersContainer.querySelectorAll('.remove-chip').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const filter = btn.getAttribute('data-filter');
-        removeSingleFilter(filter);
-      });
+      btn.addEventListener('click', (e) => { e.stopPropagation(); removeSingleFilter(btn.getAttribute('data-filter')); });
     });
   } else {
     activeFiltersContainer.style.display = 'none';
@@ -520,28 +458,30 @@ function updateActiveFilters() {
 
 function removeSingleFilter(filter) {
   switch (filter) {
-    case 'keyword': state.keyword = ''; if (searchInput) searchInput.value = ''; break;
-    case 'type': state.type = null; if (typeFilter) typeFilter.value = ''; break;
+    case 'keyword':   state.keyword = '';    if (searchInput)    searchInput.value    = ''; break;
+    case 'type':      state.type = null;     if (typeFilter)     typeFilter.value     = ''; break;
     case 'condition': state.condition = null; if (conditionFilter) conditionFilter.value = ''; break;
-    case 'series': state.series = null; if (seriesFilter) seriesFilter.value = ''; document.querySelectorAll('[data-series]').forEach(p => p.classList.remove('active')); document.querySelector('[data-series=""]')?.classList.add('active'); break;
-    case 'size': state.size = null; if (sizeFilter) sizeFilter.value = ''; break;
-    case 'minPrice': state.minPrice = null; if (priceMin) priceMin.value = ''; break;
-    case 'maxPrice': state.maxPrice = null; if (priceMax) priceMax.value = ''; break;
+    case 'series':    state.series = null;   if (seriesFilter)   seriesFilter.value   = '';
+      document.querySelectorAll('[data-series]').forEach(p => p.classList.remove('active'));
+      document.querySelector('[data-series=""]')?.classList.add('active'); break;
+    case 'size':      state.size = null;     if (sizeFilter)     sizeFilter.value     = ''; break;
+    case 'minPrice':  state.minPrice = null; if (priceMin)       priceMin.value       = ''; break;
+    case 'maxPrice':  state.maxPrice = null; if (priceMax)       priceMax.value       = ''; break;
   }
   fetchListings(true);
 }
 
 function escapeHtml(str) {
   if (!str) return '';
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function showToast(msg, type = 'info', duration = 3000) {
-  const container = document.getElementById('toast-container');
-  if (!container) return;
+  const c = document.getElementById('toast-container');
+  if (!c) return;
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.innerHTML = `<span>${msg}</span>`;
-  container.appendChild(toast);
+  c.appendChild(toast);
   setTimeout(() => toast.remove(), duration);
 }
