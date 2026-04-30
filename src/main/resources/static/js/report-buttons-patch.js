@@ -1,10 +1,5 @@
 /* ============================================
-   COSNIMA — Report Buttons Patch
-   Phase 2: Injects report buttons into pages
-   Works on:
-   - view-listing.html  (report listing)
-   - public-profile.html (report user)
-   - messages.html       (report message - right click / hover)
+   COSNIMA — Report Buttons Patch (Fixed)
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -21,30 +16,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-/* ────────────────────────────────────────────
-   VIEW LISTING: Report the listing
-   ──────────────────────────────────────────── */
+/* ── VIEW LISTING: Report the listing ── */
 function initListingReportButton() {
   if (!API.isLoggedIn()) return;
 
-  // The listing page has a report btn in seller-card header already in view-listing.html
-  // We just need to override the onclick to use our modal properly
   const reportBtn = document.getElementById('report-listing-btn');
   if (reportBtn) {
     reportBtn.onclick = () => {
       const listingId = new URLSearchParams(window.location.search).get('id');
       const titleEl   = document.getElementById('listing-title');
       const title     = titleEl?.textContent || 'Listing';
-
       if (!listingId) return;
-
-      openReportModal({
-        targetType: 'LISTING',
-        targetId:   listingId,
-        targetName: title,
-      });
+      openReportModal({ targetType: 'LISTING', targetId: listingId, targetName: title });
     };
-    // Upgrade button styling
     reportBtn.className = 'report-trigger-btn';
     reportBtn.innerHTML = `
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -54,31 +38,28 @@ function initListingReportButton() {
   }
 }
 
-/* ────────────────────────────────────────────
-   PUBLIC PROFILE: Report the user
-   ──────────────────────────────────────────── */
+/* ── PUBLIC PROFILE: Report the user ── */
 function initProfileReportButton() {
   if (!API.isLoggedIn()) return;
 
-  const params   = new URLSearchParams(window.location.search);
-  const userId   = params.get('id');
-  const myId     = API.getUser()?.id;
+  const params = new URLSearchParams(window.location.search);
+  const userId = params.get('id');
+  const myId   = API.getUser()?.id;
 
-  // Don't let users report themselves
   if (!userId || String(userId) === String(myId)) return;
 
-  // Wait for profile to load and actions to render
-  const checkActions = setInterval(() => {
-    const actionsEl = document.getElementById('profile-actions');
-    if (!actionsEl || actionsEl.innerHTML.trim() === '') return;
+  /* 
+   * Use a MutationObserver on the actions container so we inject
+   * the button as soon as it gets children — no race condition.
+   */
+  const actionsEl = document.getElementById('profile-actions');
+  if (!actionsEl) return;
 
-    // Only add if not already there
-    if (actionsEl.querySelector('.report-trigger-btn')) {
-      clearInterval(checkActions);
-      return;
-    }
-
-    clearInterval(checkActions);
+  const injectBtn = () => {
+    /* Don't double-inject */
+    if (actionsEl.querySelector('.report-trigger-btn')) return;
+    /* Don't inject into an empty container — wait for real content */
+    if (!actionsEl.children.length) return;
 
     const reportBtn = document.createElement('button');
     reportBtn.className = 'report-trigger-btn';
@@ -91,35 +72,32 @@ function initProfileReportButton() {
     reportBtn.onclick = () => {
       const usernameEl = document.getElementById('profile-username');
       const username   = usernameEl?.textContent || 'User';
-      openReportModal({
-        targetType: 'USER',
-        targetId:   userId,
-        targetName: username,
-      });
+      openReportModal({ targetType: 'USER', targetId: userId, targetName: username });
     };
     actionsEl.appendChild(reportBtn);
-  }, 300);
+    observer.disconnect();
+  };
 
-  // Stop checking after 5 seconds
-  setTimeout(() => clearInterval(checkActions), 5000);
+  /* Try immediately in case already rendered */
+  injectBtn();
+
+  /* Otherwise observe for DOM changes */
+  const observer = new MutationObserver(injectBtn);
+  observer.observe(actionsEl, { childList: true, subtree: false });
+
+  /* Safety timeout — disconnect after 10s regardless */
+  setTimeout(() => observer.disconnect(), 10000);
 }
 
-/* ────────────────────────────────────────────
-   MESSAGES: Report a message (hover/right-click)
-   ──────────────────────────────────────────── */
+/* ── MESSAGES: Report a message ── */
 function initMessageReportButtons() {
   if (!API.isLoggedIn()) return;
 
-  // Observe messages area for new messages
   const messagesArea = document.getElementById('messages-area');
   if (!messagesArea) return;
 
-  const observer = new MutationObserver(() => {
-    addReportButtonsToMessages(messagesArea);
-  });
+  const observer = new MutationObserver(() => addReportButtonsToMessages(messagesArea));
   observer.observe(messagesArea, { childList: true, subtree: true });
-
-  // Initial pass
   addReportButtonsToMessages(messagesArea);
 }
 
@@ -128,14 +106,10 @@ function addReportButtonsToMessages(root) {
 
   root.querySelectorAll('.msg-row:not([data-report-wired])').forEach(row => {
     row.dataset.reportWired = 'true';
-
-    const msgId   = row.dataset.msgId;
-    const isOwn   = row.classList.contains('own');
-
-    // Only allow reporting OTHER people's messages
+    const msgId  = row.dataset.msgId;
+    const isOwn  = row.classList.contains('own');
     if (isOwn || !msgId) return;
 
-    // Add hover report button
     const reportBtn = document.createElement('button');
     reportBtn.className = 'msg-report-btn';
     reportBtn.title = 'Report message';
@@ -145,8 +119,7 @@ function addReportButtonsToMessages(root) {
       top: 50%;
       right: -36px;
       transform: translateY(-50%);
-      width: 28px;
-      height: 28px;
+      width: 28px; height: 28px;
       border-radius: 50%;
       background: var(--card);
       border: 1.5px solid var(--border);
@@ -157,27 +130,20 @@ function addReportButtonsToMessages(root) {
       justify-content: center;
       opacity: 0;
       transition: opacity 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-      font-size: 0;
     `;
     reportBtn.innerHTML = `
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
       </svg>`;
 
-    // Make row relative if needed
     const bubbleWrap = row.querySelector('.msg-bubble-wrap');
     if (bubbleWrap) {
       bubbleWrap.style.position = 'relative';
       bubbleWrap.appendChild(reportBtn);
     }
 
-    // Show/hide on hover
-    row.addEventListener('mouseenter', () => {
-      reportBtn.style.opacity = '1';
-    });
-    row.addEventListener('mouseleave', () => {
-      reportBtn.style.opacity = '0';
-    });
+    row.addEventListener('mouseenter', () => { reportBtn.style.opacity = '1'; });
+    row.addEventListener('mouseleave', () => { reportBtn.style.opacity = '0'; });
     reportBtn.addEventListener('mouseenter', () => {
       reportBtn.style.opacity = '1';
       reportBtn.style.color = 'var(--error)';
@@ -187,16 +153,10 @@ function addReportButtonsToMessages(root) {
       reportBtn.style.color = 'var(--ink-faint)';
       reportBtn.style.borderColor = 'var(--border)';
     });
-
-    // On click
     reportBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       const preview = row.querySelector('.msg-bubble')?.textContent?.slice(0, 60) || 'Message';
-      openReportModal({
-        targetType: 'MESSAGE',
-        targetId:   msgId,
-        targetName: preview + (preview.length >= 60 ? '…' : ''),
-      });
+      openReportModal({ targetType: 'MESSAGE', targetId: msgId, targetName: preview + (preview.length >= 60 ? '…' : '') });
     });
   });
 }
