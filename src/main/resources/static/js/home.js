@@ -4,7 +4,6 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Loading screen
   const loadingScreen = document.getElementById('loading-screen');
   const hideLoader = () => {
     if (!loadingScreen) return;
@@ -22,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadStats();
   loadTagPills();
 
-  // Hero search — enter key
   const searchInput = document.getElementById('hero-search-input');
   if (searchInput) {
     searchInput.addEventListener('keydown', e => {
@@ -32,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-/* ── Tag Pills (from API) ── */
+/* ── Tag Pills ── */
 async function loadTagPills() {
   const rail = document.getElementById('series-pills');
   if (!rail) return;
@@ -60,7 +58,7 @@ async function loadTagPills() {
       });
     });
   } catch {
-    // silently skip — pills are optional
+    // silently skip
   }
 }
 
@@ -70,7 +68,6 @@ async function loadFeaturedListings(filters = {}) {
   const errorEl   = document.getElementById('listings-error');
   if (!container) return;
 
-  // Show skeletons
   container.innerHTML = Array(6).fill(`
     <div class="skeleton-card" aria-hidden="true">
       <div class="skeleton-thumb"></div>
@@ -82,7 +79,6 @@ async function loadFeaturedListings(filters = {}) {
   `).join('');
   if (errorEl) errorEl.style.display = 'none';
 
-  // Build query string from filters
   const params = new URLSearchParams({
     page: 0,
     pageSize: 8,
@@ -111,18 +107,62 @@ async function loadFeaturedListings(filters = {}) {
 
     container.innerHTML = listings.map(buildListingCard).join('');
     container.classList.add('visible');
+
+    /* ── Wire wishlist buttons ── */
     initWishButtons();
 
     container.querySelectorAll('.listing-card').forEach(card => {
       card.addEventListener('click', e => {
-        
+        if (e.target.closest('.card-wish') || e.target.closest('.card-seller')) return;
         const id = card.dataset.id;
         if (id) redirectTo(`listing/view-listing.html?id=${id}`);
       });
     });
 
-} catch {/* silent */}
-  
+  } catch (err) {
+    if (errorEl) {
+      errorEl.style.display = 'block';
+    }
+  }
+}
+
+/* ── initWishButtons — wire heart buttons ── */
+function initWishButtons() {
+  document.querySelectorAll('.card-wish:not([data-wired])').forEach(btn => {
+    btn.dataset.wired = 'true';
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (!API.isLoggedIn()) {
+        showToast('Log in to save to your wishlist', 'info');
+        return;
+      }
+      const id = btn.dataset.id;
+      if (!id) return;
+
+      const wasWished = btn.classList.contains('active');
+      btn.disabled = true;
+
+      try {
+        if (wasWished) {
+          await API.delete(`/api/wishlists/${id}`, true);
+          btn.classList.remove('active');
+          const svg = btn.querySelector('svg');
+          if (svg) svg.setAttribute('fill', 'none');
+          showToast('Removed from wishlist', 'info');
+        } else {
+          await API.post(`/api/wishlists/${id}/wishlist`, null, true);
+          btn.classList.add('active');
+          const svg = btn.querySelector('svg');
+          if (svg) svg.setAttribute('fill', 'var(--accent)');
+          showToast('Added to wishlist', 'success');
+        }
+      } catch (err) {
+        showToast('Failed to update wishlist', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
 }
 
 /* ── Stats ── */
@@ -159,7 +199,7 @@ function formatNum(n) {
   return String(n);
 }
 
-/* ── Build listing card HTML — NO EMOJIS ── */
+/* ── Build listing card HTML ── */
 function buildListingCard(listing) {
   const isRent    = listing.type === 'RENT';
   const typeBadge = isRent
@@ -173,7 +213,6 @@ function buildListingCard(listing) {
   const initial    = sellerName.charAt(0).toUpperCase();
   const series     = listing.seriesName || listing.series || '';
 
-  // Resolve primary image
   let primaryImage = null;
   if (listing.imageUrl) {
     primaryImage = listing.imageUrl;
@@ -190,15 +229,10 @@ function buildListingCard(listing) {
         </svg>
       </div>`;
 
-  const isWished = false;
+  const isWished = getWishlistHome().includes(String(listing.id));
 
-  // Check if viewing own listing — seller avatar links to public profile
-  // The card click goes to the listing page itself
   const currentUser = API.getUser();
   const isOwn = currentUser && String(currentUser.id) === String(listing.sellerId || listing.seller?.id);
-
-  // Seller avatar: clicking it goes to the seller's public profile page
-  // (own profile goes to /profile/profile.html, others go to /profile/public-profile.html)
   const profileUrl = isOwn
     ? '../profile/profile.html'
     : `../profile/public-profile.html?id=${listing.sellerId || listing.seller?.id}`;
@@ -208,7 +242,11 @@ function buildListingCard(listing) {
       <div class="card-thumb">
         ${imgHtml}
         <div class="card-badges">${typeBadge}</div>
-        
+        <button class="card-wish ${isWished ? 'active' : ''}" data-id="${listing.id}" aria-label="${isWished ? 'Remove from wishlist' : 'Add to wishlist'}" style="position:absolute;top:var(--space-sm);right:var(--space-sm);width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.92);backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;color:var(--accent);transition:all 0.2s;z-index:2;">
+          <svg viewBox="0 0 24 24" fill="${isWished ? 'var(--accent)' : 'none'}" stroke="var(--accent)" stroke-width="2" style="width:16px;height:16px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+          </svg>
+        </button>
       </div>
       <div class="card-body">
         ${series ? `<p class="card-series">${escapeHtml(series)}</p>` : ''}
@@ -228,37 +266,10 @@ function buildListingCard(listing) {
   `;
 }
 
-/* ── Wishlist ── */
-// Wishlist API calls for home.js
-async function isInWishlistHome(id) {
-  if (!API.isLoggedIn()) return false;
-  try {
-    const wishlists = await API.get('/api/wishlists', true);
-    if (!Array.isArray(wishlists)) return false;
-    return wishlists.some(w => String(w.listingId) === String(id));
-  } catch { return false; }
+/* ── Wishlist helpers ── */
+function getWishlistHome() {
+  try { return JSON.parse(localStorage.getItem('cosnimaWishlist') || '[]'); } catch { return []; }
 }
-
-async function toggleWishlistHome(id) {
-  if (!API.isLoggedIn()) { showToast('Log in to save to your wishlist', 'info'); return false; }
-  const isWished = await isInWishlistHome(id);
-  try {
-    if (isWished) {
-      await API.delete(`/api/wishlists/${id}`, true);
-      showToast('Removed from wishlist', 'info');
-      return false;
-    } else {
-      await API.post(`/api/wishlists/${id}/wishlist`, null, true);
-      showToast('Added to wishlist', 'success');
-      return true;
-    }
-  } catch (err) {
-    showToast(err?.data?.message || 'Failed to update wishlist', 'error');
-    return isWished;
-  }
-}
-
-
 
 /* ── Search ── */
 function handleSearch() {
@@ -270,12 +281,10 @@ function handleSearch() {
   }, 260);
 }
 
-/* ── SVG icon helper — replaces emoji ── */
+/* ── SVG icon helper ── */
 function svgIcon(name, size = 48) {
   const icons = {
     package: `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" style="opacity:0.35"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>`,
-    heart:   `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" style="opacity:0.35"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`,
-    mask:    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" style="opacity:0.35"><path stroke-linecap="round" stroke-linejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
   };
   return `<div class="empty-state-icon">${icons[name] || icons.package}</div>`;
 }
