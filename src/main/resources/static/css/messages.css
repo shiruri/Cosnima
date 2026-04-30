@@ -1,5 +1,9 @@
 /* ============================================
-   COSNIMA — Messaging System Styles (Fixed Mobile)
+   COSNIMA — Messaging System Styles (Fixed)
+   Fixes:
+   1. Desktop: chat panel flex layout so input always shows
+   2. Mobile: input not hidden under browser chrome
+   3. Proper height calculation with nav offset
    ============================================ */
 
 .messages-page {
@@ -15,13 +19,14 @@
   grid-template-columns: 320px 1fr;
   flex: 1;
   overflow: hidden;
+  /* FIX: use calc so the grid fills exactly remaining viewport */
   height: calc(100vh - var(--nav-h));
+  min-height: 0;
 }
 
 @media (max-width: 768px) {
   .messages-layout {
     grid-template-columns: 1fr;
-    /* Both panels occupy the same grid area; JS toggles visibility */
   }
   .messages-layout.show-chat .conversations-panel {
     display: none;
@@ -38,6 +43,9 @@
   flex-direction: column;
   overflow: hidden;
   background: var(--card);
+  /* FIX: ensure it doesn't overflow its grid cell */
+  min-height: 0;
+  height: 100%;
 }
 
 .conversations-header {
@@ -92,6 +100,7 @@
 .conversations-list {
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
@@ -200,13 +209,15 @@
 .convo-empty p { font-size: 0.82rem; color: var(--ink-muted); max-width: 200px; }
 
 /* ── Chat Panel ── */
+/* FIX: This is the key fix — chat-panel must be a proper flex column
+   filling its grid cell completely, with min-height:0 to allow children
+   to shrink. Without this the input disappears on desktop. */
 .chat-panel {
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: var(--bg);
   position: relative;
-  /* Critical: ensure full height */
   height: 100%;
   min-height: 0;
 }
@@ -236,6 +247,7 @@
   border-bottom: 1.5px solid var(--border);
   background: var(--card);
   flex-shrink: 0;
+  /* FIX: explicit shrink:0 ensures header never collapses */
 }
 
 .chat-header-back {
@@ -293,7 +305,19 @@
 .chat-action-btn:hover { border-color: var(--accent); color: var(--accent); }
 .chat-action-btn svg { width: 13px; height: 13px; }
 
-/* Messages area — flex:1 with min-height:0 is critical */
+/* ── FIX: chat-main must be a proper flex column ── */
+#chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  height: 100%;
+}
+
+/* ── Messages area ── */
+/* FIX: flex:1 + min-height:0 is critical — without min-height:0
+   the area won't shrink and pushes the input off screen */
 .messages-area {
   flex: 1;
   min-height: 0;
@@ -305,7 +329,6 @@
   scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
-  /* Ensure it doesn't collapse on mobile */
   -webkit-overflow-scrolling: touch;
 }
 
@@ -376,22 +399,48 @@
 .msg-skeleton-bubble.md { width: 220px; }
 .msg-skeleton-bubble.lg { width: 300px; }
 
-/* ── Chat Input Area — FIXED for mobile ── */
+/* ── Chat Input Area ── */
+/* FIX: flex-shrink:0 is critical — prevents input from being
+   squeezed out of view when messages area grows */
 .chat-input-area {
+  flex-shrink: 0;
   padding: var(--space-md) var(--space-lg);
   border-top: 1.5px solid var(--border);
   background: var(--card);
-  flex-shrink: 0;
-  /* Prevent input from going off screen on mobile */
   position: relative;
   z-index: 10;
 }
 
-/* On mobile, ensure input area is always visible at bottom */
+/* FIX: Mobile — account for browser bottom chrome (address bar,
+   nav buttons) using safe-area-inset-bottom + extra padding */
 @media (max-width: 768px) {
   .chat-input-area {
     padding: 0.75rem var(--space-md);
-    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    /* This is the key mobile fix — safe-area pushes content above
+       the browser chrome, extra 12px catches any remaining gap */
+    padding-bottom: max(calc(0.75rem + env(safe-area-inset-bottom, 0px)), 12px);
+  }
+
+  /* FIX: On mobile, ensure the full page doesn't overflow causing
+     the input to shift off-screen */
+  .messages-page {
+    height: 100dvh; /* dynamic viewport height — accounts for browser chrome */
+  }
+
+  .messages-layout {
+    height: calc(100dvh - var(--nav-h));
+  }
+}
+
+/* Extra safety: browsers that support dvh but not the calc above */
+@supports (height: 100dvh) {
+  @media (max-width: 768px) {
+    .messages-page {
+      height: 100dvh;
+    }
+    .messages-layout {
+      height: calc(100dvh - var(--nav-h));
+    }
   }
 }
 
@@ -412,7 +461,6 @@
   border: none;
   outline: none;
   background: transparent;
-  font-size: 0.9rem;
   font-family: var(--font-body);
   font-weight: 500;
   color: var(--ink);
@@ -421,7 +469,7 @@
   line-height: 1.5;
   padding: 0.25rem 0;
   overflow-y: auto;
-  /* Prevent iOS zoom on focus */
+  /* FIX: Prevent iOS zoom on focus — must be 16px or larger */
   font-size: 16px;
 }
 
@@ -477,16 +525,6 @@
 .chat-listing-info { flex: 1; min-width: 0; }
 .chat-listing-title { font-size: 0.8rem; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chat-listing-price { font-size: 0.72rem; color: var(--accent); font-weight: 800; }
-
-/* chat-main must be a proper flex column */
-#chat-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-height: 0;
-  height: 100%;
-}
 
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
