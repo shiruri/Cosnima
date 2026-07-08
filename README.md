@@ -3,7 +3,7 @@
 # 🌸 Cosnima
 
 **A full-stack cosplay & anime community platform**
-built with Spring Boot 4 · Java 21 · WebSocket · JWT Auth
+built with Spring Boot 4 · Java 21 · JWT Auth
 
 [![Java](https://img.shields.io/badge/Java-21-ED8B00?style=flat&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.5-6DB33F?style=flat&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
@@ -45,7 +45,6 @@ Cosnima is a full-stack web platform for the cosplay and anime community. It pro
 | Security | Spring Security + JJWT 0.11.5 |
 | Database | PostgreSQL / MySQL 9.6 |
 | ORM | Spring Data JPA (Hibernate) |
-| Realtime | Spring WebSocket (STOMP) |
 | Media | Cloudinary HTTP 1.31.0 |
 | Build | Apache Maven (mvnw) |
 | Frontend | HTML · CSS · JavaScript |
